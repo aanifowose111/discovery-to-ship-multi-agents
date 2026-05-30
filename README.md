@@ -59,7 +59,9 @@ See `CLAUDE.md` for the full inventory and how the pieces fit together.
 ### Prerequisites
 
 - **macOS, Linux, or WSL.** Most of the runbooks assume macOS for the developer machine; production targets are Linux (DigitalOcean droplet or App Platform).
-- **[Claude Code CLI](https://docs.claude.com/en/docs/claude-code/installation)** — this whole workspace is designed to be driven from inside Claude Code.
+- **Claude Code** — this whole workspace is designed to be driven from inside Claude Code, which requires a Claude account.
+  - **New to Claude?** Sign up via the maintainer's referral link: **<https://claude.ai/referral/4tieocI5Xw>** (helps support continued work on this repo at no cost to you).
+  - **Install the CLI:** [docs.claude.com/en/docs/claude-code/installation](https://docs.claude.com/en/docs/claude-code/installation).
 - **Git ≥ 2.13** (for submodule support).
 - **Python 3.11+** if you will build any web apps.
 - **Node.js 20+** if you will build any mobile apps.
@@ -94,7 +96,7 @@ For everything to work, you need:
 | Tool | Purpose | Install (macOS) | Install (Ubuntu / WSL) |
 |---|---|---|---|
 | **git** | Version control | comes with Xcode CLI tools (`xcode-select --install`) | `sudo apt update && sudo apt install git` |
-| **Claude Code CLI** | The agent runner | [docs.claude.com/en/docs/claude-code/installation](https://docs.claude.com/en/docs/claude-code/installation) | same link |
+| **Claude Code CLI** | The agent runner. Requires a Claude account ([sign up via the maintainer's referral](https://claude.ai/referral/4tieocI5Xw)). | [docs.claude.com/en/docs/claude-code/installation](https://docs.claude.com/en/docs/claude-code/installation) | same link |
 | **Homebrew** (macOS only) | Package manager for the rest | `/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"` | n/a (you have `apt`) |
 | **GitHub CLI** (`gh`) | Auth with GitHub from the terminal | `brew install gh` | `sudo apt install gh` |
 | **pandoc** | Markdown → PDF/DOCX (for `doc-export` skill) | `brew install pandoc` | `sudo apt install pandoc` |

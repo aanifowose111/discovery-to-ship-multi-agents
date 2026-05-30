@@ -28,7 +28,7 @@ For each missing tool, surface the install command:
 | typst | `brew install typst` | see https://github.com/typst/typst |
 | Python 3.11+ | `brew install python@3.12` | `sudo apt install python3 python3-pip` |
 | Node 20+ | `brew install node@20` | `curl -fsSL https://deb.nodesource.com/setup_20.x \| sudo -E bash - && sudo apt install nodejs` |
-| Claude Code | https://docs.claude.com/en/docs/claude-code/installation | same |
+| Claude Code | Sign up for a Claude account (maintainer's referral: https://claude.ai/referral/4tieocI5Xw), then install the CLI per https://docs.claude.com/en/docs/claude-code/installation | same |
 
 #### Git identity
 

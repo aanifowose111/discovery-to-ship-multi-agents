@@ -17,9 +17,22 @@ You are about to run a discovery cycle. Follow the methodology in @guides/produc
 1. **Determine the seed territories.** In order:
    - If `$ARGUMENTS` is non-empty, parse it as a comma-separated territory list and use those.
    - Else, look for the most recent `market-research/scan-*.md` with `status: active`. If found, use its *Recommended seeds* section.
-   - Else (no args, no active scan), do an **inline lightweight scan**: read @CLAUDE.md for founder fit, the most recent `market-research/trends-*.md` (if any), and any recent kills in `ideas/killed/`. Pick 2-3 fresh candidate territories grounded in (a) the user's strengths (Python/Flask, RN, multi-tenant SaaS, eval engineering) and (b) recent capability/regulatory/funding shifts you can cite. Write a note at the top of the triage list: "No active scan; territories derived inline from founder fit + recent trends. Consider running `/scan` for a deeper foundation before the next discovery cycle." This makes `/discover` work as a one-command bootstrap when the user has not yet run a scan.
+   - Else (no args, no active scan), do an **inline lightweight scan**. Determine the founder-fit context for *this specific clone of the workspace* in this order:
+     1. **Check `user-context/INTERESTS.md`** — if it exists, this is the canonical source for the current user's professional background, hobbies, domain expertise, and prior product ideas. Use it as the primary anchor for territory selection. (Per `user-context/README.md`: that file is gitignored, so forkers populate it for themselves; it is NOT the maintainer's context bleeding through.)
+     2. **If `user-context/INTERESTS.md` does not exist**, surface to the user:
+        > No `user-context/INTERESTS.md` found. You have two options:
+        > (a) **Open discovery** — I brainstorm broadly from current capability shifts + adjacent workflows + competitor weaknesses, with no founder-fit constraint. Less personally relevant but a fine starting point.
+        > (b) **Tell me your context now in 1-3 sentences** (your background, interests, the kind of product you'd be excited to build) — I use that as the seed, just for this run. You can later populate `user-context/INTERESTS.md` from the template (`user-context/INTERESTS.md.example`) so this is persistent for the next time.
+        >
+        > Which would you like? (Default to (a) if no reply within the same turn.)
+
+     Once the founder-fit source is determined, also read the most recent `market-research/trends-*.md` (if any) and any recent kills in `ideas/killed/`. Pick 2-3 fresh candidate territories grounded in (a) the user's context per the source above and (b) recent capability/regulatory/funding shifts you can cite.
+
+     Write a note at the top of the triage list explaining which source was used: "No active scan; territories derived inline from `<source>` + recent trends. Consider running `/scan` for a deeper foundation before the next discovery cycle." This makes `/discover` work as a one-command bootstrap when the user has not yet run a scan.
 
    Write the chosen territories at the top of your scratch notes.
+
+   **Important — do NOT use the `CLAUDE.md` owner intro (`This directory is ... owned by Abiodun Anifowose ... currently does chemistry-reasoning eval work at Mercor`) as the founder-fit source.** That line is *attribution to the maintainer*, not the current user's context. Forkers will inherit it but it does not apply to them. The canonical source for the current user's context is `user-context/INTERESTS.md`; if absent, ask or fall back to open discovery as described above.
 2. Brainstorm idea cards. **At least 10 cards**, drawn from at least three sources in §3 of the discovery guide. Tag each card's source territory in its frontmatter (add a `territory: <name>` field to the card frontmatter, *in addition* to the fields the guide already specifies).
 3. Write each card to `ideas/<slug>.md` per the format in §4 of the discovery guide. Cite URLs in *Problem*, *Current alternatives*, and *Distribution hypothesis* per §3.1.
 4. Score every card on the §5 rubric. Bucket as green / yellow / red. Apply the hard-kill rules.

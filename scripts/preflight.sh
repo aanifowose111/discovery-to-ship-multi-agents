@@ -121,7 +121,7 @@ if command -v claude >/dev/null 2>&1; then
     check "Claude Code CLI" pass "available"
 else
     check "Claude Code CLI" warn "not in PATH" \
-          "https://docs.claude.com/en/docs/claude-code/installation"
+          "Sign up: https://claude.ai/referral/4tieocI5Xw  |  Install: https://docs.claude.com/en/docs/claude-code/installation"
 fi
 
 # ─── Git identity ────────────────────────────────────────────────────────

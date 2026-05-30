@@ -1,0 +1,43 @@
+# Your context
+
+Copy this file to `INTERESTS.md` in the same folder, then edit. Everything below is a template — keep what's useful, rewrite or delete what's not. This file is gitignored, so it stays local to your clone.
+
+## Professional background
+
+- **Primary languages / frameworks:** (e.g., Python + Flask, TypeScript + React, Go, Rust, Swift)
+- **Shipped products:** (list a few — what you built, who it was for, what you learned)
+- **Current role:** (your day job, contract work, consulting, etc.)
+- **Domain expertise:** (industries, regulatory contexts, technical specialties — anywhere you have inside-track knowledge)
+
+## Interests / hobbies
+
+- (Things you'd consider building a product around — even if unrelated to your day job)
+- (Sports, hobbies, communities you're part of)
+- (Topics you read about for fun)
+
+## Industries with inside-track knowledge
+
+- (Where you understand the workflows, pain points, jargon, and unwritten rules better than an outsider would)
+- (This is high-value for founder-fit discovery — products in these spaces have a built-in unfair advantage)
+
+## Product ideas I've already had
+
+- (Things you've thought about building but haven't acted on yet — `/discover` can mine these as inputs)
+- (Even half-formed ideas; just capture them)
+
+## Things I do NOT want to work on
+
+- (Categories that don't interest you, even if commercially viable — useful as a negative filter)
+- (E.g., "not gambling," "not adtech," "not anything regulated by FDA")
+
+## Risk profile
+
+- **Solo budget for a build:** (hours/week + months you'd commit before validating)
+- **Tolerance for a stretch stack:** (would you learn a new framework for the right product, or stay in known territory?)
+- **Revenue vs. scale preference:** (lifestyle/profitable indie business vs. VC-track growth play)
+
+## Anything else worth seeding the discovery with
+
+- (Capability shifts you've noticed and want to act on)
+- (Communities you're part of where you've seen recurring complaints)
+- (Adjacencies to your shipped work you've been curious about)

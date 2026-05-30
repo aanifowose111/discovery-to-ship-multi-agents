@@ -101,3 +101,9 @@ Thumbs.db
 
 *.log
 logs/
+
+# Personal user-context for this clone (founder profile, interests, ideas backlog)
+user-context/*
+!user-context/README.md
+!user-context/INTERESTS.md.example
+!user-context/.gitkeep
