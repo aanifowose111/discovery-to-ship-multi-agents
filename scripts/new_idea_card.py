@@ -65,15 +65,30 @@ def prompt(question: str, default: str = "", multiline: bool = False) -> str:
 
 
 def validate_slug(slug: str) -> tuple[bool, str]:
-    if not slug:
-        return False, "Slug cannot be empty."
-    if not re.match(r"^[a-z][a-z0-9-]*$", slug):
-        return False, "Slug must be lowercase kebab-case (letters, digits, hyphens; start with a letter)."
-    if (IDEAS_DIR / f"{slug}.md").exists():
-        return False, f"ideas/{slug}.md already exists. Pick a different slug or delete the existing card."
-    if (KILLED_DIR / f"{slug}.md").exists():
-        return False, f"ideas/killed/{slug}.md already exists. The slug was previously killed; pick a different one."
-    return True, ""
+    # Delegate the full workspace-wide check to scripts/check_slug.py logic.
+    # Importing as a module keeps the rules in one place.
+    sys.path.insert(0, str(Path(__file__).resolve().parent))
+    try:
+        from check_slug import is_available  # type: ignore
+    except ImportError:
+        # Fallback: do the basic checks inline if check_slug isn't importable.
+        if not slug:
+            return False, "Slug cannot be empty."
+        if not re.match(r"^[a-z][a-z0-9-]*$", slug):
+            return False, "Slug must be lowercase kebab-case."
+        if (IDEAS_DIR / f"{slug}.md").exists():
+            return False, f"ideas/{slug}.md already exists."
+        if (KILLED_DIR / f"{slug}.md").exists():
+            return False, f"ideas/killed/{slug}.md already exists."
+        return True, ""
+
+    ok, reason, conflicts = is_available(slug)
+    if ok:
+        return True, ""
+    msg = reason
+    if conflicts:
+        msg += " Conflicts: " + ", ".join(f"{c.kind}@{c.path}" for c in conflicts)
+    return False, msg
 
 
 def main() -> int:

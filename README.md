@@ -222,6 +222,7 @@ Pipeline phase commands (each stops at a user-checkpoint):
 | `/research-design <slug>` | Runs the UI/UX researcher to produce a design-direction report (3+ visual directions, color/typography options, brand positioning). |
 | `/draft-design-brief <slug>` | Drafts the consolidated design brief (PRD+FRD) for the human designer, with the design-brief-reviewer. |
 | `/start-build <slug>` | Kicks off the build phase for a green-lit-to-build product. Invokes the senior-software-engineer to ask orientation questions (web/mobile/hybrid order, MVP vs. full, first subsystem) and route to the right specialist. |
+| `/preview-product <slug> [page]` | Preview a product's UI in the browser. Tries real preview (running app) first; falls back to dummy preview (Jinja + fixture data) if dependencies aren't connected yet. Always says which mode you got. Web only — mobile previews go through Expo Go / EAS preview builds. |
 | `/trend-check [optional triggered <reason>]` | Sweeps a watchlist derived from active pipeline state and recommends downstream commands. |
 | `/menu` | Quick menu of available commands and suggested next actions, based on current state. (Named `/menu` because `/help` is shadowed by Claude Code's built-in help dialog.) |
 
@@ -256,7 +257,13 @@ The seven specialists are:
 
 Each specialist leverages relevant agent-skills (TDD, code-review-and-quality, security-and-hardening, performance-optimization, etc.) without you having to invoke them by name.
 
-The workflow is **conversational**: at each subsystem boundary, you're asked to confirm the recommended next step or override it. You're never lost about "what now" during the build.
+The workflow is **conversational and visible**:
+
+- **Narrated handoffs** — at every specialist handoff, the senior-software-engineer announces *who* is doing *what* next, with the input artifacts, the expected output, and a rough time estimate. You feel the team working for you.
+- **`BUILD_STATUS.md` per product** — a living checklist (dynamic, generated from this product's specific must-haves + stack + build-order) showing what's done, in progress, pending, and what was decided. Updated on every subsystem start, completion, or decision. Run `/status` to see the latest.
+- **Visual preview with `/preview-product <slug> [page]`** — auto-detects whether real preview is possible (running app + wired dependencies) or falls back to dummy preview (Jinja + fixture data). Closes the "what does it actually look like right now" gap during the build.
+
+You're never lost about "what now" or "where am I" during the build.
 
 ### Utility scripts
 

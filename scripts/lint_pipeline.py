@@ -213,6 +213,45 @@ def check_at_references(issues: list[Issue]) -> None:
                     ))
 
 
+def check_slug_uniqueness(issues: list[Issue]) -> None:
+    """A slug must be unique across ideas/, ideas/killed/, web-apps/, mobile-apps/."""
+    locations: dict[str, list[str]] = {}
+
+    def record(slug: str, path: str) -> None:
+        locations.setdefault(slug, []).append(path)
+
+    ideas_dir = REPO_ROOT / "ideas"
+    if ideas_dir.exists():
+        for md in ideas_dir.glob("*.md"):
+            if md.name == "README.md":
+                continue
+            record(md.stem, str(md.relative_to(REPO_ROOT)))
+
+    killed_dir = REPO_ROOT / "ideas" / "killed"
+    if killed_dir.exists():
+        for md in killed_dir.glob("*.md"):
+            record(md.stem, str(md.relative_to(REPO_ROOT)))
+
+    for top in ("web-apps", "mobile-apps"):
+        d = REPO_ROOT / top
+        if not d.exists():
+            continue
+        for sub in d.iterdir():
+            if sub.is_dir() and sub.name != ".gitkeep":
+                record(sub.name, str(sub.relative_to(REPO_ROOT)))
+
+    for slug, paths in locations.items():
+        if len(paths) > 1:
+            issues.append(Issue(
+                severity="error",
+                file=paths[0],
+                line=0,
+                rule="slug.collision",
+                message=f"Slug `{slug}` is used in {len(paths)} places: {', '.join(paths)}",
+                suggestion="Slugs must be unique across ideas/, ideas/killed/, web-apps/, mobile-apps/. Rename one of the conflicting artifacts.",
+            ))
+
+
 def check_required_sections_validation(issues: list[Issue]) -> None:
     """Validation reports must have the locked verdict-format sections."""
     market_dir = REPO_ROOT / "market-research"
@@ -302,6 +341,7 @@ def main() -> int:
     check_status_alignment(issues)
     check_brief_picks(issues)
     check_at_references(issues)
+    check_slug_uniqueness(issues)
     check_required_sections_validation(issues)
 
     if args.json:

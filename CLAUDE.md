@@ -77,6 +77,31 @@ This table grows as new folders or domains open. Keep it current.
 
 ---
 
+## Slug uniqueness — workspace rule
+
+A **product slug** is the canonical identifier for a product across the workspace. It must be unique across:
+
+- `ideas/<slug>.md` (active idea cards)
+- `ideas/killed/<slug>.md` (killed cards — still occupy the namespace)
+- `web-apps/<slug>/` (web app project folders)
+- `mobile-apps/<slug>/` (mobile app project folders)
+
+A slug appearing in two of those locations means two different things share an identifier — that's a workspace-integrity problem. Lint catches it (`scripts/lint_pipeline.py` has a `slug.collision` rule).
+
+**Before creating any new slug-keyed artifact**, verify availability:
+
+```bash
+python3 scripts/check_slug.py <proposed-slug>
+```
+
+Exit 0 = available. Exit 1 = taken (with details of the conflict).
+
+For programmatic use (e.g., from `new_idea_card.py`), the script's `is_available()` function returns `(bool, reason, [conflicts])`. The interactive `/discover` and `/scope-mvp` flows should both call this check before writing files.
+
+If a slug is taken because it was previously killed, **pick a different slug**. Recycling a killed slug confuses the kill-reason audit trail. If the previous kill needs to be undone, restore the killed card to `ideas/` (don't create a new artifact at the same slug).
+
+---
+
 ## Working style (how the user wants Claude to operate here)
 
 - **One thing at a time.** Build → present → wait for the user to inspect → next. Do not batch-create scaffolding.
@@ -152,6 +177,18 @@ Same agent-skills commands as Phase 2, but driven by the handoff:
 - `design/handoff/screenshots/` inform per-screen implementation — Claude reads them via the Read tool.
 - Components match the Figma library's 02 Components page.
 - **Order of authority** when sources conflict: token contract → screenshot → brief §6 → agent-skills' `frontend-ui-engineering` craft.
+
+### BUILD_STATUS.md — the living build dashboard
+
+Every product in the build phase has a **`BUILD_STATUS.md`** at `<web-apps|mobile-apps>/<slug>/BUILD_STATUS.md` — a dynamic, product-specific checklist of build subsystems with their status, owner persona, output artifact, and history. **Owned by `senior-software-engineer`**; other specialists report completion in their output, and `senior-software-engineer` is the only persona that writes to the file.
+
+Key properties (full methodology in `guides/product/build-status-methodology.md`):
+
+- **Dynamic, not static.** The checklist is generated from the brief's must-haves, the chosen stack, and the standard build order — filtered to what this product actually needs. A product without file uploads doesn't get a "DO Spaces" line.
+- **Visible at a glance.** Open the file or run `/status`; see what's done, what's in progress, what's pending, and what was decided.
+- **History preserved.** Append-only log of every subsystem start/completion/decision — survives session restarts.
+
+Updated on every: subsystem start (`[ ]` → `[>]`), subsystem completion (`[>]` → `[x]`), scope change, decision, pause, release, or kill.
 
 ### Build orchestration — `/start-build` and the senior-engineer personas
 
@@ -242,6 +279,7 @@ Custom commands for this project live in `.claude/commands/`. Each file is one c
 - [`/trend-check`](.claude/commands/trend-check.md) — trend-monitoring sweep against active state, per `guides/market/trend-monitoring.md`. Args: optional `triggered <reason>` for an emergency sweep.
 - [`/menu`](.claude/commands/menu.md) — quick menu of available commands and suggested next actions based on current pipeline state. Lower-overhead than opening `HELP.md`. (Named `/menu` because `/help` is shadowed by Claude Code's built-in help dialog.)
 - [`/start-build`](.claude/commands/start-build.md) — kick off the build phase for a `green-lit-to-build` product. Invokes `senior-software-engineer` to ask orientation questions (web/mobile/hybrid order, MVP vs. fully-featured, first subsystem) and route to the right specialist persona. Args: `<product-slug>` (required).
+- [`/preview-product`](.claude/commands/preview-product.md) — preview the current state of a product's UI in the browser. Auto-detects whether real preview is possible (dev server up + dependencies wired) or falls back to dummy preview (Jinja + fixture data). Always tells the user which mode they got and why. Web only — for mobile, see EAS preview build instructions. Args: `<product-slug> [page-name]`.
 - [`/acknowledge-contributing`](.claude/commands/acknowledge-contributing.md) — required one-time confirmation that the user has read `CONTRIBUTING.md` before editing tracked files. Skipped automatically for the repo owner; required for everyone else. Creates a gitignored `.claude-acknowledged` marker per clone.
 - [`/setup`](.claude/commands/setup.md) — pre-flight verification on a new clone or new machine. Checks all required tools (pandoc, typst, gh, git, python, node), git identity, GitHub auth, submodule initialization, and the presence of the three agent-skills persona file copies (`code-reviewer.md`, `security-auditor.md`, `test-engineer.md`) in `.claude/agents/`. Pure verification — never modifies anything. Surfaces a structured punch list of what's missing with install commands.
 - [`/status`](.claude/commands/status.md) — complete pipeline-state snapshot. Shows active scan, all active cards with statuses and ages, in-flight briefs (with design-path and build-support picks), latest trend report age, active design phases, and recent generated docs. Read-only.
@@ -328,6 +366,7 @@ Long-form reference docs under `guides/`. Listed by domain.
 - [`idea-discovery-methodology.md`](guides/product/idea-discovery-methodology.md) — process for going from "we want to build something" to a prioritized, reviewer-validated candidate list. Defines the idea-card format and triage rubric the downstream reviewers and validation guide rely on.
 - [`idea-validation-methodology.md`](guides/product/idea-validation-methodology.md) — how green-bucket cards get stress-tested by three narrow-scoped reviewers (`product-viability-reviewer`, `product-competition-reviewer`, `market-segment-reviewer`) before any engineering time is committed. Defines the verdict format and the integration rules.
 - [`mvp-scoping-methodology.md`](guides/product/mvp-scoping-methodology.md) — turns a green-lit card into a shipping plan. Defines the MVP brief format, the riskiest-assumption framing, default stack/infra decisions (Flask, RN, DO Spaces, `.env` strategy, hosting), reviewer pair (`product-scope-reviewer` + agent-skills' `code-reviewer`), and when *not* to write code (landing-page test, concierge MVP).
+- [`build-status-methodology.md`](guides/product/build-status-methodology.md) — how `BUILD_STATUS.md` is dynamically generated per-product (from the brief's must-haves + the chosen stack + the standard build order, filtered to what this product needs), who owns it (senior-software-engineer), the update protocol (every subsystem start/completion/decision triggers a write), the output format (checklist + current focus + history + decisions + open items), and how it's surfaced via `/status`.
 
 **Market (`guides/market/`)**
 - [`market-scan-methodology.md`](guides/market/market-scan-methodology.md) — upstream of discovery. Produces a short list of *candidate territories* (segments + categories + situations) for the next discovery cycle to mine. Defines source families to sweep, the territory format, prioritization rubric (freshness × founder fit × reachability), and the date-stamped scan report.

@@ -69,6 +69,21 @@ Parses `git log` since the latest tag (or a given range), groups commits by Conv
 
 Output goes to stdout — pipe or copy into CHANGELOG.md.
 
+### `check_slug.py` — verify a product slug is available
+
+```bash
+python3 scripts/check_slug.py <slug>           # check a specific slug
+python3 scripts/check_slug.py --list-all       # list every slug currently in use
+python3 scripts/check_slug.py --json <slug>    # machine-readable output
+```
+
+Slugs must be unique across `ideas/`, `ideas/killed/`, `web-apps/`, and `mobile-apps/` (the workspace's slug namespace). This script enforces that — exit 0 if available, exit 1 if taken (with details of the conflict).
+
+Used by:
+- `new_idea_card.py` (imports `is_available()` to validate before writing).
+- `lint_pipeline.py` (flags any slug-collision rule violations).
+- Directly from the shell when you want to claim a name before creating files.
+
 ### `report_summarizer.py` — pretty-print report summaries
 
 ```bash

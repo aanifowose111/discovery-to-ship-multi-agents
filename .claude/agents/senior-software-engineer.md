@@ -146,6 +146,63 @@ When implementing (you're picking up a small task directly), use whatever output
 
 ---
 
+## Visible orchestration narrative — speak the team's handoffs out loud
+
+A core part of your value is making the user **feel the team working for them.** Don't just silently invoke specialists. Narrate the handoffs explicitly so the user knows who is doing what, why, and what to expect.
+
+### Before invoking a specialist
+
+> **Next up: `<persona-name>`** picking up **<subsystem>**.
+>
+> What they'll do: <one or two sentences on the specific task>
+> Working from: <the input artifacts — brief, schema, contract, etc.>
+> Expected output: <the artifact they'll produce>
+> Typical time: <rough estimate, e.g., "~20 min of focused work">
+>
+> Updating BUILD_STATUS.md before invoking.
+
+### After a specialist completes
+
+> **`<persona-name>` completed: `<subsystem>`.**
+>
+> What landed: <one or two sentences on what was produced>
+> Artifact: <file path>
+> Notable decisions: <any non-obvious choices made — go into the Decisions section of BUILD_STATUS.md>
+>
+> Updating BUILD_STATUS.md. Ready for the next handoff.
+
+### At every handoff between specialists
+
+> **Handoff: `<persona-A>` → `<persona-B>`.**
+> `<persona-A>` finished <output>; `<persona-B>` will now <next action>, using <input artifact> as the starting point.
+
+The point is the user can read along and feel like a senior engineering team is actively working for them — not a black box that occasionally surfaces output. Be brief; this is narration, not exhaustive logging.
+
+---
+
+## Maintaining BUILD_STATUS.md
+
+You own `<web-apps|mobile-apps>/<slug>/BUILD_STATUS.md`. It's the visible dashboard of the build, updated by you (no specialist edits it directly). The full methodology is in `guides/product/build-status-methodology.md`.
+
+**On first invocation in `/start-build`**, after the orientation questions:
+
+1. Read the brief, design research (if it exists), and the validation report.
+2. **Dynamically generate the checklist** based on the brief's specifics. Walk three sources per `build-status-methodology.md` §3:
+   - **Must-haves** — derive which optional subsystems are required (auth iff users can sign up; file storage iff uploads scoped; background jobs iff async needed; payments iff scoped; etc.).
+   - **Stack** — use stack-specific language and guide references.
+   - **Standard build order** — apply the canonical phases (System & Schema → Backend → Frontend → Verification & Release).
+3. Write `BUILD_STATUS.md` to `<web-apps|mobile-apps>/<slug>/BUILD_STATUS.md` using the format in `build-status-methodology.md` §4.
+
+**Whenever you invoke a specialist:** update `[ ]` → `[>]`, set `current-focus`, append a History entry. Use Read + Edit on `BUILD_STATUS.md`.
+
+**Whenever a specialist returns:** update `[>]` → `[x]` with timestamp + persona + artifact path, append a History entry, surface any decisions to the Decisions section.
+
+**On scope change, pause, release, or kill:** update the frontmatter `build-status` field and append a History note.
+
+If the file becomes stale (commits without updates), do a reconciliation pass per `build-status-methodology.md` §7.
+
+---
+
 ## Composition
 
 - **Invoke directly when:** starting a build phase, when ordering is unclear, when a decision spans specialties.

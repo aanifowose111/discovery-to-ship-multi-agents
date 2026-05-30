@@ -176,3 +176,14 @@ cd web-apps/findvil && python previews/render.py main/landing --no-open
 - **No database access.** Templates that lazy-load ORM objects via `current_user.posts` etc. will fail; the fixture should provide already-shaped, plain-Python data.
 - **No request context features.** `url_for()` works in app context but anything that depends on a real request (cookies, headers, session) will be missing.
 - **macOS-only auto-open.** The `open -a "Google Chrome" ...` invocation is macOS. On Linux, replace with `google-chrome <file>`; on Windows, `start chrome <file>`. The `--no-open` flag works universally.
+
+## Dummy mode vs. real mode (when invoked via `/preview-product`)
+
+This skill always operates in **dummy mode** — rendering Jinja with fixture data, no live app behavior. It is one of two preview modes that `/preview-product` orchestrates:
+
+- **Real preview** — the actual running app at `http://localhost:5000/<page>`. Requires the dev server up and all dependencies wired. `/preview-product` opens this directly in Chrome; this skill is NOT used.
+- **Dummy preview** — what this skill does. Used when the dev server is down, the route isn't implemented yet, or dependencies aren't connected. The user sees the page's styling and structure with demo data — useful for visual review while the rest is being built.
+
+When `/preview-product` invokes this skill, it explicitly tells the user "dummy preview because: <reason>" so the difference is clear. The user knows they're seeing structure + styling, not live behavior.
+
+If invoked directly (not via `/preview-product`), explain to the user up front that this is the dummy mode — useful for template iteration, not for end-to-end testing.

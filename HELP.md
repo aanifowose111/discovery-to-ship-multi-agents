@@ -171,6 +171,17 @@ Brief per `guides/ui-ux/design-brief-methodology.md`. **Asks you for picks first
 
 Trend sweep per `guides/market/trend-monitoring.md`. Output: `market-research/trends-<YYYY-MM-DD>.md`. **Stops at:** which downstream commands (if any) to run. **Next:** whichever the user picks.
 
+### `/preview-product <slug> [page-name]`
+
+Preview the current state of a product's UI in the browser. Auto-detects which mode is possible:
+
+- **Real preview** — opens the actual running app (`http://localhost:5000/<page>`). Requires the dev server up and the route + dependencies wired.
+- **Dummy preview** — falls back to rendering the Jinja template with fixture demo data. Useful for visual review while the rest is being built. Always possible if the template file exists.
+
+The command **always tells you which mode you got and why**, so you know whether you're seeing live behavior or just structure + styling. If dummy mode, it briefly mentions what would unblock real preview ("dev server is down" / "no route handler yet" / "the X service this depends on doesn't exist yet").
+
+Web only — for mobile previews, use Expo Go / dev client during development or EAS preview builds for tester distribution (see `guides/mobile/eas-build-and-update.md`).
+
 ### `/start-build <slug>`
 
 Kicks off the build phase for a `green-lit-to-build` product. Invokes the `senior-software-engineer` persona (see §4) to ask three orientation questions in order:
@@ -438,8 +449,10 @@ Scripts live at `scripts/` for tasks without a slash-command equivalent or for u
 **Python** (run from repo root):
 
 ```bash
-python3 scripts/lint_pipeline.py        # validate pipeline state consistency
+python3 scripts/lint_pipeline.py        # validate pipeline state consistency (incl. slug collisions)
 python3 scripts/new_idea_card.py        # interactive idea-card creator (alt to /discover)
+python3 scripts/check_slug.py <slug>    # check if a product slug is available
+python3 scripts/check_slug.py --list-all   # list every slug currently in use
 python3 scripts/check_links.py          # check markdown links and @path references
 python3 scripts/changelog_helper.py     # auto-generate CHANGELOG stub from git log
 python3 scripts/report_summarizer.py    # pretty-print all reports in market-research/
