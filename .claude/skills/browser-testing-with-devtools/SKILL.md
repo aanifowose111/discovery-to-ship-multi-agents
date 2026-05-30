@@ -1,0 +1,1 @@
+../../../external/agent-skills/skills/browser-testing-with-devtools/SKILL.md

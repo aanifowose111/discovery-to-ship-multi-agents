@@ -153,6 +153,45 @@ Same agent-skills commands as Phase 2, but driven by the handoff:
 - Components match the Figma library's 02 Components page.
 - **Order of authority** when sources conflict: token contract → screenshot → brief §6 → agent-skills' `frontend-ui-engineering` craft.
 
+### Build orchestration — `/start-build` and the senior-engineer personas
+
+Both Phase 2 (initial MVP build) and Phase 4 (real v1 build) are **orchestrated by `senior-software-engineer`** via the `/start-build <slug>` command. This persona:
+
+1. Asks orientation questions (web/mobile/hybrid order; MVP vs. fully-featured; first subsystem to tackle).
+2. Always recommends the right default — **API + web first if hybrid; MVP scope first; database design as the first subsystem** — but accepts user override with a stated reason.
+3. Routes work to the right specialist persona for each subsystem, in the right order based on system-design best practice.
+
+The specialist personas live at `.claude/agents/senior-*.md` and are invoked via the custom-subagent invocation pattern above:
+
+| Persona | What it owns |
+|---|---|
+| `senior-software-engineer` | Generalist; orchestrates the build; routes work to specialists; sequences ordering; catches scope creep. |
+| `senior-system-design-engineer` | System shape (monolith vs. service split), data flow, cross-cutting concerns, decisions deferred. |
+| `senior-database-engineer` | Schema design, indexes, migrations, data-integrity guarantees. |
+| `senior-backend-engineer` | ORM models, API contracts, endpoint implementation, business logic, background jobs. |
+| `senior-frontend-engineer` | UI implementation (Jinja+JS on web, RN on mobile); design-token integration; accessibility; performance. |
+| `senior-qa-engineer` | Test coverage audits, integration tests at the seam, accessibility audits, release-readiness pass. |
+| `senior-devops-engineer` | Deploy, CI/CD, observability, incident response, backups. |
+| `senior-security-engineer` | Threat modeling, secure-coding review, auth design, infra hardening, security incident response. |
+
+**Standard build order** (the senior-software-engineer defaults to this, adjusted per product specifics):
+
+```
+1. Database design       → senior-database-engineer
+2. Project tree          → senior-software-engineer + scaffold guide
+3. Core models           → senior-backend-engineer
+4. API contract          → senior-backend-engineer
+5. API implementation    → senior-backend-engineer
+6. Auth                  → senior-security-engineer + senior-backend-engineer
+7. Background jobs       → senior-backend-engineer (only if scoped)
+8. Frontend skeleton     → senior-frontend-engineer
+9. Integration tests     → senior-qa-engineer
+10. Deploy               → senior-devops-engineer
+11. Iterate              → whichever specialist owns the area
+```
+
+**Each senior persona leverages the agent-skills skills** (now all 23 symlinked into `.claude/skills/`). Each persona's body lists which skills it commonly invokes. The senior-engineer personas are *roles*; the agent-skills are *workflows* those roles execute.
+
 ### Parallel — Trend Monitoring
 
 Runs across all phases, on a separate cadence:
@@ -202,6 +241,7 @@ Custom commands for this project live in `.claude/commands/`. Each file is one c
 - [`/draft-design-brief`](.claude/commands/draft-design-brief.md) — collect the user's picks (visual direction, palette, typography, voice, portfolio-continuity decision, answers to research open questions, timeline), draft the consolidated brief at `<web-apps|mobile-apps>/<slug>/design/DESIGN_BRIEF.md`, invoke the `design-brief-reviewer`, then stop at the user checkpoint. Args: `<product-slug>` (required). Requires the research to be `status: acted-on`.
 - [`/trend-check`](.claude/commands/trend-check.md) — trend-monitoring sweep against active state, per `guides/market/trend-monitoring.md`. Args: optional `triggered <reason>` for an emergency sweep.
 - [`/menu`](.claude/commands/menu.md) — quick menu of available commands and suggested next actions based on current pipeline state. Lower-overhead than opening `HELP.md`. (Named `/menu` because `/help` is shadowed by Claude Code's built-in help dialog.)
+- [`/start-build`](.claude/commands/start-build.md) — kick off the build phase for a `green-lit-to-build` product. Invokes `senior-software-engineer` to ask orientation questions (web/mobile/hybrid order, MVP vs. fully-featured, first subsystem) and route to the right specialist persona. Args: `<product-slug>` (required).
 - [`/acknowledge-contributing`](.claude/commands/acknowledge-contributing.md) — required one-time confirmation that the user has read `CONTRIBUTING.md` before editing tracked files. Skipped automatically for the repo owner; required for everyone else. Creates a gitignored `.claude-acknowledged` marker per clone.
 - [`/setup`](.claude/commands/setup.md) — pre-flight verification on a new clone or new machine. Checks all required tools (pandoc, typst, gh, git, python, node), git identity, GitHub auth, submodule initialization, and symlink resolution. Pure verification — never modifies anything. Surfaces a structured punch list of what's missing with install commands.
 - [`/status`](.claude/commands/status.md) — complete pipeline-state snapshot. Shows active scan, all active cards with statuses and ages, in-flight briefs (with design-path and build-support picks), latest trend report age, active design phases, and recent generated docs. Read-only.

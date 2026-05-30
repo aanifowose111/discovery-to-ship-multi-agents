@@ -170,6 +170,18 @@ Brief per `guides/ui-ux/design-brief-methodology.md`. **Asks you for picks first
 
 Trend sweep per `guides/market/trend-monitoring.md`. Output: `market-research/trends-<YYYY-MM-DD>.md`. **Stops at:** which downstream commands (if any) to run. **Next:** whichever the user picks.
 
+### `/start-build <slug>`
+
+Kicks off the build phase for a `green-lit-to-build` product. Invokes the `senior-software-engineer` persona (see §4) to ask three orientation questions in order:
+
+1. **For hybrid briefs:** which to build first — API + web (recommended) vs. mobile first.
+2. **Scope:** MVP build (recommended) vs. fully-featured build.
+3. **First subsystem:** typically database design (recommended), with the full ordered list shown so you can override.
+
+After your answers, the senior-software-engineer proposes the right specialist persona to invoke first and the specific first task. You confirm or override. The build then proceeds subsystem-by-subsystem, with the senior-software-engineer routing you to the right specialist at each handoff.
+
+You can re-run `/start-build <slug>` at any point during the build if you want a fresh "where am I" + "what's next" prompt.
+
 ### `/menu`
 
 Surfaces a quick menu of "what you can do right now" based on the current pipeline state. Lower-overhead than reading `HELP.md` end-to-end. **Stops at:** menu shown.
@@ -238,6 +250,23 @@ These live at `.claude/agents/<name>.md`. Most are invoked indirectly through sl
 | `code-reviewer` | 5-axis review (correctness, readability, architecture, security, performance). | `/scope-mvp` (at design time) + the agent-skills `/review` / `/ship` flows. |
 | `security-auditor` | OWASP-style vulnerability audit. | The agent-skills `/ship` parallel-fan-out, or directly when security is in scope. |
 | `test-engineer` | Test strategy, coverage, "Prove-It" pattern. | The agent-skills `/ship` parallel-fan-out, or directly. |
+
+### Senior-engineer personas (workspace-authored — for the build phase)
+
+These are roles, not single-shot reviewers. Invoked via `/start-build` and during the build by the senior-software-engineer as orchestrator.
+
+| Persona | Role |
+|---|---|
+| `senior-software-engineer` | Generalist orchestrator. Asks orientation questions, routes to specialists, sequences subsystems, catches scope creep. |
+| `senior-system-design-engineer` | System shape (monolith vs. split), data flow, cross-cutting concerns, decisions deferred. Produces SYSTEM_DESIGN.md. |
+| `senior-database-engineer` | Schema, indexes, migrations, integrity. Produces SCHEMA.md. |
+| `senior-backend-engineer` | ORM models, API contract, endpoint implementation, business logic, background jobs. Produces API_CONTRACT.md. |
+| `senior-frontend-engineer` | UI implementation faithful to design tokens; covers Jinja+JS on web and RN on mobile. |
+| `senior-qa-engineer` | Test coverage audits, integration at the seam, accessibility, release-readiness pass. |
+| `senior-devops-engineer` | Deploy, CI/CD, observability, incident response, backups. |
+| `senior-security-engineer` | Threat modeling, secure-coding review, auth design, infra hardening, security incident response. |
+
+Each persona's file in `.claude/agents/senior-*.md` lists which agent-skills it commonly invokes. The senior personas are *roles*; the agent-skills are *workflows* those roles execute. They compose: a senior-backend-engineer doing a feature implementation uses `incremental-implementation`, `test-driven-development`, `api-and-interface-design`, and `code-review-and-quality` along the way without being asked.
 
 ### How invocation actually works
 

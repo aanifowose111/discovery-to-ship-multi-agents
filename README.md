@@ -41,8 +41,9 @@ If that matches what you're trying to do, this repo is a head start. If you want
 
 | | What | Where |
 |---|---|---|
-| **Pipeline slash commands** | `/scan`, `/discover`, `/validate-card`, `/scope-mvp`, `/research-design`, `/draft-design-brief`, `/trend-check` | `.claude/commands/` |
+| **Pipeline slash commands** | `/scan`, `/discover`, `/validate-card`, `/scope-mvp`, `/research-design`, `/draft-design-brief`, `/start-build`, `/trend-check`, `/menu`, `/setup`, `/status`, `/acknowledge-contributing` | `.claude/commands/` |
 | **Reviewer assistants** | Product viability / competition / market-segment / scope reviewers, design-brief and design-fidelity reviewers, UI/UX researcher | `.claude/agents/` |
+| **Senior-engineer personas** | `senior-software-engineer` (orchestrator) + 7 specialists: system-design, database, backend, frontend, QA, devops, security. Each plays a senior-IC role during the build phase. | `.claude/agents/senior-*.md` |
 | **Agent-skills personas** | `code-reviewer`, `security-auditor`, `test-engineer` from [aanifowose111/agent-skills](https://github.com/aanifowose111/agent-skills) | symlinked into `.claude/agents/` from `external/agent-skills/` (git submodule) |
 | **Helper skills** | `doc-export` (markdown → PDF/DOCX), `web-preview` (render Jinja in Chrome) | `.claude/skills/` |
 | **Methodology guides** | Product discovery / validation / MVP scoping; market scan + trend monitoring; funding strategy; Flask scaffold + deploy + storage + auth patterns; React Native scaffold + EAS + store submission; UI/UX research + brief + handoff | `guides/` |
@@ -217,6 +218,7 @@ Pipeline phase commands (each stops at a user-checkpoint):
 | `/scope-mvp <slug>` | Drafts the MVP brief — asks you to confirm the stack first — and runs the scope + code reviewers. |
 | `/research-design <slug>` | Runs the UI/UX researcher to produce a design-direction report (3+ visual directions, color/typography options, brand positioning). |
 | `/draft-design-brief <slug>` | Drafts the consolidated design brief (PRD+FRD) for the human designer, with the design-brief-reviewer. |
+| `/start-build <slug>` | Kicks off the build phase for a green-lit-to-build product. Invokes the senior-software-engineer to ask orientation questions (web/mobile/hybrid order, MVP vs. full, first subsystem) and route to the right specialist. |
 | `/trend-check [optional triggered <reason>]` | Sweeps a watchlist derived from active pipeline state and recommends downstream commands. |
 | `/menu` | Quick menu of available commands and suggested next actions, based on current state. (Named `/menu` because `/help` is shadowed by Claude Code's built-in help dialog.) |
 
@@ -228,6 +230,30 @@ Helper skills (Claude invokes these implicitly when relevant phrasing appears):
 | `web-preview` | Renders a Jinja template from `web-apps/<slug>/` with fixture demo data and opens it in Chrome. Triggers on "preview this page", "show me what this renders to". |
 
 See **[HELP.md](HELP.md)** for the deeper command-by-command reference, common scenarios, gotchas, and recovery paths.
+
+### Senior-engineer personas — how the build phase actually flows
+
+After `/scope-mvp` returns `green-lit-to-build`, run `/start-build <slug>`. That command invokes the **`senior-software-engineer`** persona, which:
+
+1. **Asks orientation questions** (in order): for a hybrid brief, which to build first (API + web is the recommendation); MVP vs. fully-featured (MVP is the recommendation); which subsystem to start with (database design is the recommendation).
+2. **Routes each subsystem** to the right specialist persona.
+3. **Sequences work** per system-design best practice — database before models, models before API contract, API contract before frontend, frontend skeleton with mocks before integration, integration before deploy.
+
+The seven specialists are:
+
+| Persona | Owns |
+|---|---|
+| `senior-system-design-engineer` | System shape, service boundaries, cross-cutting concerns. |
+| `senior-database-engineer` | Schema, indexes, migrations, data-integrity guarantees. |
+| `senior-backend-engineer` | ORM models, API contract, endpoint implementation, business logic. |
+| `senior-frontend-engineer` | UI implementation (Jinja+JS on web, RN on mobile), design-token integration, accessibility. |
+| `senior-qa-engineer` | Test coverage, integration at the seam, accessibility, release-readiness. |
+| `senior-devops-engineer` | Deploy, CI/CD, observability, incident response, backups. |
+| `senior-security-engineer` | Threat modeling, secure coding, auth design, infra hardening. |
+
+Each specialist leverages relevant agent-skills (TDD, code-review-and-quality, security-and-hardening, performance-optimization, etc.) without you having to invoke them by name.
+
+The workflow is **conversational**: at each subsystem boundary, you're asked to confirm the recommended next step or override it. You're never lost about "what now" during the build.
 
 ### Utility scripts
 

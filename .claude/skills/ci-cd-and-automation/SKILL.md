@@ -1,0 +1,1 @@
+../../../external/agent-skills/skills/ci-cd-and-automation/SKILL.md

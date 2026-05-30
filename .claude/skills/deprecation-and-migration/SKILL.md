@@ -1,0 +1,1 @@
+../../../external/agent-skills/skills/deprecation-and-migration/SKILL.md

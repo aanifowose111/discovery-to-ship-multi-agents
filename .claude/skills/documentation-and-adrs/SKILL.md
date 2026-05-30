@@ -1,0 +1,1 @@
+../../../external/agent-skills/skills/documentation-and-adrs/SKILL.md

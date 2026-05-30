@@ -1,0 +1,1 @@
+../../../external/agent-skills/skills/code-simplification/SKILL.md
