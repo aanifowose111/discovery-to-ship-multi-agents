@@ -328,6 +328,23 @@ See **[scripts/README.md](scripts/README.md)** for full usage, flags, and exampl
 
 ---
 
+## Personalizing the workspace (optional but recommended)
+
+After cloning, populate `user-context/INTERESTS.md` with your professional background, hobbies, domain expertise, and any product ideas you've already had. This file:
+
+- Is **gitignored** — your personal context stays local, never enters git.
+- Is **read by `/discover`** when you run it cold (no args, no active scan) to anchor brainstorming on territories that fit *you*, not the workspace maintainer.
+- Without it, `/discover` either asks you for a few sentences of context just for that run, or defaults to open discovery (broad, no founder-fit constraint).
+
+Copy the template and edit:
+
+```bash
+cp user-context/INTERESTS.md.example user-context/INTERESTS.md
+# Edit user-context/INTERESTS.md with your specifics
+```
+
+See `user-context/README.md` for what to put there and why.
+
 ## Personal vs. shared
 
 The repo is structured so that:
