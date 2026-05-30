@@ -53,15 +53,23 @@ The cloned agent-skills repo at `external/agent-skills/agents/` already ships th
 
 **We do not duplicate these.** Any code/security/test review on this project — for web MVPs and mobile MVPs alike — uses those personas, not new ones written here.
 
-The three personas are **symlinked** into this folder so Claude Code auto-discovers them:
+The three personas are **file-level copies** of the agent-skills sources, placed at `.claude/agents/<name>.md`:
 
 ```
-.claude/agents/code-reviewer.md     → ../../external/agent-skills/agents/code-reviewer.md
-.claude/agents/security-auditor.md  → ../../external/agent-skills/agents/security-auditor.md
-.claude/agents/test-engineer.md     → ../../external/agent-skills/agents/test-engineer.md
+.claude/agents/code-reviewer.md      ← copy of external/agent-skills/agents/code-reviewer.md
+.claude/agents/security-auditor.md   ← copy of external/agent-skills/agents/security-auditor.md
+.claude/agents/test-engineer.md      ← copy of external/agent-skills/agents/test-engineer.md
 ```
 
-The symlinks are relative, so they survive moving the project as long as `external/agent-skills` moves with it. To pull updates from upstream, `git pull` inside `external/agent-skills/` — no further action needed.
+**Attribution.** These personas were originally authored by **Addy Osmani** (MIT License, Copyright 2025), maintained at [`addyosmani/agent-skills`](https://github.com/addyosmani/agent-skills). They reach this workspace via [`aanifowose111/agent-skills`](https://github.com/aanifowose111/agent-skills), a fork by Abiodun Anifowose. The full LICENSE accompanies the source via the git submodule at `external/agent-skills/LICENSE`.
+
+**Why copies, not symlinks?** GitHub's web UI renders file symlinks as text containing the target path rather than the resolved content — clicking them doesn't show the file. Regular-file copies render properly. The trade-off is that upstream updates don't propagate automatically; they're brought in by a single command:
+
+```bash
+bash scripts/update-agent-skills.sh
+```
+
+This script pulls the submodule, re-copies the personas + skills, and commits the changes. From the user's perspective: one command, same experience as the old symlink workflow.
 
 ## Conventions for this project
 

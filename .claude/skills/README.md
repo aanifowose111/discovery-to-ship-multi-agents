@@ -35,15 +35,23 @@ Subfolder names use the pattern **`<domain>-<topic>`**, kebab-case throughout. S
 
 Examples: `web-flask-docker-setup/`, `web-flask-blueprint-layout/`, `mobile-rn-project-setup/`, `product-idea-brainstorm/`, `market-segment-sizing/`, `funding-pitch-draft/`.
 
-## The cloned agent-skills fork
+## Agent-skills skills (vendored copies)
 
-The user has a fork at `https://github.com/aanifowose111/agent-skills.git` that contains a large set of pre-built skills (including stage-specific code review skills) which we will use rather than re-build.
+The 23 skills from the agent-skills repo live here as **file-level copies** of the source files. Each skill is at `.claude/skills/<name>/`, containing at minimum a `SKILL.md` (plus any supporting files the source skill has, like `scripts/` or `references/`).
 
-**Open question (raise with user when we get there):** where does the cloned repo live? Options under consideration:
-1. **`external/agent-skills/`** at the project root, treated as a vendored library — we then copy or symlink the specific skills we want into `.claude/skills/` with our naming convention applied.
-2. **`.claude/skills/agent-skills/`** directly — simplest to clone, but the repo's internal nested structure means Claude Code's auto-discovery may not pick up the nested skills correctly.
+**Attribution.** These skills were originally authored by **Addy Osmani** (MIT License, Copyright 2025), maintained at [`addyosmani/agent-skills`](https://github.com/addyosmani/agent-skills). They reach this workspace via [`aanifowose111/agent-skills`](https://github.com/aanifowose111/agent-skills), a fork by Abiodun Anifowose. The full LICENSE accompanies the source via the git submodule at `external/agent-skills/LICENSE`.
 
-Recommend option 1 once the user is ready to clone, but confirm first.
+**Why copies, not symlinks?** GitHub's web UI renders file symlinks as text containing the target path rather than the resolved content — clicking them doesn't show the file. Regular-file copies render properly. Upstream updates are brought in by:
+
+```bash
+bash scripts/update-agent-skills.sh
+```
+
+That script pulls the submodule and re-copies the personas + skills automatically.
+
+**Skills inventory** (all 23): api-and-interface-design, browser-testing-with-devtools, ci-cd-and-automation, code-review-and-quality, code-simplification, context-engineering, debugging-and-error-recovery, deprecation-and-migration, documentation-and-adrs, doubt-driven-development, frontend-ui-engineering, git-workflow-and-versioning, idea-refine, incremental-implementation, interview-me, performance-optimization, planning-and-task-breakdown, security-and-hardening, shipping-and-launch, source-driven-development, spec-driven-development, test-driven-development, using-agent-skills.
+
+Plus the two project-local skills authored in this workspace: `doc-export`, `web-preview` (described elsewhere in this README).
 
 ## Conventions for this project
 

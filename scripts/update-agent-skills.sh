@@ -56,15 +56,34 @@ if [ "$old_sha" = "$new_sha" ]; then
 fi
 
 if [ "$DRY_RUN" -eq 1 ]; then
-    echo "${YELLOW}--dry-run: would stage external/agent-skills and commit.${RESET}"
+    echo "${YELLOW}--dry-run: would stage external/agent-skills, re-copy personas + skills, and commit.${RESET}"
     echo
     echo "Diff in parent repo:"
     git diff external/agent-skills
     exit 0
 fi
 
-git add external/agent-skills
-git commit -m "Update agent-skills submodule
+# Re-copy the 3 agent-skills personas into .claude/agents/.
+# (Symlinks aren't used here — GitHub web UI doesn't render symlinked files,
+# so we maintain regular-file copies that re-sync via this script.)
+echo "${CYAN}Re-copying agent-skills personas into .claude/agents/...${RESET}"
+for persona in code-reviewer security-auditor test-engineer; do
+    rm -f ".claude/agents/${persona}.md"
+    cp "external/agent-skills/agents/${persona}.md" ".claude/agents/${persona}.md"
+    echo "  ✓ .claude/agents/${persona}.md"
+done
+
+# Re-copy all 23 agent-skills skills folders into .claude/skills/.
+echo "${CYAN}Re-copying agent-skills skills into .claude/skills/...${RESET}"
+for d in external/agent-skills/skills/*/; do
+    name="$(basename "$d")"
+    rm -rf ".claude/skills/${name}"
+    cp -R "$d" ".claude/skills/${name}"
+    echo "  ✓ .claude/skills/${name}/"
+done
+
+git add external/agent-skills .claude/agents/ .claude/skills/
+git commit -m "Update agent-skills submodule + re-copy personas/skills
 
 From ${old_sha:0:12} to ${new_sha:0:12}"
 

@@ -44,7 +44,8 @@ If that matches what you're trying to do, this repo is a head start. If you want
 | **Pipeline slash commands** | `/scan`, `/discover`, `/validate-card`, `/scope-mvp`, `/research-design`, `/draft-design-brief`, `/start-build`, `/trend-check`, `/menu`, `/setup`, `/status`, `/acknowledge-contributing` | `.claude/commands/` |
 | **Reviewer assistants** | Product viability / competition / market-segment / scope reviewers, design-brief and design-fidelity reviewers, UI/UX researcher | `.claude/agents/` |
 | **Senior-engineer personas** | `senior-software-engineer` (orchestrator) + 7 specialists: system-design, database, backend, frontend, QA, devops, security. Each plays a senior-IC role during the build phase. | `.claude/agents/senior-*.md` |
-| **Agent-skills personas** | `code-reviewer`, `security-auditor`, `test-engineer` from [aanifowose111/agent-skills](https://github.com/aanifowose111/agent-skills) | symlinked into `.claude/agents/` from `external/agent-skills/` (git submodule) |
+| **Agent-skills personas** | `code-reviewer`, `security-auditor`, `test-engineer` — file copies from [`aanifowose111/agent-skills`](https://github.com/aanifowose111/agent-skills) (fork), originally authored by **Addy Osmani** at [`addyosmani/agent-skills`](https://github.com/addyosmani/agent-skills), MIT-licensed. | Vendored into `.claude/agents/`; re-sync via `scripts/update-agent-skills.sh`. |
+| **Agent-skills skills** (23) | api-and-interface-design, browser-testing-with-devtools, ci-cd-and-automation, code-review-and-quality, code-simplification, context-engineering, debugging-and-error-recovery, deprecation-and-migration, documentation-and-adrs, doubt-driven-development, frontend-ui-engineering, git-workflow-and-versioning, idea-refine, incremental-implementation, interview-me, performance-optimization, planning-and-task-breakdown, security-and-hardening, shipping-and-launch, source-driven-development, spec-driven-development, test-driven-development, using-agent-skills — same upstream credit. | Vendored into `.claude/skills/`; re-sync via `scripts/update-agent-skills.sh`. |
 | **Helper skills** | `doc-export` (markdown → PDF/DOCX), `web-preview` (render Jinja in Chrome) | `.claude/skills/` |
 | **Methodology guides** | Product discovery / validation / MVP scoping; market scan + trend monitoring; funding strategy; Flask scaffold + deploy + storage + auth patterns; React Native scaffold + EAS + store submission; UI/UX research + brief + handoff | `guides/` |
 | **Project-wide context** | The Claude-facing entry point (auto-loaded by Claude Code) | `CLAUDE.md` |
@@ -196,13 +197,15 @@ claude
 
 ### What the submodule pulls in
 
-The clone command above pulls the [agent-skills](https://github.com/aanifowose111/agent-skills) fork into `external/agent-skills/`. Three personas (`code-reviewer`, `security-auditor`, `test-engineer`) are symlinked from there into `.claude/agents/` so Claude Code auto-discovers them. To update agent-skills to the latest upstream:
+The clone command above pulls the [agent-skills](https://github.com/aanifowose111/agent-skills) fork (a fork of [`addyosmani/agent-skills`](https://github.com/addyosmani/agent-skills) by **Addy Osmani**, MIT-licensed) into `external/agent-skills/`. From there, three personas (`code-reviewer`, `security-auditor`, `test-engineer`) and 23 skills are **copied** into `.claude/agents/` and `.claude/skills/` respectively so Claude Code auto-discovers them and GitHub renders them properly.
+
+To update agent-skills to the latest upstream:
 
 ```bash
-git submodule update --remote external/agent-skills
-git add external/agent-skills
-git commit -m "Update agent-skills to <upstream-SHA>"
+bash scripts/update-agent-skills.sh
 ```
+
+That single command pulls the submodule from `aanifowose111/agent-skills` (which you can sync to upstream `addyosmani/agent-skills` on GitHub by clicking "Sync fork"), re-copies the persona files + skill folders into `.claude/`, and commits the changes. Push with `git push` afterward.
 
 ---
 
@@ -397,7 +400,7 @@ By contributing, you agree that your contributions are licensed under the same M
 
 MIT — see [LICENSE](LICENSE).
 
-The agent-skills fork in `external/agent-skills/` is itself MIT-licensed by its upstream author; consult its own LICENSE for that submodule.
+The agent-skills fork in `external/agent-skills/`, plus the file-level copies in `.claude/agents/` and `.claude/skills/` that derive from it, are originally MIT-licensed by **Addy Osmani** ([`addyosmani/agent-skills`](https://github.com/addyosmani/agent-skills), Copyright 2025). The full upstream LICENSE accompanies the source at `external/agent-skills/LICENSE`.
 
 ---
 
@@ -405,6 +408,6 @@ The agent-skills fork in `external/agent-skills/` is itself MIT-licensed by its 
 
 Building useful systems takes time, and a lot of the most interesting work right now is in helping frontier AI labs make their models more capable, careful, and trustworthy. The maintainer of this repo (Abiodun Anifowose) currently works as an **AI Chemistry Evaluation expert on [Mercor](https://t.mercor.com/lSU0c)** — designing and implementing Python-based scientific evaluation systems for frontier AI models, including black-box benchmarking functions and chemistry reasoning tasks that directly support major AI research labs.
 
-If you have a technical or specialist background — software engineering, science, mathematics, design, writing, language expertise, medicine, law — Mercor matches you with paid AI-training projects from frontier labs. The work is real, the pay is fair, and it's a way for domain experts to contribute meaningfully to where AI is going (and earn while doing so).
+If you have a technical or specialist background — software engineering, science, mathematics, design, writing, language expertise, medicine, law — Mercor matches you with paid AI-training projects from frontier labs. The work is real, the pay is good, and it's a way for domain experts to contribute meaningfully to where AI is going (and earn while doing so).
 
 **[Join Mercor with my referral link →](https://t.mercor.com/lSU0c)**
