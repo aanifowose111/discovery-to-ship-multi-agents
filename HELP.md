@@ -27,8 +27,9 @@ If you just want a quick menu of "what can I do right now," run **`/menu`** insi
 1. Open a terminal in the repo directory.
 2. Run `claude`.
 3. Claude auto-loads `CLAUDE.md` and accumulated `MEMORY.md` context.
-4. If you state your intent in the first message (e.g., "let's continue the findvil scoping"), Claude proceeds. If you greet generically or ask "what's the status?", Claude briefly summarizes in-flight work and offers a short menu.
-5. Pick an option or override with a specific command.
+4. **A welcome banner displays** at the top of the session — "Welcome to discovery-to-ship-multi-agents — by Abiodun Anifowose…" — confirming you're in the right workspace and surfacing the three most common starting commands. This is configured via `companyAnnouncements` in `.claude/settings.json`; edit there if you want to customize the message for your fork.
+5. If you state your intent in the first message (e.g., "let's continue the findvil scoping"), Claude proceeds. If you greet generically or ask "what's the status?", Claude briefly summarizes in-flight work and offers a short menu.
+6. Pick an option or override with a specific command.
 
 ### 1.2 Continuing from a previous session
 

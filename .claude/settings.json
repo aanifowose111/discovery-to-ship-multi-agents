@@ -5,5 +5,8 @@
       "WebFetch",
       "WebSearch"
     ]
-  }
+  },
+  "companyAnnouncements": [
+    "Welcome to discovery-to-ship-multi-agents — a product-portfolio pipeline orchestrated by Claude Code, by Abiodun Anifowose. Type /menu for the command map, /status for current pipeline state, or /discover to begin a new product cycle."
+  ]
 }
