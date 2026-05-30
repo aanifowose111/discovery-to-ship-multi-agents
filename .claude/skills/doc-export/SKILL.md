@@ -49,7 +49,11 @@ Either the user named it explicitly, or it's the artifact under discussion. If a
 
 ### 2. Identify the output format
 
-Default to PDF unless the user specified DOCX. If unclear, ask: "PDF or DOCX?"
+**Always offer both options unless the user explicitly stated PDF or DOCX.** Default behavior is to ask:
+
+> Output format — PDF or DOCX? (PDF gets the workspace's styled template — Charter body, Helvetica Neue navy headings; DOCX uses pandoc defaults which work cleanly in Word / Google Docs.)
+
+If they said "PDF" or "DOCX" explicitly in their request, skip the ask and use it.
 
 ### 3. Determine the output category
 
@@ -78,11 +82,25 @@ mkdir -p generated/<category>
 
 ### 6. Run pandoc
 
-**PDF (default — typst):**
+**PDF (default — typst + workspace styling overlay):**
 ```bash
 pandoc <source.md> -o <output.pdf> \
   --pdf-engine=typst \
-  --metadata title="<sensible title from source frontmatter or filename>"
+  --include-in-header=.claude/skills/doc-export/style.typ \
+  --metadata title="<sensible title from source frontmatter or filename>" \
+  --metadata date="<source artifact date if available>"
+```
+
+The `style.typ` overlay (kept in this skill folder) applies the workspace's visual identity:
+- Charter body text + Helvetica Neue light-navy (`#1e3a8a`) headings on macOS; Liberation Serif / Liberation Sans fallbacks for Linux.
+- Subtle slate borders on tables, slate-tinted code blocks.
+- Justified paragraphs with comfortable leading.
+- Centered page numbers.
+
+You may see typst warnings about unavailable fonts (the fallback chain includes fonts for Linux that don't exist on macOS, and vice versa). These are non-fatal — typst silently picks the first available font in the chain. **Filter them out of the user-facing output** by appending `2>/dev/null` or `2>&1 | grep -v "unknown font family"` to the pandoc command:
+
+```bash
+pandoc ... 2>&1 | grep -v "unknown font family" 1>&2
 ```
 
 **PDF (alternative — tectonic, if typst doesn't render something correctly):**
@@ -93,13 +111,17 @@ pandoc <source.md> -o <output.pdf> \
   --metadata title="<sensible title>"
 ```
 
+Tectonic does not use the typst styling overlay — it produces standard LaTeX output. Use only if typst fails for a specific document.
+
 **DOCX:**
 ```bash
 pandoc <source.md> -o <output.docx> \
   --metadata title="<sensible title>"
 ```
 
-For documents with a lot of code blocks or tables, also pass `--highlight-style=tango` (PDF) or use the default styles (DOCX).
+DOCX uses pandoc's default styles (no custom styling overlay — Word / Google Docs handle styling on their end via the document's built-in styles, which the user can adjust after open).
+
+For documents with a lot of code blocks, also pass `--highlight-style=tango` (PDF) for nicer code-block syntax highlighting.
 
 ### 7. Verify and report
 
@@ -122,7 +144,10 @@ mkdir -p generated/briefs
 pandoc web-apps/findvil/MVP.md \
   -o generated/briefs/2026-05-29-findvil-mvp-brief.pdf \
   --pdf-engine=typst \
-  --metadata title="Findvil — MVP Brief"
+  --include-in-header=.claude/skills/doc-export/style.typ \
+  --metadata title="Findvil — MVP Brief" \
+  --metadata date="2026-05-29" \
+  2>&1 | grep -v "unknown font family" 1>&2
 ```
 
 **"Generate a docx of the latest scan"**
@@ -141,7 +166,10 @@ mkdir -p generated/briefs
 pandoc web-apps/findvil/design/DESIGN_BRIEF.md \
   -o generated/briefs/2026-05-29-findvil-design-brief.pdf \
   --pdf-engine=typst \
-  --metadata title="Findvil — Design Brief"
+  --include-in-header=.claude/skills/doc-export/style.typ \
+  --metadata title="Findvil — Design Brief" \
+  --metadata date="2026-05-29" \
+  2>&1 | grep -v "unknown font family" 1>&2
 ```
 
 ## Common gotchas

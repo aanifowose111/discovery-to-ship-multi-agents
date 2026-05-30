@@ -1,0 +1,62 @@
+# Changelog
+
+All notable changes to this project will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
+
+This project does not yet follow strict semantic versioning. Pre-1.0, breaking changes happen as the methodology evolves. Once the system stabilizes through use, this will move to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [Unreleased]
+
+### Added
+- `/setup` slash command — pre-flight verification of all required tools, git identity, GitHub auth, submodule init, and symlink resolution. Pure verification (never modifies anything). Surfaces a structured punch list.
+- `/status` slash command — complete pipeline-state snapshot deeper than `/help`. Reads all active scans, cards, briefs, design phases, trend reports, and recent generated docs. Read-only.
+- `CHANGELOG.md` (this file) — track meaningful changes over time.
+- `SECURITY.md` — responsible disclosure path for any security concerns.
+- Custom typst styling overlay (`.claude/skills/doc-export/style.typ`) — white background, light navy `#1e3a8a` accent on headings, Charter body + Helvetica Neue headings (macOS native, with Liberation/DejaVu fallbacks for Linux), Menlo monospace, justified text with comfortable leading, slate borders on tables, slate-tinted background on code blocks. Injected via pandoc's `--include-in-header` so all pandoc-typst helpers (horizontalrule, terms.item, etc.) are inherited. Font fallback chain produces non-fatal warnings on each platform (unavailable fonts are skipped); the `doc-export` skill filters those warnings out of user-facing output.
+- `doc-export` skill now always asks the user "PDF or DOCX?" when format is ambiguous (instead of silently defaulting to PDF).
+
+### Changed
+- Mercor referral note in `README.md` simplified — removed the non-referral mercor.com fallback line (per maintainer's preference; using the referral link is the supported path).
+
+## [0.3.0] — 2026-05-29
+
+### Added
+- `/acknowledge-contributing` slash command and the contributor-acknowledgment workflow. Required for non-owner users before editing tracked files; owner exempt via `git config user.email` check. Creates a gitignored `.claude-acknowledged` marker per clone. Documented honestly as a convention, not a technical lock.
+- Owner / acknowledgment section in `CLAUDE.md` near the top.
+- Mercor referral link in `README.md` with a personal note from the maintainer (Abiodun's AI Chemistry Evaluation work at Mercor).
+
+### Changed
+- `CONTRIBUTING.md` "Before you start" restructured into three explicit steps: use Claude Code to edit, run `/acknowledge-contributing`, email first for non-trivial.
+- `README.md` How to contribute reordered to put the Claude-Code + acknowledgment steps first.
+
+## [0.2.0] — 2026-05-29
+
+### Added
+- Pre-build decisions checkpoint in `/scope-mvp` — after the brief reaches `green-lit-to-build`, Claude asks (a) design path: generic-but-unique vs. engage a human designer, and (b) build support: I'll follow along vs. Fijara referral. Both picks recorded in the brief's frontmatter.
+- Fijara-referral behavioral rule in `CLAUDE.md` Working style: gently surface Fijara if a "I'll follow" user later signals real struggle (repeated basic questions, expressed frustration, blocked on setup). Never pushy.
+- Feedback section in `README.md` directing users to email `aanifowose111@gmail.com` with subject `[discovery-to-ship feedback]`.
+- `CONTRIBUTING.md` — comprehensive guide covering project philosophy, what to change vs. not change, the required-updates matrix per change type, style conventions, local testing checklist, PR process, brief code of conduct.
+- `HELP.md` scenario 1.5 expanded with the new pre-build decisions description.
+
+### Changed
+- payment-forms card moved to `ideas/killed/` with kill reason in the frontmatter (verification-test card that the viability reviewer killed with HIGH confidence; no need to continue the validation cycle on it).
+
+## [0.1.0] — 2026-05-29
+
+### Added
+- Initial scaffolding for the workspace pushed to GitHub at https://github.com/aanifowose111/discovery-to-ship-multi-agents
+- Pipeline slash commands: `/scan`, `/discover`, `/validate-card`, `/scope-mvp`, `/research-design`, `/draft-design-brief`, `/trend-check`, `/help`.
+- Reviewer and worker subagents: `product-viability-reviewer`, `product-competition-reviewer`, `market-segment-reviewer`, `product-scope-reviewer`, `ui-ux-researcher`, `design-brief-reviewer`, `design-fidelity-reviewer`.
+- Agent-skills personas (`code-reviewer`, `security-auditor`, `test-engineer`) symlinked from the `external/agent-skills/` submodule.
+- Helper skills: `doc-export` (markdown → PDF/DOCX via pandoc + typst), `web-preview` (Jinja render in Chrome with fixture data).
+- Methodology + runbook guides across six domains: product (discovery / validation / MVP scoping), market (scan / trend monitoring), funding (strategy), web (Flask scaffold / deploy / DO Spaces / auth), mobile (RN scaffold / EAS / app store submission), UI/UX (design research / brief / handoff).
+- Personal-data folders gitignored: `ideas/`, `market-research/`, `web-apps/`, `mobile-apps/`, `generated/`. Each with a tracked README explaining the convention and a `.gitkeep` placeholder.
+- Top-level files: `README.md`, `CLAUDE.md`, `HELP.md`, `LICENSE` (MIT), `.gitignore`.
+- Stack-flexibility framing: workspace defaults are dockerized Flask + RN, but the methodologies are stack-agnostic and `/scope-mvp` asks the user to confirm the stack before drafting.
+- Internet access policy: `WebFetch` and `WebSearch` pre-approved in `.claude/settings.json`; permission only requested for non-HTTPS, suspicious, paid, or user-private URLs.
+
+[Unreleased]: https://github.com/aanifowose111/discovery-to-ship-multi-agents/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/aanifowose111/discovery-to-ship-multi-agents/compare/v0.2.0...v0.3.0
+[0.2.0]: https://github.com/aanifowose111/discovery-to-ship-multi-agents/compare/v0.1.0...v0.2.0
+[0.1.0]: https://github.com/aanifowose111/discovery-to-ship-multi-agents/releases/tag/v0.1.0

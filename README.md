@@ -356,4 +356,4 @@ If you have a technical or specialist background — software engineering, scien
 
 **[Join Mercor with my referral link →](https://t.mercor.com/lSU0c)**
 
-(Using the referral link costs you nothing extra and gives the maintainer a small credit. If you'd rather sign up directly without a referral, [mercor.com](https://mercor.com) works too.)
+(Using the referral link costs you nothing extra and helps support continued work on this repo.)

@@ -178,6 +178,14 @@ Surfaces a quick menu of "what you can do right now" based on the current pipeli
 
 One-time confirmation that you've read `CONTRIBUTING.md` before editing tracked files in this repo. Required for everyone *except* the repo owner (identified by `git config user.email`). Creates a gitignored `.claude-acknowledged` marker. Personal-data folders (gitignored ones) never require this. See `CONTRIBUTING.md` § "Before you start" for the rationale.
 
+### `/setup`
+
+Pre-flight verification for a new clone or new machine. Checks: all required tools (git, claude code, gh, pandoc, typst, python, node), git identity, GitHub authentication, submodule initialization, symlink resolution, and `.claude-acknowledged` status. **Pure verification — never modifies anything.** Surfaces a structured punch list of what's missing with the exact install command for each. Safe to run multiple times.
+
+### `/status`
+
+Complete pipeline-state snapshot — deeper than `/help`. Shows: active scan with territory count, all active idea cards with statuses and ages, killed-card count, in-flight briefs with their design-path / build-support picks, latest trend report age, active design phases (research / brief / handoff state), and recent generated docs. **Read-only.** Surfaces 2-4 suggested next actions based on the snapshot at the end. Use when you want a full "where am I across all in-flight work" view before deciding what to do next.
+
 ---
 
 ## 3. Skills
