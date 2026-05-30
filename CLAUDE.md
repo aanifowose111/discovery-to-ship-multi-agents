@@ -293,103 +293,36 @@ Project-local skills in `.claude/skills/`. Claude Code auto-discovers and invoke
 - [`doc-export`](.claude/skills/doc-export/SKILL.md) — markdown → PDF or DOCX via pandoc. Output drops in `generated/<category>/` with a date-stamped, slug-keyed filename. Triggers on "export this as PDF", "generate a docx of [artifact]", "give me a PDF of [artifact]".
 - [`web-preview`](.claude/skills/web-preview/SKILL.md) — render a Jinja template from `web-apps/<slug>/` with fixture demo data and open the result in Chrome (`--no-open` to skip launching). Triggers on "preview this page", "show me what this template renders to", "open this in Chrome".
 
-**Agent-skills skills (all 23 file-copied from `external/agent-skills/skills/` into `.claude/skills/`, auto-discovered by Claude Code; originally by **Addy Osmani**, MIT-licensed — see `.claude/skills/README.md` for full attribution):**
-
-| Skill | One-line purpose |
-|---|---|
-| `api-and-interface-design` | Design endpoints / contracts / type boundaries |
-| `browser-testing-with-devtools` | Debug web frontend behavior in the browser |
-| `ci-cd-and-automation` | Set up or modify CI/CD pipelines |
-| `code-review-and-quality` | Five-axis review (correctness, readability, architecture, security, performance) |
-| `code-simplification` | Reduce complexity, eliminate cruft |
-| `context-engineering` | When working with prompts / context windows |
-| `debugging-and-error-recovery` | When bugs / errors surface; structured debugging |
-| `deprecation-and-migration` | Removing or replacing existing code safely |
-| `documentation-and-adrs` | Document non-trivial architecture decisions |
-| `doubt-driven-development` | Stress-test plans before committing |
-| `frontend-ui-engineering` | Write production-quality UI (composition, accessibility, no AI aesthetic) |
-| `git-workflow-and-versioning` | Commit / branch / PR hygiene |
-| `idea-refine` | Sharpen vague ideas via divergent → convergent thinking |
-| `incremental-implementation` | Small, testable steps; never big-bang |
-| `interview-me` | Extract what the user actually wants when an ask is underspecified |
-| `performance-optimization` | When user-visible latency / memory matters |
-| `planning-and-task-breakdown` | Break complex tasks into ordered units |
-| `security-and-hardening` | OWASP-style hardening for auth, secrets, input, I/O, network |
-| `shipping-and-launch` | Pre-flight, phased rollout, post-launch monitoring |
-| `source-driven-development` | Develop against source-of-truth code / data |
-| `spec-driven-development` | Write requirements / specs before implementation |
-| `test-driven-development` | Write failing test → smallest code to pass → refactor |
-| `using-agent-skills` | Meta-skill about how to compose skills |
+**Agent-skills skills:** all **23** from `external/agent-skills/skills/` are file-copied into `.claude/skills/` and auto-discovered. Full per-skill inventory + descriptions live in `.claude/skills/README.md`. Originally by **Addy Osmani** (MIT, © 2025) — full attribution there and at `external/agent-skills/LICENSE`.
 
 ## Build-phase skill auto-invocation
 
-During any **build phase** (after `/scope-mvp` returns `green-lit-to-build` for a project, through deploy/release), Claude **proactively invokes the following skills without the user having to ask** — they apply as a matter of course to the work:
+During any **build phase** (after `/scope-mvp` returns `green-lit-to-build`, through deploy/release), Claude **proactively invokes** the following skills without being asked — they apply as a matter of course:
 
-| Skill | When applied during build |
-|---|---|
-| `incremental-implementation` | Every feature implementation — small, tested, verifiable steps |
-| `test-driven-development` | For any logic that benefits from tests (most logic) |
-| `code-review-and-quality` | Before any "feature complete" claim and at every PR-ready moment |
-| `code-simplification` | After implementation, before review, when revisiting older code |
-| `security-and-hardening` | For any code touching auth, secrets, user input, file I/O, network |
-| `performance-optimization` | When user-visible latency or memory matters (not premature) |
-| `debugging-and-error-recovery` | When bugs surface or errors are unclear |
-| `frontend-ui-engineering` | When writing or modifying UI code (Jinja templates on Flask projects; React Native components on mobile — note the React-example caveat above for Flask) |
-| `api-and-interface-design` | When designing or modifying endpoint shapes, types, or contracts |
-| `documentation-and-adrs` | When making non-trivial architecture decisions |
-| `git-workflow-and-versioning` | When committing, branching, or making PR-worthy changes |
-| `browser-testing-with-devtools` | When debugging frontend behavior in a browser (web only) |
-| `ci-cd-and-automation` | When setting up or modifying CI/CD pipelines |
-| `shipping-and-launch` | At release time — pre-flight checks, rollout decisions, post-launch monitoring |
-| `spec-driven-development` | When drafting briefs, specs, or requirements documents |
+`incremental-implementation`, `test-driven-development`, `code-review-and-quality`, `code-simplification`, `security-and-hardening` (for auth/secrets/input/I-O/network code), `performance-optimization` (when latency/memory matters), `debugging-and-error-recovery`, `frontend-ui-engineering`, `api-and-interface-design`, `documentation-and-adrs`, `git-workflow-and-versioning`, `browser-testing-with-devtools` (web only), `ci-cd-and-automation`, `shipping-and-launch`, `spec-driven-development`.
 
-Claude does not announce skill invocations every time — they apply silently as part of doing the work well. If the user asks "are you applying X right now?" Claude can confirm.
+**Situational — only when context matches or the user asks:** `idea-refine`, `interview-me`, `planning-and-task-breakdown`, `doubt-driven-development`, `using-agent-skills`, `source-driven-development`, `context-engineering`, `deprecation-and-migration`.
 
-**Situational skills — only invoked when context specifically matches or user explicitly asks:**
+Full mapping of when each is applied is in `guides/product/build-status-methodology.md` and each senior-engineer persona at `.claude/agents/senior-*.md`. Claude does not announce skill invocations every time — they apply silently. If asked "are you applying X right now?", Claude can confirm.
 
-- `idea-refine` — discovery-phase ideation aid.
-- `interview-me` — when the user's request is genuinely underspecified.
-- `planning-and-task-breakdown` — explicit task decomposition for complex multi-step work.
-- `doubt-driven-development` — stress-testing a plan or design before committing.
-- `using-agent-skills` — meta; reference when navigating the skill catalog.
-- `source-driven-development` — only for development driven by an external source-of-truth.
-- `context-engineering` — prompt / context-window-specific work.
-- `deprecation-and-migration` — only when removing or migrating existing code.
+**Flask-side caveat for `frontend-ui-engineering`:** its examples are React/TSX; on Flask projects the *principles* apply, the *examples* don't — implement in Jinja + vanilla JS, not React.
 
 ---
 
 ## Guides index
 
-Long-form reference docs under `guides/`. Listed by domain.
+Long-form reference docs at `guides/`. Read on demand (not auto-loaded). Open the relevant file or `ls guides/<domain>/` to see what's available.
 
-**Product (`guides/product/`)**
-- [`idea-discovery-methodology.md`](guides/product/idea-discovery-methodology.md) — process for going from "we want to build something" to a prioritized, reviewer-validated candidate list. Defines the idea-card format and triage rubric the downstream reviewers and validation guide rely on.
-- [`idea-validation-methodology.md`](guides/product/idea-validation-methodology.md) — how green-bucket cards get stress-tested by three narrow-scoped reviewers (`product-viability-reviewer`, `product-competition-reviewer`, `market-segment-reviewer`) before any engineering time is committed. Defines the verdict format and the integration rules.
-- [`mvp-scoping-methodology.md`](guides/product/mvp-scoping-methodology.md) — turns a green-lit card into a shipping plan. Defines the MVP brief format, the riskiest-assumption framing, default stack/infra decisions (Flask, RN, DO Spaces, `.env` strategy, hosting), reviewer pair (`product-scope-reviewer` + agent-skills' `code-reviewer`), and when *not* to write code (landing-page test, concierge MVP).
-- [`build-status-methodology.md`](guides/product/build-status-methodology.md) — how `BUILD_STATUS.md` is dynamically generated per-product (from the brief's must-haves + the chosen stack + the standard build order, filtered to what this product needs), who owns it (senior-software-engineer), the update protocol (every subsystem start/completion/decision triggers a write), the output format (checklist + current focus + history + decisions + open items), and how it's surfaced via `/status`.
+| Domain | Folder | Guides |
+|---|---|---|
+| Product | `guides/product/` | `idea-discovery-methodology.md`, `idea-validation-methodology.md`, `mvp-scoping-methodology.md`, `build-status-methodology.md` |
+| Market | `guides/market/` | `market-scan-methodology.md`, `trend-monitoring.md` |
+| Funding | `guides/funding/` | `funding-strategy-methodology.md` (10-path catalog + 5-step decision framework) |
+| Web | `guides/web/` | `flask-mvp-scaffold.md`, `flask-deploy-runbook.md`, `do-spaces-integration.md`, `flask-auth-patterns.md` |
+| Mobile | `guides/mobile/` | `react-native-mvp-scaffold.md`, `eas-build-and-update.md`, `rn-app-store-submission.md` |
+| UI/UX | `guides/ui-ux/` | `design-research-methodology.md`, `design-brief-methodology.md`, `design-handoff-methodology.md` |
 
-**Market (`guides/market/`)**
-- [`market-scan-methodology.md`](guides/market/market-scan-methodology.md) — upstream of discovery. Produces a short list of *candidate territories* (segments + categories + situations) for the next discovery cycle to mine. Defines source families to sweep, the territory format, prioritization rubric (freshness × founder fit × reachability), and the date-stamped scan report.
-- [`trend-monitoring.md`](guides/market/trend-monitoring.md) — between-scan watchman. Sweeps a watchlist derived from active pipeline state (active scan + active cards + active briefs) on a weekly default cadence, categorizes findings as material/notable/background, and hands material findings to the right downstream slash command. Defines the watchlist, cadence and triggers, and the trend report format.
-
-**Funding (`guides/funding/`)**
-- [`funding-strategy-methodology.md`](guides/funding/funding-strategy-methodology.md) — picks the right funding path (bootstrap, RBF, friends&family, angel, accelerator, seed VC, strategic, grant, crowdfund, debt) for a given product at a given stage. Defines the 10-path catalog, the 5-step decision framework (stage / economics / founder / exit / category), the funding-decision document format, and the trigger conditions for revisiting a decision. Downstream path-specific methodology guides will be written when a real product picks a real path.
-
-**Web (`guides/web/`)**
-- [`flask-mvp-scaffold.md`](guides/web/flask-mvp-scaffold.md) — the opinionated scaffold sequence every new Flask MVP starts from after `/scope-mvp` returns `green-lit-to-build`. Defines the target project shape, default conventions (app factory, blueprints, config classes, structured logging, gunicorn, pytest, ruff), the 9-step scaffold sequence (mkdir → deployable empty shell with one passing test), the first-week feature-work cadence, and the rules for deviating. Defers the *how-to-build-well* questions to the agent-skills repo's skills.
-- [`flask-deploy-runbook.md`](guides/web/flask-deploy-runbook.md) — operational path from `scaffold-done` to a live HTTPS URL. Covers both DO targets (droplet + `docker compose` + Caddy for HTTPS, vs. DO App Platform). Includes provisioning, hardening, first deploy, recurring `scripts/deploy.sh`, migrations, rollback, where logs live, backups, monitoring at first-100-users scale, and when to switch between targets.
-- [`do-spaces-integration.md`](guides/web/do-spaces-integration.md) — DigitalOcean Spaces patterns for file storage. One bucket per product, IAM keys scoped to single bucket, signed URLs as default, lifecycle rules mandatory. Includes a complete `app/services/storage.py` wrapper (server-side upload, presigned PUT/GET, public URL, delete, exists with safe-key sanitization), upload/download patterns (server-side vs. browser-direct), CORS for browser PUTs, CDN usage, local dev options (real `-dev` bucket / LocalStack / moto), cost notes, key-rotation drill, leaked-credential incident response.
-- [`flask-auth-patterns.md`](guides/web/flask-auth-patterns.md) — security-first auth defaults for Flask MVPs. Server-side sessions (`flask-login` + Redis-backed `flask-session`) over signed-cookie sessions; Argon2id password hashing; cookie/CSRF/expiry rules; login/reset/verification flows with named threat models; MFA via TOTP with mandatory backup codes; JWT (RS256, short-access + rotating refresh) as the mobile-client exception; coexistence with sessions for hybrid apps; audit log; rate limiting; account deletion; 14-item security review checklist before ship.
-
-**Mobile (`guides/mobile/`)**
-- [`react-native-mvp-scaffold.md`](guides/mobile/react-native-mvp-scaffold.md) — the opinionated scaffold sequence every new RN MVP starts from after `/scope-mvp` returns `green-lit-to-build`. Defaults to Expo (managed) + TypeScript + expo-router + TanStack Query + Zustand + axios + expo-secure-store, paired with a Flask backend. Defines the target project shape, conventions for state/styling/auth/tests/builds (EAS), an 11-step scaffold sequence (npx create-expo-app → installable shell with one screen rendering a server response), the first-week distribution mechanics (TestFlight / Play Internal Testing), and the rules for deviating.
-- [`eas-build-and-update.md`](guides/mobile/eas-build-and-update.md) — operational guide for EAS Build + EAS Update past the scaffold's first build. Locks 3 profiles (development/preview/production) → 3 channels → 3 audiences mapping; defines `app.config.ts` dynamic config with distinct bundle IDs per environment; secrets-at-build-time vs. runtime decision table; runtimeVersion fingerprint policy that gates OTA compatibility; OTA-allowed vs. native-build-required boundary; rollback procedure; release ceremony with phased rollout; cost notes.
-- [`rn-app-store-submission.md`](guides/mobile/rn-app-store-submission.md) — store-side runbook for getting an RN production build into the App Store (iOS) and Google Play (Android). Covers account setup ($99/yr Apple, $25 one-time Google), App Store Connect + Play Console metadata requirements, real-device screenshot rules, privacy policy + data-safety questions, build upload via `eas submit`, common rejection patterns with named fixes (default Expo icon, vague permission strings, missing privacy URL, etc.), phased rollout, and the first-72-hour post-launch ritual.
-
-**UI/UX (`guides/ui-ux/`)** — supports the design phase between `/scope-mvp` and the build.
-- [`design-research-methodology.md`](guides/ui-ux/design-research-methodology.md) — how the `ui-ux-researcher` produces a product-specific design-direction report (reference landscape, ≥3 visual-direction options, ≥3 color/type pairings, pattern conventions, brand positioning, portfolio-continuity question). Grounds every direction in cited URLs to resist the LLM aesthetic. Report lives at `<web-apps|mobile-apps>/<slug>/design/DESIGN_RESEARCH.md` and feeds the design brief.
-- [`design-brief-methodology.md`](guides/ui-ux/design-brief-methodology.md) — the consolidated PRD+FRD document that goes to the human designer. Locks a 10-section structure (product overview, audience+voice, design direction picked from research, user journeys, screen inventory, per-screen requirements with explicit states + edge cases, deliverables, constraints, open questions split into for-designer vs. for-user, sign-off + version log). One source of truth; lives at `<web-apps|mobile-apps>/<slug>/design/DESIGN_BRIEF.md`.
-- [`design-handoff-methodology.md`](guides/ui-ux/design-handoff-methodology.md) — how the designer's Figma is received, reviewed against the brief (coverage, direction fidelity, component organization, WCAG AA, mobile/responsive), accepted, captured into `design/figma/` (link record + frame index) and `design/handoff/` (`tokens.json` + `assets/` + per-screen `screenshots/`), and translated into code with tokens as the contract. Includes the order-of-authority for implementation when handoff sources conflict (tokens → screenshot → brief → frontend-ui-engineering craft).
+Each guide has a first-paragraph summary if you want a quick scan before reading in full.
 
 ---
 
