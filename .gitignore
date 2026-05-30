@@ -1,0 +1,99 @@
+# ─── Personal product data (gitignored; user-local only) ────────────────────
+# Each contributor's idea cards, research, product builds, and exports live
+# here. Only the README in each folder is tracked (so the structure ships,
+# the contents do not).
+
+ideas/*
+!ideas/README.md
+!ideas/.gitkeep
+
+market-research/*
+!market-research/README.md
+!market-research/.gitkeep
+
+web-apps/*
+!web-apps/README.md
+!web-apps/.gitkeep
+
+mobile-apps/*
+!mobile-apps/README.md
+!mobile-apps/.gitkeep
+
+generated/*
+!generated/README.md
+!generated/.gitkeep
+
+# ─── Claude Code session-local / private settings ───────────────────────────
+
+.claude/settings.local.json
+
+# ─── Python ─────────────────────────────────────────────────────────────────
+
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+.eggs/
+.installed.cfg
+*.egg
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.tox/
+.coverage
+.coverage.*
+htmlcov/
+.venv/
+venv/
+env/
+ENV/
+*.so
+build/
+dist/
+pip-log.txt
+pip-delete-this-directory.txt
+
+# ─── Node / React Native / Expo ─────────────────────────────────────────────
+
+node_modules/
+.expo/
+.expo-shared/
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+*.orig.*
+android/app/build/
+android/.gradle/
+ios/Pods/
+ios/build/
+ios/DerivedData/
+
+# ─── Env files / secrets (per project) ──────────────────────────────────────
+
+.env
+.env.local
+.env.*.local
+SECRETS.md
+*-service-account.json
+*.pem
+*-key.json
+
+# ─── OS / editor ────────────────────────────────────────────────────────────
+
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/settings.json.example
+*.swp
+*.swo
+*~
+
+# ─── Logs ───────────────────────────────────────────────────────────────────
+
+*.log
+logs/
