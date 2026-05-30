@@ -399,6 +399,47 @@ This applies to both the main Claude and all reviewer subagents — they're trus
 
 ---
 
+## Utility scripts (auxiliary, not pipeline)
+
+Scripts live at `scripts/` for tasks without a slash-command equivalent or for use outside Claude Code. **Commands take priority** for the actual pipeline work; scripts are plumbing.
+
+**Python** (run from repo root):
+
+```bash
+python3 scripts/lint_pipeline.py        # validate pipeline state consistency
+python3 scripts/new_idea_card.py        # interactive idea-card creator (alt to /discover)
+python3 scripts/check_links.py          # check markdown links and @path references
+python3 scripts/changelog_helper.py     # auto-generate CHANGELOG stub from git log
+python3 scripts/report_summarizer.py    # pretty-print all reports in market-research/
+```
+
+**Shell** (run from repo root):
+
+```bash
+bash scripts/preflight.sh               # dependency + repo-state verification (like /setup)
+bash scripts/setup-deps.sh              # install all required tools (idempotent)
+bash scripts/update-agent-skills.sh     # pull agent-skills upstream and commit submodule SHA
+bash scripts/backup-personal-data.sh    # tar gitignored folders (--encrypt available)
+bash scripts/new-product-skeleton.sh <slug> <web|mobile|hybrid>  # scaffold a product folder
+bash scripts/clean-killed-ideas.sh      # archive killed ideas older than N days
+```
+
+All scripts support `--help` and most support `--no-color`. Each script's source is heavily commented; see **[scripts/README.md](scripts/README.md)** for full descriptions, flags, and examples.
+
+### When to reach for a script vs. a slash command
+
+| Want to... | Use |
+|---|---|
+| Discover ideas, validate them, scope MVP, etc. | **Slash command** (`/discover`, `/validate-card`, `/scope-mvp`) |
+| Set up a new clone or new machine | **Script** (`setup-deps.sh`, `preflight.sh`) — no Claude Code needed |
+| Quick read of pipeline state without an agent round-trip | **Script** (`lint_pipeline.py`, `report_summarizer.py`) |
+| Capture one specific idea you already have in mind | Either — `/discover` (full flow) or `new_idea_card.py` (faster, single card) |
+| Back up your personal data | **Script** (`backup-personal-data.sh`) — no slash-command equivalent |
+| Pull the latest agent-skills upstream | **Script** (`update-agent-skills.sh`) — no slash-command equivalent |
+| Machine-readable output for tooling | **Script** with `--json` flag |
+
+---
+
 ## Need something else?
 
 - The full pipeline orchestration (every checkpoint, the design vs. validation MVP distinction, the parallel trend monitoring lane) is in `CLAUDE.md`'s "Pipeline orchestration & checkpoints" section.

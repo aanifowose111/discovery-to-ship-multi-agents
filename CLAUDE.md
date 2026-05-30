@@ -34,6 +34,7 @@ We are working through three broad phases. They are not strictly sequential — 
 | `web-apps/` | Source for web applications we build (Flask, dockerized). Each product is a subfolder `<slug>/` containing the app source, `MVP.md`, optional `FUNDING.md`, `design/` (created during the optional design phase), and optional `previews/` (for the `web-preview` skill — fixture-driven Jinja renders opened in Chrome). |
 | `mobile-apps/` | Source for mobile applications (React Native + Expo). Same per-product layout as `web-apps/`. |
 | `external/` | Vendored external repos. Currently holds `agent-skills/` — the user's fork of the agent-skills repo. Three personas (`code-reviewer`, `security-auditor`, `test-engineer`) are symlinked into `.claude/agents/` so Claude Code auto-discovers them. |
+| `scripts/` | Utility scripts (Python + Shell) for plumbing and tasks without a slash-command equivalent. Slash commands take priority for pipeline work; scripts are auxiliary. See `scripts/README.md`. |
 | `generated/` | Date-stamped exports of project artifacts (briefs, reports, design docs) to PDF or DOCX via the `doc-export` skill. Subfolders by category: `briefs/`, `reports/`, `design-docs/`, `misc/`. Naming: `<YYYY-MM-DD>-<slug-or-area>-<doc-type>.<ext>`. |
 | `guides/` | Long-form reference documents organized by domain (`product/`, `market/`, `funding/`, `web/`, `mobile/`, `ui-ux/`). Read on demand, not auto-loaded. |
 | `.claude/commands/` | Custom project-specific slash commands. Each `.md` file = one `/command`. |

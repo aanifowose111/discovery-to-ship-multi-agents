@@ -15,9 +15,13 @@ This project does not yet follow strict semantic versioning. Pre-1.0, breaking c
 - `SECURITY.md` — responsible disclosure path for any security concerns.
 - Custom typst styling overlay (`.claude/skills/doc-export/style.typ`) — white background, light navy `#1e3a8a` accent on headings, Charter body + Helvetica Neue headings (macOS native, with Liberation/DejaVu fallbacks for Linux), Menlo monospace, justified text with comfortable leading, slate borders on tables, slate-tinted background on code blocks. Injected via pandoc's `--include-in-header` so all pandoc-typst helpers (horizontalrule, terms.item, etc.) are inherited. Font fallback chain produces non-fatal warnings on each platform (unavailable fonts are skipped); the `doc-export` skill filters those warnings out of user-facing output.
 - `doc-export` skill now always asks the user "PDF or DOCX?" when format is ambiguous (instead of silently defaulting to PDF).
+- **`scripts/` folder with 5 Python + 6 Shell utility scripts.** Auxiliary tools that complement (do not replace) the slash commands:
+  - **Python:** `lint_pipeline.py` (validate pipeline state consistency), `new_idea_card.py` (interactive idea-card creator for one-off captures), `check_links.py` (markdown link + @path reference checker, optional external-URL HEAD check), `changelog_helper.py` (auto-extract commits since last tag, format as CHANGELOG stub), `report_summarizer.py` (pretty-print summaries of scan/validation/scoping/trend reports).
+  - **Shell:** `preflight.sh` (dependency + repo-state verification, shell version of `/setup`), `setup-deps.sh` (install all required tools, idempotent, detects macOS vs. Linux), `update-agent-skills.sh` (pull agent-skills upstream and commit new submodule SHA), `backup-personal-data.sh` (tar gitignored folders, optional `--encrypt`), `new-product-skeleton.sh` (scaffold a new product folder), `clean-killed-ideas.sh` (archive killed ideas older than N days).
+  - All scripts: executable, color-aware, runnable from the repo root. Documented in `scripts/README.md` plus the index sections of `README.md` and `HELP.md`. Side effect on GitHub: language bar now shows Python and Shell alongside the existing Typst, reflecting the actual code mix in the repo.
 
 ### Changed
-- Mercor referral note in `README.md` simplified — removed the non-referral mercor.com fallback line (per maintainer's preference; using the referral link is the supported path).
+- Mercor referral note in `README.md` simplified — removed both the non-referral mercor.com fallback line *and* the parenthetical aside (per maintainer's preference; the referral link stands on its own).
 
 ## [0.3.0] — 2026-05-29
 

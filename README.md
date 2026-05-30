@@ -229,6 +229,33 @@ Helper skills (Claude invokes these implicitly when relevant phrasing appears):
 
 See **[HELP.md](HELP.md)** for the deeper command-by-command reference, common scenarios, gotchas, and recovery paths.
 
+### Utility scripts
+
+Auxiliary tools at `scripts/` (Python + Shell). Slash commands take priority for the actual pipeline work; these are for plumbing, verification, and tasks without a slash-command equivalent.
+
+**Python:**
+
+| Script | Purpose |
+|---|---|
+| `lint_pipeline.py` | Validate pipeline state consistency (frontmatter, status alignment, `@path` cross-references, required sections). |
+| `new_idea_card.py` | Interactive idea-card creator for one-off captures outside `/discover`. |
+| `check_links.py` | Scan tracked markdown for broken relative links and `@path` references; optional external-URL HEAD check. |
+| `changelog_helper.py` | Auto-extract commits since the last tag and format as a CHANGELOG entry stub. |
+| `report_summarizer.py` | Pretty-print summaries of all scan / validation / scoping / trend reports. |
+
+**Shell:**
+
+| Script | Purpose |
+|---|---|
+| `preflight.sh` | Shell version of `/setup` — verify dependencies and repo state. Runnable outside Claude Code. |
+| `setup-deps.sh` | Install all required tools in one go (idempotent). Detects macOS vs. Linux. |
+| `update-agent-skills.sh` | Pull the latest agent-skills upstream and commit the new submodule SHA. |
+| `backup-personal-data.sh` | Tar up gitignored folders (ideas/, web-apps/, etc.); optional `--encrypt`. |
+| `new-product-skeleton.sh` | Scaffold a new product folder under `web-apps/<slug>/` or `mobile-apps/<slug>/`. |
+| `clean-killed-ideas.sh` | Archive old killed-idea files older than N days. |
+
+See **[scripts/README.md](scripts/README.md)** for full usage, flags, and examples.
+
 ---
 
 ## Repository layout
@@ -355,5 +382,3 @@ Building useful systems takes time, and a lot of the most interesting work right
 If you have a technical or specialist background — software engineering, science, mathematics, design, writing, language expertise, medicine, law — Mercor matches you with paid AI-training projects from frontier labs. The work is real, the pay is fair, and it's a way for domain experts to contribute meaningfully to where AI is going (and earn while doing so).
 
 **[Join Mercor with my referral link →](https://t.mercor.com/lSU0c)**
-
-(Using the referral link costs you nothing extra and helps support continued work on this repo.)
