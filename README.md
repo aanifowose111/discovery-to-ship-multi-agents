@@ -1,6 +1,8 @@
-# Agents Workspace
+# Discovery-to-Ship Multi-Agents
 
-A Claude Code–orchestrated portfolio pipeline for discovering, validating, scoping, designing, and shipping distinctive web and mobile products. Built around opinionated methodology guides, narrow-lens reviewer assistants, and pipeline slash commands.
+A Claude Code–orchestrated portfolio pipeline for discovering, validating, scoping, designing, and shipping distinctive web and mobile products. Built around opinionated methodology guides, narrow-lens reviewer subagents, helper skills, and pipeline slash commands.
+
+The name reflects what's in the box: many specialized agents (worker, reviewer, and code-review personas), composed into one pipeline that takes a product from **discovery** all the way through **ship**.
 
 This repo is the *scaffolding*. Your products (ideas, market research, builds) live in the same workspace but are gitignored — they stay on your disk, never enter git. The shared part is the workflow itself: how to think about discovery, how to validate, how to scope, how to design without producing generic-looking output, and (if you use the workspace defaults) how to build dockerized Flask backends and React Native frontends in a repeatable way.
 
@@ -71,28 +73,161 @@ brew install tectonic         # LaTeX-based, larger but mature
 
 > Note: this repo previously documented `wkhtmltopdf` as the PDF engine; Homebrew removed it after the upstream project was archived in 2023. Use typst or tectonic instead.
 
-### Clone
+### Step-by-step setup (for people new to git or this workspace)
+
+If you are comfortable with terminals and git, jump to the short version at the end of this section. Otherwise, go through the steps in order.
+
+#### 1. Open a terminal
+
+- **macOS:** open the *Terminal* app (or *iTerm* if you have it). It's in `Applications → Utilities`, or hit Cmd-Space and type "Terminal."
+- **Linux:** any shell — Gnome Terminal, Konsole, Alacritty, etc.
+- **Windows:** install [WSL](https://learn.microsoft.com/en-us/windows/wsl/install) and run all commands in an Ubuntu shell inside WSL. The workspace assumes a Unix-like environment.
+
+You should see a prompt that looks something like `~ $` or `~ %`.
+
+#### 2. Install the required tools
+
+For everything to work, you need:
+
+| Tool | Purpose | Install (macOS) | Install (Ubuntu / WSL) |
+|---|---|---|---|
+| **git** | Version control | comes with Xcode CLI tools (`xcode-select --install`) | `sudo apt update && sudo apt install git` |
+| **Claude Code CLI** | The agent runner | [docs.claude.com/en/docs/claude-code/installation](https://docs.claude.com/en/docs/claude-code/installation) | same link |
+| **Homebrew** (macOS only) | Package manager for the rest | `/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"` | n/a (you have `apt`) |
+| **GitHub CLI** (`gh`) | Auth with GitHub from the terminal | `brew install gh` | `sudo apt install gh` |
+| **pandoc** | Markdown → PDF/DOCX (for `doc-export` skill) | `brew install pandoc` | `sudo apt install pandoc` |
+| **typst** | Modern PDF engine for pandoc | `brew install typst` | see [github.com/typst/typst](https://github.com/typst/typst) |
+| **Python 3.11+** | For Flask web apps (workspace default) | `brew install python@3.12` | `sudo apt install python3 python3-pip` |
+| **Node.js 20+** | For React Native (workspace default) | `brew install node@20` | `curl -fsSL https://deb.nodesource.com/setup_20.x \| sudo -E bash -; sudo apt install nodejs` |
+
+After each install, verify with `<tool> --version`. For example: `git --version`, `gh --version`, `pandoc --version`, `typst --version`, `claude --version`.
+
+#### 3. Authenticate GitHub in the terminal
+
+Even though GitHub repos can be cloned anonymously over HTTPS, you'll need to be authenticated to push your own changes. The GitHub CLI handles this in one interactive flow:
 
 ```bash
-# With submodules in one command (recommended):
-git clone --recurse-submodules https://github.com/aanifowose111/agents.git
-cd agents
+gh auth login
+```
 
-# Or if you cloned without --recurse-submodules:
+It will ask you a few questions:
+
+1. **Which account?** Choose `GitHub.com` (unless you use GitHub Enterprise).
+2. **Protocol?** Choose `HTTPS` (simpler than SSH for new users).
+3. **Authenticate via?** Choose `Login with a web browser`. It will print a one-time code (e.g., `1234-ABCD`) and offer to open the browser. Press Enter, paste the code on the GitHub page when prompted, and approve.
+4. **Done.** You'll see something like:
+
+```
+✓ Authentication complete.
+✓ Configured git protocol
+✓ Logged in as <your-github-username>
+```
+
+To verify any time later:
+
+```bash
+gh auth status
+```
+
+Expected output (the welcome message is the success signal):
+
+```
+github.com
+  ✓ Logged in to github.com account <your-github-username>
+  ✓ Git operations for github.com configured to use https protocol.
+  ✓ Token: gho_************
+```
+
+If you see `Logged in to github.com account ...`, you're good — `git push`, `gh pr create`, etc. will work without prompting for credentials.
+
+#### 4. Clone the repo
+
+```bash
+git clone --recurse-submodules https://github.com/aanifowose111/discovery-to-ship-multi-agents.git
+cd discovery-to-ship-multi-agents
+```
+
+If you forgot the `--recurse-submodules` flag, run this once inside the directory to pull the agent-skills submodule:
+
+```bash
 git submodule update --init --recursive
 ```
 
-The submodule pulls down the [agent-skills](https://github.com/aanifowose111/agent-skills) fork into `external/agent-skills/`. Three personas (`code-reviewer`, `security-auditor`, `test-engineer`) are symlinked from there into `.claude/agents/` so Claude Code auto-discovers them.
+#### 5. Open Claude Code in the repo
 
-### First run
+```bash
+claude
+```
 
-Open Claude Code in the repo directory. Try one of these:
+Claude Code will detect `CLAUDE.md` and `MEMORY.md` and auto-load them. You'll be at the Claude Code prompt, ready to type commands.
 
-- **`/scan`** — start a market scan. Produces a list of candidate territories for the next discovery cycle. Stops at a sign-off checkpoint.
-- **`/discover`** — brainstorm idea cards. If no active scan exists yet, this command runs an inline lightweight scan first, so you can bootstrap from a single command.
-- **`/trend-check`** — sweep for recent capability/regulatory/funding shifts relevant to your active pipeline state.
+#### 6. Run your first command
 
-Then check `CLAUDE.md` for the full pipeline orchestration and `HELP.md` (when present) for command-by-command reference.
+If you don't have any specific idea in mind yet, just try:
+
+```
+/discover
+```
+
+By itself. No arguments, no idea details. Claude will brainstorm 10+ idea cards drawn from your founder context, recent trends, and the methodology's source families — and surface a top-3 list at the end. The whole flow takes ~5-15 minutes; you sign off on the top-3 cards before the next phase begins.
+
+If you have a specific idea in mind, you can pass it as guidance:
+
+```
+/discover indie-saas-tools, dev-productivity
+```
+
+Or, for a more rigorous start, run `/scan` first to map territories before brainstorming.
+
+#### Short version (for the experienced)
+
+```bash
+brew install git gh pandoc typst python@3.12 node@20  # macOS; adjust for Linux
+gh auth login
+git clone --recurse-submodules https://github.com/aanifowose111/discovery-to-ship-multi-agents.git
+cd discovery-to-ship-multi-agents
+claude
+# Then in Claude Code:
+# /discover
+```
+
+---
+
+### What the submodule pulls in
+
+The clone command above pulls the [agent-skills](https://github.com/aanifowose111/agent-skills) fork into `external/agent-skills/`. Three personas (`code-reviewer`, `security-auditor`, `test-engineer`) are symlinked from there into `.claude/agents/` so Claude Code auto-discovers them. To update agent-skills to the latest upstream:
+
+```bash
+git submodule update --remote external/agent-skills
+git add external/agent-skills
+git commit -m "Update agent-skills to <upstream-SHA>"
+```
+
+---
+
+### Slash commands you can run
+
+Pipeline phase commands (each stops at a user-checkpoint):
+
+| Command | What it does |
+|---|---|
+| `/scan [broad\|focused <topic>]` | Market scan → produces candidate territories for the next discovery cycle. |
+| `/discover [optional territory names]` | Brainstorms idea cards from territories (or from founder fit + trends if no scan exists) and triages them. Single-command bootstrap when run with no args. |
+| `/validate-card <slug>` | Runs the three product reviewers (viability, competition, market-segment) in parallel on a card. |
+| `/scope-mvp <slug>` | Drafts the MVP brief — asks you to confirm the stack first — and runs the scope + code reviewers. |
+| `/research-design <slug>` | Runs the UI/UX researcher to produce a design-direction report (3+ visual directions, color/typography options, brand positioning). |
+| `/draft-design-brief <slug>` | Drafts the consolidated design brief (PRD+FRD) for the human designer, with the design-brief-reviewer. |
+| `/trend-check [optional triggered <reason>]` | Sweeps a watchlist derived from active pipeline state and recommends downstream commands. |
+| `/help` | Quick menu of available commands and suggested next actions, based on current state. |
+
+Helper skills (Claude invokes these implicitly when relevant phrasing appears):
+
+| Skill | What it does |
+|---|---|
+| `doc-export` | Markdown → PDF or DOCX via pandoc + typst. Outputs land in `generated/<category>/`. Triggers on "export this as PDF", "generate a docx", "give me a PDF of [artifact]". |
+| `web-preview` | Renders a Jinja template from `web-apps/<slug>/` with fixture demo data and opens it in Chrome. Triggers on "preview this page", "show me what this renders to". |
+
+See **[HELP.md](HELP.md)** for the deeper command-by-command reference, common scenarios, gotchas, and recovery paths.
 
 ---
 
@@ -145,12 +280,27 @@ This means:
 
 ---
 
-## Recommended git workflow for personal use
+## Recommended git workflow
 
-When you're using this repo for your own products:
+### If you're solo (just you, direct push access to `main`)
 
 1. **Work directly on `main`** locally. Your personal data is gitignored, so it can't accidentally enter a commit.
-2. **When you make a general improvement** (a new guide, a fix to a reviewer, an additional skill), commit it on a feature branch:
+2. **When you make a general improvement** (a new guide, a fix to a reviewer, an additional skill), commit and push:
+   ```bash
+   git add <changed files>
+   git commit -m "<message>"
+   git push origin main
+   ```
+3. **Pull updates** with `git pull` on `main`. Personal data is untouched.
+
+You don't need branches for solo work — gitignoring the personal-data folders is what keeps your work out of git, not branch discipline.
+
+### If you have collaborators (multiple people contributing)
+
+Once you invite collaborators (via GitHub repo Settings → Collaborators), you'll likely want to require pull requests so changes get reviewed before they land. The pattern is:
+
+1. **Enable branch protection** on `main` (GitHub repo Settings → Branches → Add rule → `main` → require pull request, require approving review, etc.).
+2. **Each contributor (including you)** creates a feature branch for their work:
    ```bash
    git checkout -b feat/<short-name>
    # make the edit
@@ -158,10 +308,10 @@ When you're using this repo for your own products:
    git commit -m "<message>"
    git push -u origin feat/<short-name>
    ```
-   Then open a PR (or push to `main` directly if you're solo).
-3. **Pull updates** with `git pull` on `main`. Personal data is untouched.
+3. **Open a pull request** on GitHub from the feature branch into `main`.
+4. **Someone other than the author reviews and approves**, then merges.
 
-You don't need a separate "personal branch" — gitignoring the personal-data folders is what keeps your work out of git, not branch discipline.
+This is also the workflow external contributors (forkers) follow — they fork your repo, create a branch in their fork, push, and open a PR back to your repo. See the *How to contribute* section below.
 
 ---
 

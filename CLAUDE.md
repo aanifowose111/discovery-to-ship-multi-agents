@@ -179,6 +179,7 @@ Custom commands for this project live in `.claude/commands/`. Each file is one c
 - [`/research-design`](.claude/commands/research-design.md) — invoke the `ui-ux-researcher` for a product, producing a design-direction report at `<web-apps|mobile-apps>/<slug>/design/DESIGN_RESEARCH.md`. Args: `<product-slug>` (required). Typically run after the MVP has been validated with first users; running pre-validation is allowed with a confirmation prompt.
 - [`/draft-design-brief`](.claude/commands/draft-design-brief.md) — collect the user's picks (visual direction, palette, typography, voice, portfolio-continuity decision, answers to research open questions, timeline), draft the consolidated brief at `<web-apps|mobile-apps>/<slug>/design/DESIGN_BRIEF.md`, invoke the `design-brief-reviewer`, then stop at the user checkpoint. Args: `<product-slug>` (required). Requires the research to be `status: acted-on`.
 - [`/trend-check`](.claude/commands/trend-check.md) — trend-monitoring sweep against active state, per `guides/market/trend-monitoring.md`. Args: optional `triggered <reason>` for an emergency sweep.
+- [`/help`](.claude/commands/help.md) — quick menu of available commands and suggested next actions based on current pipeline state. Lower-overhead than opening `HELP.md`.
 
 ---
 
