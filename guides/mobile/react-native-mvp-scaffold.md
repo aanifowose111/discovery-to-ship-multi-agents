@@ -304,7 +304,7 @@ Once the scaffold is up, the first week's feature work follows the *first-week b
 
 ### Skills Claude applies automatically during the build
 
-The following skills from `.claude/skills/` (symlinked from the agent-skills repo) are **auto-invoked** during the build phase without the user having to ask — see `CLAUDE.md` § "Build-phase skill auto-invocation" for the full list. Most relevant for React Native mobile builds:
+The following skills from `.claude/skills/` (file-copied from the agent-skills repo by **Addy Osmani**, MIT-licensed) are **auto-invoked** during the build phase without the user having to ask — see `CLAUDE.md` § "Build-phase skill auto-invocation" for the full list. Most relevant for React Native mobile builds:
 
 - **`incremental-implementation`** — every feature lands in small, testable steps.
 - **`test-driven-development`** — write a failing test (`jest` + `@testing-library/react-native`), then the smallest TSX to pass it, then refactor.

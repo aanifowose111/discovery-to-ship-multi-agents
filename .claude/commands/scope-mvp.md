@@ -40,7 +40,7 @@ You are about to scope an MVP for a green-lit card. Follow the methodology in @g
 4. Fill the brief per the §5 template in the scoping guide. Set `status: in-scoping`. Identify the riskiest assumption, must-haves (each traced to the assumption), could-haves, won't-haves, stack, infrastructure decisions (`.env`, DO Spaces, hosting, auth), success criterion (first-10-users measurable), effort estimate, stack stretches.
 5. Invoke the reviewer pair in parallel, **using the custom-subagent invocation pattern in `CLAUDE.md`** — each call uses `subagent_type: "general-purpose"` and instructs the agent to read and follow the relevant persona file:
    - For scope discipline: read and follow `.claude/agents/product-scope-reviewer.md`
-   - For architecture / security / performance: read and follow `.claude/agents/code-reviewer.md` (this is the agent-skills `code-reviewer` persona, symlinked into `.claude/agents/` per `.claude/agents/README.md`)
+   - For architecture / security / performance: read and follow `.claude/agents/code-reviewer.md` (this is the agent-skills `code-reviewer` persona, file-copied into `.claude/agents/` per `.claude/agents/README.md`)
    - For mobile or hybrid briefs, also invoke `mobile-ux-reviewer` *if and only if it exists in `.claude/agents/`* (we have not built it yet — skip otherwise and note the skip in the report)
 
    Each agent should be told to read the brief at `<web-apps|mobile-apps>/<slug>/MVP.md`, the validation report, the scoping methodology guide, and `CLAUDE.md` — and to return its output in the locked verdict format.

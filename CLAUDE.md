@@ -14,7 +14,7 @@ We are working through three broad phases. They are not strictly sequential — 
 
 1. **Scaffolding (substantially complete; new items added as needs surface).** The supporting infrastructure for the work to come is in place:
    - Skills, assistants (including **reviewer assistants**), guides, and slash commands covering: product discovery / validation / MVP scoping, market research (scans + trend monitoring), funding strategy, web-app development, mobile-app development, and UI/UX design coordination.
-   - The user's fork of the agent-skills repo is cloned at `external/agent-skills/`. Three personas (`code-reviewer`, `security-auditor`, `test-engineer`) are symlinked into `.claude/agents/` so Claude Code auto-discovers them.
+   - The user's fork of the agent-skills repo is cloned at `external/agent-skills/`. Three personas (`code-reviewer`, `security-auditor`, `test-engineer`) and 23 skills are **file-copied** into `.claude/agents/` and `.claude/skills/` respectively so Claude Code auto-discovers them and GitHub renders them properly. Re-sync with `bash scripts/update-agent-skills.sh`.
    - The user personally verifies each scaffolding artifact before it becomes load-bearing.
    - Remaining scaffolding (path-specific funding guides, `design-fidelity-reviewer`, additional companion guides flagged in each domain's "future companion guides" sections) is written when a real product creates the need, not pre-built.
 2. **Product discovery & validation.** Ready to begin via the pipeline commands. Search for candidate product ideas (`/scan` → `/discover` → `/validate-card`), and land on a prioritized list with the most viable product at the top.
@@ -33,12 +33,12 @@ We are working through three broad phases. They are not strictly sequential — 
 | `market-research/` | Research outputs: scan reports (`scan-<date>.md`), triage lists (`triage-<date>.md`), validation reports (`validation-<slug>-<date>.md`), scoping reports (`scoping-<slug>-<date>.md`), trend reports (`trends-<date>.md`). |
 | `web-apps/` | Source for web applications we build (Flask, dockerized). Each product is a subfolder `<slug>/` containing the app source, `MVP.md`, optional `FUNDING.md`, `design/` (created during the optional design phase), and optional `previews/` (for the `web-preview` skill — fixture-driven Jinja renders opened in Chrome). |
 | `mobile-apps/` | Source for mobile applications (React Native + Expo). Same per-product layout as `web-apps/`. |
-| `external/` | Vendored external repos. Currently holds `agent-skills/` — the user's fork of the agent-skills repo. Three personas (`code-reviewer`, `security-auditor`, `test-engineer`) are symlinked into `.claude/agents/` so Claude Code auto-discovers them. |
+| `external/` | Vendored external repos. Currently holds `agent-skills/` — the user's fork of [`addyosmani/agent-skills`](https://github.com/addyosmani/agent-skills) (MIT, © 2025 Addy Osmani). Three personas + 23 skills are file-copied from here into `.claude/agents/` and `.claude/skills/`; re-sync via `bash scripts/update-agent-skills.sh`. |
 | `scripts/` | Utility scripts (Python + Shell) for plumbing and tasks without a slash-command equivalent. Slash commands take priority for pipeline work; scripts are auxiliary. See `scripts/README.md`. |
 | `generated/` | Date-stamped exports of project artifacts (briefs, reports, design docs) to PDF or DOCX via the `doc-export` skill. Subfolders by category: `briefs/`, `reports/`, `design-docs/`, `misc/`. Naming: `<YYYY-MM-DD>-<slug-or-area>-<doc-type>.<ext>`. |
 | `guides/` | Long-form reference documents organized by domain (`product/`, `market/`, `funding/`, `web/`, `mobile/`, `ui-ux/`). Read on demand, not auto-loaded. |
 | `.claude/commands/` | Custom project-specific slash commands. Each `.md` file = one `/command`. |
-| `.claude/agents/` | Subagent definitions — reviewers and independent workers. Flat folder; naming pattern `<domain>-<role>.md`. Three of these are symlinks into `external/agent-skills/agents/`. |
+| `.claude/agents/` | Subagent definitions — reviewers and independent workers. Flat folder; naming pattern `<domain>-<role>.md`. Three of these (`code-reviewer.md`, `security-auditor.md`, `test-engineer.md`) are file copies from `external/agent-skills/agents/` — re-synced via `bash scripts/update-agent-skills.sh`. |
 | `.claude/skills/` | Skill definitions — each in its own subfolder containing `SKILL.md`. Naming pattern `<domain>-<topic>/`. |
 
 **Shared domain prefixes** for items in `.claude/agents/`, `.claude/skills/`, and `guides/`:
@@ -190,7 +190,7 @@ The specialist personas live at `.claude/agents/senior-*.md` and are invoked via
 11. Iterate              → whichever specialist owns the area
 ```
 
-**Each senior persona leverages the agent-skills skills** (now all 23 symlinked into `.claude/skills/`). Each persona's body lists which skills it commonly invokes. The senior-engineer personas are *roles*; the agent-skills are *workflows* those roles execute.
+**Each senior persona leverages the agent-skills skills** (all 23 copied into `.claude/skills/`). Each persona's body lists which skills it commonly invokes. The senior-engineer personas are *roles*; the agent-skills are *workflows* those roles execute.
 
 ### Parallel — Trend Monitoring
 
@@ -243,7 +243,7 @@ Custom commands for this project live in `.claude/commands/`. Each file is one c
 - [`/menu`](.claude/commands/menu.md) — quick menu of available commands and suggested next actions based on current pipeline state. Lower-overhead than opening `HELP.md`. (Named `/menu` because `/help` is shadowed by Claude Code's built-in help dialog.)
 - [`/start-build`](.claude/commands/start-build.md) — kick off the build phase for a `green-lit-to-build` product. Invokes `senior-software-engineer` to ask orientation questions (web/mobile/hybrid order, MVP vs. fully-featured, first subsystem) and route to the right specialist persona. Args: `<product-slug>` (required).
 - [`/acknowledge-contributing`](.claude/commands/acknowledge-contributing.md) — required one-time confirmation that the user has read `CONTRIBUTING.md` before editing tracked files. Skipped automatically for the repo owner; required for everyone else. Creates a gitignored `.claude-acknowledged` marker per clone.
-- [`/setup`](.claude/commands/setup.md) — pre-flight verification on a new clone or new machine. Checks all required tools (pandoc, typst, gh, git, python, node), git identity, GitHub auth, submodule initialization, and symlink resolution. Pure verification — never modifies anything. Surfaces a structured punch list of what's missing with install commands.
+- [`/setup`](.claude/commands/setup.md) — pre-flight verification on a new clone or new machine. Checks all required tools (pandoc, typst, gh, git, python, node), git identity, GitHub auth, submodule initialization, and the presence of the three agent-skills persona file copies (`code-reviewer.md`, `security-auditor.md`, `test-engineer.md`) in `.claude/agents/`. Pure verification — never modifies anything. Surfaces a structured punch list of what's missing with install commands.
 - [`/status`](.claude/commands/status.md) — complete pipeline-state snapshot. Shows active scan, all active cards with statuses and ages, in-flight briefs (with design-path and build-support picks), latest trend report age, active design phases, and recent generated docs. Read-only.
 
 ---
@@ -255,7 +255,7 @@ Project-local skills in `.claude/skills/`. Claude Code auto-discovers and invoke
 - [`doc-export`](.claude/skills/doc-export/SKILL.md) — markdown → PDF or DOCX via pandoc. Output drops in `generated/<category>/` with a date-stamped, slug-keyed filename. Triggers on "export this as PDF", "generate a docx of [artifact]", "give me a PDF of [artifact]".
 - [`web-preview`](.claude/skills/web-preview/SKILL.md) — render a Jinja template from `web-apps/<slug>/` with fixture demo data and open the result in Chrome (`--no-open` to skip launching). Triggers on "preview this page", "show me what this template renders to", "open this in Chrome".
 
-**Agent-skills skills (all 23 symlinked from `external/agent-skills/skills/` into `.claude/skills/`, auto-discovered by Claude Code):**
+**Agent-skills skills (all 23 file-copied from `external/agent-skills/skills/` into `.claude/skills/`, auto-discovered by Claude Code; originally by **Addy Osmani**, MIT-licensed — see `.claude/skills/README.md` for full attribution):**
 
 | Skill | One-line purpose |
 |---|---|

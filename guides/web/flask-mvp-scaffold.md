@@ -369,7 +369,7 @@ Once the scaffold is up, the first week's feature work follows the *first-week b
 
 ### Skills Claude applies automatically during the build
 
-The following skills from `.claude/skills/` (symlinked from the agent-skills repo) are **auto-invoked** during the build phase without the user having to ask — see `CLAUDE.md` § "Build-phase skill auto-invocation" for the full list. Most relevant for Flask web builds:
+The following skills from `.claude/skills/` (file-copied from the agent-skills repo by **Addy Osmani**, MIT-licensed) are **auto-invoked** during the build phase without the user having to ask — see `CLAUDE.md` § "Build-phase skill auto-invocation" for the full list. Most relevant for Flask web builds:
 
 - **`incremental-implementation`** — every feature lands in small, testable steps.
 - **`test-driven-development`** — write a failing pytest test, then the smallest Flask code to pass it, then refactor.

@@ -93,7 +93,7 @@ bash scripts/preflight.sh --no-color
 bash scripts/preflight.sh --quiet
 ```
 
-Shell-side equivalent of the `/setup` slash command. Verifies all required tools (git, gh, pandoc, typst, python3, node), git identity (user.email + user.name), GitHub authentication, submodule initialization, the three agent-skills symlinks, and the `.claude-acknowledged` marker.
+Shell-side equivalent of the `/setup` slash command. Verifies all required tools (git, gh, pandoc, typst, python3, node), git identity (user.email + user.name), GitHub authentication, submodule initialization, the three agent-skills persona file copies in `.claude/agents/`, and the `.claude-acknowledged` marker.
 
 **Pure verification — never modifies anything.** Surfaces a colored ✓/⚠/✗ punch list. Exits 0 if all required checks pass (warnings allowed), 1 otherwise.
 

@@ -1,5 +1,5 @@
 ---
-description: Pre-flight verification for a new clone or new machine. Checks that all required tools are installed, the submodule is initialized, the symlinks resolve, and git is configured. Surfaces a clear punch list of what's missing with exact install commands. Safe to run multiple times.
+description: Pre-flight verification for a new clone or new machine. Checks that all required tools are installed, the submodule is initialized, the agent-skills file copies are present in `.claude/agents/` and `.claude/skills/`, and git is configured. Surfaces a clear punch list of what's missing with exact install commands. Safe to run multiple times.
 ---
 
 You are running the workspace setup verification. Your job is to **check every requirement, never modify anything**, and surface a clear punch list at the end with ✓ for passing checks and ✗ for failing ones (with exact install commands).
@@ -63,14 +63,14 @@ gh auth login
 
    If "no", instruct: `git submodule update --init --recursive`
 
-2. **Symlinks resolve?** Check each:
+2. **Agent-skills persona file copies present?** Check each:
    ```bash
    for f in code-reviewer security-auditor test-engineer; do
-     test -e .claude/agents/$f.md && echo "$f.md: OK" || echo "$f.md: BROKEN"
+     test -f .claude/agents/$f.md && test -s .claude/agents/$f.md && echo "$f.md: OK" || echo "$f.md: MISSING or EMPTY"
    done
    ```
 
-   If broken, instruct re-cloning the submodule (step above) or re-creating symlinks per `.claude/agents/README.md`.
+   If missing or empty, instruct: `bash scripts/update-agent-skills.sh` to pull the submodule and re-copy the personas + skills.
 
 3. **`.claude-acknowledged` exists?** `test -f .claude-acknowledged && echo "yes" || echo "no"`
 
@@ -109,7 +109,7 @@ GITHUB AUTH
 
 REPO STATE
   ✓ Submodule initialized (external/agent-skills/)
-  ✓ All three symlinks resolve (code-reviewer, security-auditor, test-engineer)
+  ✓ All three agent-skills persona file copies present (code-reviewer, security-auditor, test-engineer)
   ✓ .claude-acknowledged on file (or: ⓘ Owner — acknowledgment waived)
 
 VERDICT

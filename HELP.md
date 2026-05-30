@@ -194,7 +194,7 @@ One-time confirmation that you've read `CONTRIBUTING.md` before editing tracked 
 
 ### `/setup`
 
-Pre-flight verification for a new clone or new machine. Checks: all required tools (git, claude code, gh, pandoc, typst, python, node), git identity, GitHub authentication, submodule initialization, symlink resolution, and `.claude-acknowledged` status. **Pure verification — never modifies anything.** Surfaces a structured punch list of what's missing with the exact install command for each. Safe to run multiple times.
+Pre-flight verification for a new clone or new machine. Checks: all required tools (git, claude code, gh, pandoc, typst, python, node), git identity, GitHub authentication, submodule initialization, the agent-skills persona file copies in `.claude/agents/`, and `.claude-acknowledged` status. **Pure verification — never modifies anything.** Surfaces a structured punch list of what's missing with the exact install command for each. Safe to run multiple times.
 
 ### `/status`
 
@@ -243,7 +243,7 @@ These live at `.claude/agents/<name>.md`. Most are invoked indirectly through sl
 | `design-brief-reviewer` | Brief completeness, sharpness, consistency with upstream. | `/draft-design-brief` |
 | `design-fidelity-reviewer` | Captured Figma handoff against the approved brief (coverage, tokens, direction, accessibility). | (no slash command yet — invoke manually when you have a handoff to review) |
 
-### Engineering (from `external/agent-skills/`, symlinked in)
+### Engineering (file copies from `external/agent-skills/`, re-synced via `scripts/update-agent-skills.sh`)
 
 | Subagent | Lens | Invoked by |
 |---|---|---|
@@ -278,7 +278,7 @@ The Agent tool's `subagent_type` parameter has a fixed enum that does **not** in
 
 | Folder | Purpose | Tracked by git? |
 |---|---|---|
-| `.claude/agents/` | Subagent persona files (plus three symlinks to `external/agent-skills/`) | Yes |
+| `.claude/agents/` | Subagent persona files (plus three file copies — `code-reviewer.md`, `security-auditor.md`, `test-engineer.md` — synced from `external/agent-skills/`) | Yes |
 | `.claude/commands/` | Slash command definitions | Yes |
 | `.claude/skills/` | Project-local skill definitions (`doc-export`, `web-preview`) | Yes |
 | `.claude/settings.json` | Project-level Claude Code permissions | Yes |

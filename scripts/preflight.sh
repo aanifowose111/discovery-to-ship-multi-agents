@@ -170,11 +170,11 @@ fi
 
 for persona in code-reviewer security-auditor test-engineer; do
     target=".claude/agents/${persona}.md"
-    if [ -L "$target" ] && [ -e "$target" ]; then
-        check "${persona}.md symlink" pass "resolves"
+    if [ -f "$target" ] && [ -s "$target" ]; then
+        check "${persona}.md file copy" pass "present"
     else
-        check "${persona}.md symlink" fail "broken or missing" \
-              "re-clone submodule; see .claude/agents/README.md for symlink commands"
+        check "${persona}.md file copy" fail "missing or empty" \
+              "Run: bash scripts/update-agent-skills.sh (re-copies personas + skills from submodule)"
     fi
 done
 

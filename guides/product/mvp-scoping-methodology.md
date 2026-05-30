@@ -228,7 +228,6 @@ The technical pass uses **`code-reviewer`** from the cloned `external/agent-skil
 
 Same verdict format as the validation reviewers.
 
-> **Setup prerequisite:** the `code-reviewer` persona lives in the cloned repo, not yet in `.claude/agents/`. Before this guide is fully runnable, the persona must be installed (plugin or symlink) per the note in `.claude/agents/README.md`.
 
 ---
 
