@@ -327,12 +327,14 @@ Subject line `[discovery-to-ship feedback]` so it gets sorted easily. Bug report
 
 If you'd like to contribute improvements (new guides, fixes to reviewers, additional skills, methodology critiques), see **[CONTRIBUTING.md](CONTRIBUTING.md)** for the full guide. Quick version:
 
-1. **Email aanifowose111@gmail.com first** for anything non-trivial, so we don't duplicate work or solve the same problem differently. Bug fixes (typos, broken links, obviously-wrong examples) can come in as PRs directly.
-2. **Fork** this repo.
-3. **Read [CONTRIBUTING.md](CONTRIBUTING.md)** — it lists what to update vs. what *not* to update when you make changes, plus the project's dos and don'ts.
-4. **Create a feature branch** in your fork.
-5. **Make the change**, test locally, commit.
-6. **Open a PR** with a clear title and description; reference the email discussion if there was one.
+1. **Edit through Claude Code.** This workspace is designed to be modified inside Claude Code so CLAUDE.md's conventions and cross-reference rules apply automatically. Editing with other tools is allowed but you take on the cross-reference work manually.
+2. **Run `/acknowledge-contributing`** in Claude Code before editing any tracked file. It walks you through a one-time confirmation that you've read `CONTRIBUTING.md` and creates a `.claude-acknowledged` marker (gitignored, per-clone). The repo owner is exempt automatically. Personal-data folders never require this.
+3. **Email aanifowose111@gmail.com first** for anything non-trivial. Bug fixes (typos, broken links) can come in as PRs directly.
+4. **Fork** this repo.
+5. **Read [CONTRIBUTING.md](CONTRIBUTING.md)** — it lists what to update vs. what *not* to update when you make changes, plus the project's dos and don'ts.
+6. **Create a feature branch** in your fork.
+7. **Make the change**, test locally, commit.
+8. **Open a PR** with a clear title and description; reference the email discussion if there was one.
 
 By contributing, you agree that your contributions are licensed under the same MIT license as the rest of this repo (see [LICENSE](LICENSE)).
 
@@ -343,3 +345,15 @@ By contributing, you agree that your contributions are licensed under the same M
 MIT — see [LICENSE](LICENSE).
 
 The agent-skills fork in `external/agent-skills/` is itself MIT-licensed by its upstream author; consult its own LICENSE for that submodule.
+
+---
+
+## A note from the maintainer — earn by contributing to AI research
+
+Building useful systems takes time, and a lot of the most interesting work right now is in helping frontier AI labs make their models more capable, careful, and trustworthy. The maintainer of this repo (Abiodun Anifowose) currently works as an **AI Chemistry Evaluation expert on [Mercor](https://t.mercor.com/lSU0c)** — designing and implementing Python-based scientific evaluation systems for frontier AI models, including black-box benchmarking functions and chemistry reasoning tasks that directly support major AI research labs.
+
+If you have a technical or specialist background — software engineering, science, mathematics, design, writing, language expertise, medicine, law — Mercor matches you with paid AI-training projects from frontier labs. The work is real, the pay is fair, and it's a way for domain experts to contribute meaningfully to where AI is going (and earn while doing so).
+
+**[Join Mercor with my referral link →](https://t.mercor.com/lSU0c)**
+
+(Using the referral link costs you nothing extra and gives the maintainer a small credit. If you'd rather sign up directly without a referral, [mercor.com](https://mercor.com) works too.)

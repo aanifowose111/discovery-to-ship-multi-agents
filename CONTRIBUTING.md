@@ -18,7 +18,30 @@ Three principles inform every design decision in this workspace. Contributions s
 
 ## Before you start
 
-For **anything non-trivial**:
+### 1. Use Claude Code to edit this repo
+
+This workspace is **designed to be edited through Claude Code**. The CLAUDE.md file (auto-loaded at the start of every Claude Code session in this directory) contains conventions, the required-updates matrix, and the acknowledgment check that keeps changes coherent. Editing files with other tools (vim, VSCode, the GitHub web UI) bypasses those checks — your changes may inadvertently break conventions documented in this file.
+
+**If you must edit outside Claude Code** (you don't have it installed, you're doing a quick typo fix in the GitHub UI, etc.), be especially careful about the *Required updates* matrix in §"Required updates when you make a change" — Claude usually applies that matrix for you, and without it you'll need to do the cross-reference updates by hand.
+
+### 2. Acknowledge you've read this guide (`CONTRIBUTING.md`)
+
+Before you edit any **tracked file** in this repo for the first time, run inside Claude Code:
+
+```
+/acknowledge-contributing
+```
+
+It will:
+- Detect if you're the repo owner (`aanifowose111@gmail.com`) — if so, skip the rest.
+- Otherwise, ask you to type a specific confirmation phrase that proves you've read this file.
+- Create a `.claude-acknowledged` marker (gitignored, per-clone, per-machine).
+
+After acknowledgment, Claude will help you edit tracked files normally. **Personal-data folders** (`ideas/`, `market-research/`, `web-apps/`, `mobile-apps/`, `generated/`) are gitignored and never require acknowledgment — you can work on your own product ideas without going through this.
+
+This is a Claude-side convention. Direct file edits outside Claude Code bypass it. It exists to make sure contributors have seen these rules before changes propose to land upstream — not as a security boundary.
+
+### 3. For non-trivial changes, email first
 
 📧 Email **aanifowose111@gmail.com** with a one-paragraph description of what you want to change and why. Subject line `[discovery-to-ship contribution]`.
 

@@ -27,6 +27,10 @@ generated/*
 
 .claude/settings.local.json
 
+# ─── Contributor acknowledgment marker (per-machine, per-clone) ─────────────
+
+.claude-acknowledged
+
 # ─── Python ─────────────────────────────────────────────────────────────────
 
 __pycache__/

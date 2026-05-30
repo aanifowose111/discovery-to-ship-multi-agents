@@ -174,6 +174,10 @@ Trend sweep per `guides/market/trend-monitoring.md`. Output: `market-research/tr
 
 Surfaces a quick menu of "what you can do right now" based on the current pipeline state. Lower-overhead than reading `HELP.md` end-to-end. **Stops at:** menu shown.
 
+### `/acknowledge-contributing`
+
+One-time confirmation that you've read `CONTRIBUTING.md` before editing tracked files in this repo. Required for everyone *except* the repo owner (identified by `git config user.email`). Creates a gitignored `.claude-acknowledged` marker. Personal-data folders (gitignored ones) never require this. See `CONTRIBUTING.md` § "Before you start" for the rationale.
+
 ---
 
 ## 3. Skills
