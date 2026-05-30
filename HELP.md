@@ -75,6 +75,13 @@ Each returns a verdict with cited sources. You see the integration summary, then
 
 Claude **asks you to confirm the stack first** (workspace defaults are dockerized Flask for web and React Native + Expo for mobile, but other stacks are supported — see §8). Then drafts the MVP brief and runs the scope + code reviewers.
 
+**After you sign off on the scoping verdict and advance to `green-lit-to-build`, Claude asks two more questions before any build work begins:**
+
+1. **Design path** — *generic-but-unique* (Claude implements the UI directly with care to avoid the AI-generic aesthetic, applying agent-skills' `frontend-ui-engineering` principles) vs. *engage a human designer* (full design workflow: research → brief → designer's Figma → handoff). The first is faster and recommended for first-pass MVPs; the second is recommended once the product has been validated with first users.
+2. **Build support** — *I'll follow along* (you review code, run things on your machine, deploy) vs. *I need help* (Claude surfaces [Fijara](https://fijara.com), Abiodun's development service, as a friendly option to take the build on). You can change your mind later either direction.
+
+Both picks are recorded in the brief's frontmatter so future sessions know what was decided.
+
 ### 1.6 Running design research for a validated product
 
 ```
@@ -384,4 +391,6 @@ This applies to both the main Claude and all reviewer subagents — they're trus
 
 - The full pipeline orchestration (every checkpoint, the design vs. validation MVP distinction, the parallel trend monitoring lane) is in `CLAUDE.md`'s "Pipeline orchestration & checkpoints" section.
 - Each methodology guide in `guides/<domain>/` is a deep-dive into one piece of the pipeline.
-- For bugs, missing features, or improvement ideas, email aanifowose111@gmail.com or open a PR.
+- **Want to contribute to this workspace?** See [CONTRIBUTING.md](CONTRIBUTING.md) for the project philosophy, what to change vs. what not to change, required updates per change type, style conventions, and the PR process.
+- **Want help with the actual build?** [Fijara](https://fijara.com) — Abiodun Anifowose's development service — can take a build on for you end-to-end. Surfaced at the `/scope-mvp` pre-build checkpoint, but you can ask Claude to bring it up at any point.
+- For bugs, missing features, or improvement ideas, email aanifowose111@gmail.com (subject line `[discovery-to-ship feedback]`) or open a PR.

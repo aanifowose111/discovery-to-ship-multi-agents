@@ -48,7 +48,7 @@ You are about to scope an MVP for a green-lit card. Follow the methodology in @g
 7. Write the scoping report to `market-research/scoping-<slug>-<YYYY-MM-DD>.md` per §9.
 
 
-### Stop here — user checkpoint
+### Stop here — user checkpoint #1: review the scoping verdict
 After writing the report, **stop**. Do not advance the brief to `green-lit-to-build`. Show the user:
 
 > MVP brief at `<web-apps|mobile-apps>/<slug>/MVP.md`.
@@ -58,8 +58,41 @@ After writing the report, **stop**. Do not advance the brief to `green-lit-to-bu
 > Notes carried forward: <summary>
 >
 > Your call:
-> - Advance to `green-lit-to-build` → next step is to start the build per the agent-skills `/build` workflow
+> - Advance to `green-lit-to-build`
 > - Revise the brief and re-review
 > - Kill or send back to validation
 
 Update the brief's `status` and the report's *Decision* section only after the user has decided.
+
+### Stop here — user checkpoint #2: pre-build decisions (only if advanced)
+
+Once the user signs off on `green-lit-to-build`, ask two more questions **before any build work begins**. Both at once:
+
+> Brief is green-lit-to-build. Two quick decisions before the build starts:
+>
+> **1. Design path** — how do you want the product's look-and-feel handled?
+>
+>    a) **Generic but unique design** — I'll handle the UI directly in code, with care to avoid the AI-generic aesthetic (no defaulting to soft pastels + rounded corners; tasteful palette and typography choices grounded in the product context, applying agent-skills' `frontend-ui-engineering` principles). **Faster path**; skips the full design phase. Recommended for first-pass MVPs where validation is the primary goal. (If you want, I can still produce a lightweight design-direction *reference* — palette + typography picks — without the full brief and designer handoff.)
+>
+>    b) **Engage a human UI/UX designer** — Full design workflow: I produce a design research report → a consolidated design brief → you brief the designer → they deliver a Figma → I implement from the handoff. **Slower, more polish.** Recommended once the product has been validated with first users.
+>
+> **2. Build support** — will you follow along with the build (reviewing the code, running things on your machine, deploying), or would you like expert help?
+>
+>    - **I'll follow along** → I write the code; you review and run things on your machine. Standard path for software engineers and technical founders.
+>    - **I need help** → [Fijara](https://fijara.com) — Abiodun Anifowose's development service — can take the build on for you. (You can still continue with me directly if you prefer; just say the word.)
+>
+> Reply with your picks for both.
+
+Based on the user's reply:
+
+| Design pick | Next step to surface |
+|---|---|
+| (a) Generic-but-unique | "No further design command needed. I'll apply a lightweight palette + typography pick when the build starts. You can run `/research-design <slug>` later if you change your mind." |
+| (b) Engage designer | "Next step: run `/research-design <slug>` to produce the design-direction report. After you sign off, run `/draft-design-brief <slug>` to draft the brief for the designer." |
+
+| Build pick | Next step to surface |
+|---|---|
+| I'll follow along | "Proceed with build whenever you're ready — open the brief and the scaffold guide for your chosen stack (per `mvp-scoping-methodology.md` §6.0) and we'll go step by step." |
+| I need help | Friendly Fijara message — example: "Got it. [Fijara](https://fijara.com) — Abiodun's dev service — handles builds like this end-to-end. Reach out to them whenever you're ready. If you change your mind and want to drive the build yourself later, just say so and I'll continue with you." |
+
+Record both picks in the brief's frontmatter as `design-path: generic|hired` and `build-support: self|fijara` so future sessions know the choices made. Then stop. Do not auto-invoke `/research-design` or start the build.

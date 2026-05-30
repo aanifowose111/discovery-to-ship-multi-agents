@@ -315,20 +315,24 @@ This is also the workflow external contributors (forkers) follow — they fork y
 
 ---
 
-## How to contribute
+## Feedback
 
-If you'd like to contribute improvements (new guides, fixes to reviewers, additional skills, methodology critiques), reach out first:
+Got an idea for improvement, hit a confusing bit, or just want to share how you're using the workspace? Email:
 
 📧 **aanifowose111@gmail.com**
 
-Most non-trivial improvements should be discussed before opening a PR, so we don't end up with two people doing similar work in parallel or solving problems differently. Bug fixes (typos, broken links, obviously-wrong examples) can come in as PRs directly.
+Subject line `[discovery-to-ship feedback]` so it gets sorted easily. Bug reports, usability friction, missing-but-useful command ideas, methodology critiques, success stories — all welcome.
 
-Standard workflow:
+## How to contribute
 
-1. Fork this repo.
-2. Create a feature branch.
-3. Make the change.
-4. Open a PR with a clear title and description; reference the email discussion if there was one.
+If you'd like to contribute improvements (new guides, fixes to reviewers, additional skills, methodology critiques), see **[CONTRIBUTING.md](CONTRIBUTING.md)** for the full guide. Quick version:
+
+1. **Email aanifowose111@gmail.com first** for anything non-trivial, so we don't duplicate work or solve the same problem differently. Bug fixes (typos, broken links, obviously-wrong examples) can come in as PRs directly.
+2. **Fork** this repo.
+3. **Read [CONTRIBUTING.md](CONTRIBUTING.md)** — it lists what to update vs. what *not* to update when you make changes, plus the project's dos and don'ts.
+4. **Create a feature branch** in your fork.
+5. **Make the change**, test locally, commit.
+6. **Open a PR** with a clear title and description; reference the email discussion if there was one.
 
 By contributing, you agree that your contributions are licensed under the same MIT license as the rest of this repo (see [LICENSE](LICENSE)).
 
