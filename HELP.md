@@ -2,7 +2,7 @@
 
 Command-by-command reference, common scenarios, gotchas, and recovery paths for this workspace. Pairs with `README.md` (which is the public-facing landing) and `CLAUDE.md` (which is the Claude-facing context).
 
-If you just want a quick menu of "what can I do right now," run **`/help`** inside Claude Code instead of reading this end-to-end.
+If you just want a quick menu of "what can I do right now," run **`/menu`** inside Claude Code instead of reading this end-to-end. (Why `/menu` and not `/help`? Claude Code has a built-in `/help` command that shows its own dialog; our custom command lives under `/menu` to avoid the collision.)
 
 ---
 
@@ -170,9 +170,11 @@ Brief per `guides/ui-ux/design-brief-methodology.md`. **Asks you for picks first
 
 Trend sweep per `guides/market/trend-monitoring.md`. Output: `market-research/trends-<YYYY-MM-DD>.md`. **Stops at:** which downstream commands (if any) to run. **Next:** whichever the user picks.
 
-### `/help`
+### `/menu`
 
 Surfaces a quick menu of "what you can do right now" based on the current pipeline state. Lower-overhead than reading `HELP.md` end-to-end. **Stops at:** menu shown.
+
+> Named `/menu`, not `/help`, because Claude Code has a built-in `/help` command that shows its own dialog and would shadow ours.
 
 ### `/acknowledge-contributing`
 
@@ -184,7 +186,7 @@ Pre-flight verification for a new clone or new machine. Checks: all required too
 
 ### `/status`
 
-Complete pipeline-state snapshot — deeper than `/help`. Shows: active scan with territory count, all active idea cards with statuses and ages, killed-card count, in-flight briefs with their design-path / build-support picks, latest trend report age, active design phases (research / brief / handoff state), and recent generated docs. **Read-only.** Surfaces 2-4 suggested next actions based on the snapshot at the end. Use when you want a full "where am I across all in-flight work" view before deciding what to do next.
+Complete pipeline-state snapshot — deeper than `/menu`. Shows: active scan with territory count, all active idea cards with statuses and ages, killed-card count, in-flight briefs with their design-path / build-support picks, latest trend report age, active design phases (research / brief / handoff state), and recent generated docs. **Read-only.** Surfaces 2-4 suggested next actions based on the snapshot at the end. Use when you want a full "where am I across all in-flight work" view before deciding what to do next.
 
 ---
 

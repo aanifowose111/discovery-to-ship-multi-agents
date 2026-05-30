@@ -113,7 +113,7 @@ REPO STATE
   ✓ .claude-acknowledged on file (or: ⓘ Owner — acknowledgment waived)
 
 VERDICT
-  Ready to use. Try `/discover` or `/help` to begin.
+  Ready to use. Try `/discover` or `/menu` to begin.
 
   Or if items are missing:
 

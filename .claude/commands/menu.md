@@ -41,7 +41,7 @@ If state is empty (fresh repo), say so: "No active state yet — this is a clean
 > - `/research-design <slug>` — design-direction report
 > - `/draft-design-brief <slug>` — consolidated design brief + reviewer
 > - `/trend-check [triggered <reason>]` — sweep for shifts
-> - `/help` — this menu
+> - `/menu` — this menu (named `/menu` to avoid collision with Claude Code's built-in `/help`)
 >
 > **Helper skills (invoked by phrasing):**
 > - "export this as PDF" → `doc-export`

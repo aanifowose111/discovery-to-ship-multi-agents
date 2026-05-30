@@ -302,6 +302,26 @@ Anything from this point on is feature work.
 
 Once the scaffold is up, the first week's feature work follows the *first-week build checklist* from the scoping report (per `guides/product/mvp-scoping-methodology.md` §9). The scaffold guide just provides the platform on which that checklist runs.
 
+### Skills Claude applies automatically during the build
+
+The following skills from `.claude/skills/` (symlinked from the agent-skills repo) are **auto-invoked** during the build phase without the user having to ask — see `CLAUDE.md` § "Build-phase skill auto-invocation" for the full list. Most relevant for React Native mobile builds:
+
+- **`incremental-implementation`** — every feature lands in small, testable steps.
+- **`test-driven-development`** — write a failing test (`jest` + `@testing-library/react-native`), then the smallest TSX to pass it, then refactor.
+- **`code-review-and-quality`** — Claude runs a 5-axis review (correctness / readability / architecture / security / performance) at every PR-ready moment.
+- **`code-simplification`** — Claude proactively suggests removing cruft.
+- **`frontend-ui-engineering`** — applied when writing screens, components, or styles. **React/TSX examples translate naturally** to this stack (unlike Flask, where they don't).
+- **`security-and-hardening`** — auto-applied to any code touching `src/auth/`, `src/api/client.ts`, secure-store, deep-link handlers, or any input that becomes a backend request.
+- **`api-and-interface-design`** — applied when designing the typed endpoint functions in `src/api/endpoints.ts`.
+- **`performance-optimization`** — applied when list-rendering, navigation, or animations show user-visible latency.
+- **`debugging-and-error-recovery`** — applied when behavior diverges between Expo Go, dev client, and EAS preview builds.
+- **`documentation-and-adrs`** — applied when a non-trivial architecture decision deserves a record.
+- **`git-workflow-and-versioning`** — applied at commit time for hygiene.
+- **`ci-cd-and-automation`** — applied when setting up EAS Build / Update workflows.
+- **`shipping-and-launch`** — applied at TestFlight / Play Internal Testing / production release time.
+
+You do not need to invoke these explicitly. If you'd rather Claude *not* apply one in a specific case, just say so.
+
 | Day | Work |
 |---|---|
 | 1 | Scaffold (steps 1-11 above) |

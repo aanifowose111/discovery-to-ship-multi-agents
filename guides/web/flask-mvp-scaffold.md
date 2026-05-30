@@ -367,6 +367,23 @@ The tag is a deliberate marker — anything from this point on is feature work. 
 
 Once the scaffold is up, the first week's feature work follows the *first-week build checklist* from the scoping report (per `guides/product/mvp-scoping-methodology.md` §9). The scaffold guide just provides the platform on which that checklist runs.
 
+### Skills Claude applies automatically during the build
+
+The following skills from `.claude/skills/` (symlinked from the agent-skills repo) are **auto-invoked** during the build phase without the user having to ask — see `CLAUDE.md` § "Build-phase skill auto-invocation" for the full list. Most relevant for Flask web builds:
+
+- **`incremental-implementation`** — every feature lands in small, testable steps.
+- **`test-driven-development`** — write a failing pytest test, then the smallest Flask code to pass it, then refactor.
+- **`code-review-and-quality`** — Claude runs a 5-axis review (correctness / readability / architecture / security / performance) at every PR-ready moment.
+- **`code-simplification`** — Claude proactively suggests removing cruft.
+- **`security-and-hardening`** — auto-applied to any code touching `app/services/auth.py`, `app/services/storage.py`, route handlers, form validation, anything that accepts user input or talks to external services.
+- **`frontend-ui-engineering`** — applied when writing Jinja templates or vanilla JS; **the React/TSX examples in that skill are illustrative only — Flask MVPs stay on Jinja + vanilla JS** (per `CLAUDE.md` Working style).
+- **`api-and-interface-design`** — applied when designing endpoint shapes, request/response types, blueprint structure.
+- **`browser-testing-with-devtools`** — applied when debugging frontend behavior in the browser.
+- **`documentation-and-adrs`** — applied when a non-trivial architecture decision deserves a record.
+- **`git-workflow-and-versioning`** — applied at commit time for hygiene.
+
+You do not need to invoke these explicitly. If you'd rather Claude *not* apply one of them in a specific case ("don't bother with TDD for this one-line helper"), just say so.
+
 A typical first week looks like:
 
 | Day | Work |

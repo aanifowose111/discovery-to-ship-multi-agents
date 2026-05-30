@@ -218,7 +218,7 @@ Pipeline phase commands (each stops at a user-checkpoint):
 | `/research-design <slug>` | Runs the UI/UX researcher to produce a design-direction report (3+ visual directions, color/typography options, brand positioning). |
 | `/draft-design-brief <slug>` | Drafts the consolidated design brief (PRD+FRD) for the human designer, with the design-brief-reviewer. |
 | `/trend-check [optional triggered <reason>]` | Sweeps a watchlist derived from active pipeline state and recommends downstream commands. |
-| `/help` | Quick menu of available commands and suggested next actions, based on current state. |
+| `/menu` | Quick menu of available commands and suggested next actions, based on current state. (Named `/menu` because `/help` is shadowed by Claude Code's built-in help dialog.) |
 
 Helper skills (Claude invokes these implicitly when relevant phrasing appears):
 

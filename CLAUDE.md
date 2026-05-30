@@ -201,7 +201,7 @@ Custom commands for this project live in `.claude/commands/`. Each file is one c
 - [`/research-design`](.claude/commands/research-design.md) — invoke the `ui-ux-researcher` for a product, producing a design-direction report at `<web-apps|mobile-apps>/<slug>/design/DESIGN_RESEARCH.md`. Args: `<product-slug>` (required). Typically run after the MVP has been validated with first users; running pre-validation is allowed with a confirmation prompt.
 - [`/draft-design-brief`](.claude/commands/draft-design-brief.md) — collect the user's picks (visual direction, palette, typography, voice, portfolio-continuity decision, answers to research open questions, timeline), draft the consolidated brief at `<web-apps|mobile-apps>/<slug>/design/DESIGN_BRIEF.md`, invoke the `design-brief-reviewer`, then stop at the user checkpoint. Args: `<product-slug>` (required). Requires the research to be `status: acted-on`.
 - [`/trend-check`](.claude/commands/trend-check.md) — trend-monitoring sweep against active state, per `guides/market/trend-monitoring.md`. Args: optional `triggered <reason>` for an emergency sweep.
-- [`/help`](.claude/commands/help.md) — quick menu of available commands and suggested next actions based on current pipeline state. Lower-overhead than opening `HELP.md`.
+- [`/menu`](.claude/commands/menu.md) — quick menu of available commands and suggested next actions based on current pipeline state. Lower-overhead than opening `HELP.md`. (Named `/menu` because `/help` is shadowed by Claude Code's built-in help dialog.)
 - [`/acknowledge-contributing`](.claude/commands/acknowledge-contributing.md) — required one-time confirmation that the user has read `CONTRIBUTING.md` before editing tracked files. Skipped automatically for the repo owner; required for everyone else. Creates a gitignored `.claude-acknowledged` marker per clone.
 - [`/setup`](.claude/commands/setup.md) — pre-flight verification on a new clone or new machine. Checks all required tools (pandoc, typst, gh, git, python, node), git identity, GitHub auth, submodule initialization, and symlink resolution. Pure verification — never modifies anything. Surfaces a structured punch list of what's missing with install commands.
 - [`/status`](.claude/commands/status.md) — complete pipeline-state snapshot. Shows active scan, all active cards with statuses and ages, in-flight briefs (with design-path and build-support picks), latest trend report age, active design phases, and recent generated docs. Read-only.
@@ -215,7 +215,68 @@ Project-local skills in `.claude/skills/`. Claude Code auto-discovers and invoke
 - [`doc-export`](.claude/skills/doc-export/SKILL.md) — markdown → PDF or DOCX via pandoc. Output drops in `generated/<category>/` with a date-stamped, slug-keyed filename. Triggers on "export this as PDF", "generate a docx of [artifact]", "give me a PDF of [artifact]".
 - [`web-preview`](.claude/skills/web-preview/SKILL.md) — render a Jinja template from `web-apps/<slug>/` with fixture demo data and open the result in Chrome (`--no-open` to skip launching). Triggers on "preview this page", "show me what this template renders to", "open this in Chrome".
 
-Beyond these, the agent-skills repo at `external/agent-skills/skills/` ships 23 additional skills (TDD, idea-refine, spec-driven-development, security-and-hardening, etc.). They are not auto-loaded by Claude Code in this project; if a workflow specifically benefits from one, reference the file path explicitly.
+**Agent-skills skills (all 23 symlinked from `external/agent-skills/skills/` into `.claude/skills/`, auto-discovered by Claude Code):**
+
+| Skill | One-line purpose |
+|---|---|
+| `api-and-interface-design` | Design endpoints / contracts / type boundaries |
+| `browser-testing-with-devtools` | Debug web frontend behavior in the browser |
+| `ci-cd-and-automation` | Set up or modify CI/CD pipelines |
+| `code-review-and-quality` | Five-axis review (correctness, readability, architecture, security, performance) |
+| `code-simplification` | Reduce complexity, eliminate cruft |
+| `context-engineering` | When working with prompts / context windows |
+| `debugging-and-error-recovery` | When bugs / errors surface; structured debugging |
+| `deprecation-and-migration` | Removing or replacing existing code safely |
+| `documentation-and-adrs` | Document non-trivial architecture decisions |
+| `doubt-driven-development` | Stress-test plans before committing |
+| `frontend-ui-engineering` | Write production-quality UI (composition, accessibility, no AI aesthetic) |
+| `git-workflow-and-versioning` | Commit / branch / PR hygiene |
+| `idea-refine` | Sharpen vague ideas via divergent → convergent thinking |
+| `incremental-implementation` | Small, testable steps; never big-bang |
+| `interview-me` | Extract what the user actually wants when an ask is underspecified |
+| `performance-optimization` | When user-visible latency / memory matters |
+| `planning-and-task-breakdown` | Break complex tasks into ordered units |
+| `security-and-hardening` | OWASP-style hardening for auth, secrets, input, I/O, network |
+| `shipping-and-launch` | Pre-flight, phased rollout, post-launch monitoring |
+| `source-driven-development` | Develop against source-of-truth code / data |
+| `spec-driven-development` | Write requirements / specs before implementation |
+| `test-driven-development` | Write failing test → smallest code to pass → refactor |
+| `using-agent-skills` | Meta-skill about how to compose skills |
+
+## Build-phase skill auto-invocation
+
+During any **build phase** (after `/scope-mvp` returns `green-lit-to-build` for a project, through deploy/release), Claude **proactively invokes the following skills without the user having to ask** — they apply as a matter of course to the work:
+
+| Skill | When applied during build |
+|---|---|
+| `incremental-implementation` | Every feature implementation — small, tested, verifiable steps |
+| `test-driven-development` | For any logic that benefits from tests (most logic) |
+| `code-review-and-quality` | Before any "feature complete" claim and at every PR-ready moment |
+| `code-simplification` | After implementation, before review, when revisiting older code |
+| `security-and-hardening` | For any code touching auth, secrets, user input, file I/O, network |
+| `performance-optimization` | When user-visible latency or memory matters (not premature) |
+| `debugging-and-error-recovery` | When bugs surface or errors are unclear |
+| `frontend-ui-engineering` | When writing or modifying UI code (Jinja templates on Flask projects; React Native components on mobile — note the React-example caveat above for Flask) |
+| `api-and-interface-design` | When designing or modifying endpoint shapes, types, or contracts |
+| `documentation-and-adrs` | When making non-trivial architecture decisions |
+| `git-workflow-and-versioning` | When committing, branching, or making PR-worthy changes |
+| `browser-testing-with-devtools` | When debugging frontend behavior in a browser (web only) |
+| `ci-cd-and-automation` | When setting up or modifying CI/CD pipelines |
+| `shipping-and-launch` | At release time — pre-flight checks, rollout decisions, post-launch monitoring |
+| `spec-driven-development` | When drafting briefs, specs, or requirements documents |
+
+Claude does not announce skill invocations every time — they apply silently as part of doing the work well. If the user asks "are you applying X right now?" Claude can confirm.
+
+**Situational skills — only invoked when context specifically matches or user explicitly asks:**
+
+- `idea-refine` — discovery-phase ideation aid.
+- `interview-me` — when the user's request is genuinely underspecified.
+- `planning-and-task-breakdown` — explicit task decomposition for complex multi-step work.
+- `doubt-driven-development` — stress-testing a plan or design before committing.
+- `using-agent-skills` — meta; reference when navigating the skill catalog.
+- `source-driven-development` — only for development driven by an external source-of-truth.
+- `context-engineering` — prompt / context-window-specific work.
+- `deprecation-and-migration` — only when removing or migrating existing code.
 
 ---
 
@@ -266,4 +327,4 @@ When a new session starts in this directory:
    - `web-apps/<slug>/design/` and `mobile-apps/<slug>/design/` for any active design phases (research, brief, or handoff in progress).
 4. If a phase is in progress, continue it from the right checkpoint per the pipeline orchestration above. If a phase is complete, confirm with the user before starting the next one.
 5. Do **not** auto-invoke any phase's slash command without the user asking. The chain is one command at a time, by the user.
-6. **Session-entry behavior.** If the user's first message states clear intent (e.g., "let's keep going on findvil's discovery cycle"), follow it without preamble. If the first message is a generic greeting or an open-ended "what's the status?", briefly summarize what's in flight from step 3 and offer a short menu of 2-4 plausible next actions — e.g., "Continue [in-flight phase] for [product]? / Run a fresh trend check? / Start a new product cycle with `/scan`? / Run `/help` for the full command map?" Keep the menu under 4 items; the user can override with anything.
+6. **Session-entry behavior.** If the user's first message states clear intent (e.g., "let's keep going on findvil's discovery cycle"), follow it without preamble. If the first message is a generic greeting or an open-ended "what's the status?", briefly summarize what's in flight from step 3 and offer a short menu of 2-4 plausible next actions — e.g., "Continue [in-flight phase] for [product]? / Run a fresh trend check? / Start a new product cycle with `/scan`? / Run `/menu` for the full command map?" Keep the menu under 4 items; the user can override with anything.

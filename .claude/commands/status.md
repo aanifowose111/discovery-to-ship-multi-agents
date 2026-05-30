@@ -1,8 +1,8 @@
 ---
-description: Show a complete snapshot of pipeline state — active scan, all active and in-flight artifacts with their statuses and ages, latest trend report, and recent activity. Deeper than /help (which prioritizes the menu over the state). Use when you want to know "where am I" across all in-flight work.
+description: Show a complete snapshot of pipeline state — active scan, all active and in-flight artifacts with their statuses and ages, latest trend report, and recent activity. Deeper than /menu (which prioritizes the menu over the state). Use when you want to know "where am I" across all in-flight work.
 ---
 
-You are surfacing a complete pipeline-state snapshot. This is deeper than `/help` (which focuses on the command menu). The user has run this to get the full picture before deciding what to do.
+You are surfacing a complete pipeline-state snapshot. This is deeper than `/menu` (which focuses on the command menu). The user has run this to get the full picture before deciding what to do.
 
 ### Read state from disk (do not modify anything)
 
@@ -110,7 +110,7 @@ Print a clean structured snapshot. Use this layout:
   2. <another action>
   3. <another action>
 
-  Or run /help for a full command menu.
+  Or run /menu for a full command menu.
 ```
 
 ### Rules

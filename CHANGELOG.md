@@ -22,6 +22,9 @@ This project does not yet follow strict semantic versioning. Pre-1.0, breaking c
 
 ### Changed
 - Mercor referral note in `README.md` simplified — removed both the non-referral mercor.com fallback line *and* the parenthetical aside (per maintainer's preference; the referral link stands on its own).
+- **All 23 agent-skills skills now symlinked into `.claude/skills/`** so Claude Code auto-discovers them. Previously only the 3 personas were wired in; the skills sat in the submodule but were not picked up by Claude Code's skill discovery (which only scans `.claude/skills/`). With the symlinks in place, skills like `frontend-ui-engineering`, `idea-refine`, `interview-me`, `spec-driven-development`, `test-driven-development`, `code-review-and-quality`, `security-and-hardening`, etc. are now auto-invoked when their trigger conditions match.
+- **Build-phase skill auto-invocation policy added** to `CLAUDE.md` — 15 skills are now applied *proactively by Claude during build phases* without the user having to ask (incremental-implementation, TDD, code-review-and-quality, code-simplification, security-and-hardening, performance-optimization, debugging-and-error-recovery, frontend-ui-engineering, api-and-interface-design, documentation-and-adrs, git-workflow-and-versioning, browser-testing-with-devtools, ci-cd-and-automation, shipping-and-launch, spec-driven-development). Skills like `idea-refine`, `interview-me`, `planning-and-task-breakdown`, `doubt-driven-development`, etc. remain situational. The Flask and RN scaffold guides got dedicated "Skills Claude applies automatically during the build" sections at §6.
+- **Slash command `/help` renamed to `/menu`** because Claude Code has a built-in `/help` command that shadows custom ones. All cross-references in `CLAUDE.md`, `README.md`, `HELP.md`, and the other slash commands updated. The built-in `/help` still works for Claude Code's own help dialog; our project command is `/menu`.
 
 ## [0.3.0] — 2026-05-29
 
