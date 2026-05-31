@@ -6,12 +6,22 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 This project does not yet follow strict semantic versioning. Pre-1.0, breaking changes happen as the methodology evolves. Once the system stabilizes through use, this will move to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-**Convention for entries under `[Unreleased]`:** new batches added during the same dev day are grouped under a `### YYYY-MM-DD` subheader inside the Added / Changed / Fixed buckets, so chronology stays visible before a version is cut.
+**Conventions for entries under `[Unreleased]`:**
+
+- New batches added on a dev day where **no version has yet been cut** are grouped under a `### YYYY-MM-DD` subheader inside the Added / Changed / Fixed buckets so chronology stays visible before the version is cut.
+- If **today already has a cut version section** (e.g., `## [0.4.0] - 2026-05-31`), do NOT duplicate the date under `[Unreleased]`. Instead, the new same-day batch should be cut as a **patch bump** (`v0.4.0 → v0.4.1`). Patch bumps cleanly handle same-day add-ons and concurrent-contributor scenarios (each push gets its own version), and avoid the confusing "two sections with the same date" layout.
+- Cross-day work simply waits in `[Unreleased]` under its own date subheader until cut.
 
 ## [Unreleased]
 
-### 2026-05-31
+_No entries yet — next batch lands here under a `### YYYY-MM-DD` subheader (or, if today already has a cut version, as a patch bump per the convention above)._
 
+## [0.4.1] - 2026-05-31
+
+### Added
+
+- **`/projects` slash command + `scripts/delete_project.py` helper** — manage discovery-cycle projects from the workspace. Lists all projects (keyed by run-id) with a summary of cards/validations/scopings/builds per project; offers to view artifacts or delete; deletion is a multi-step confirmation flow (lists everything that will be deleted → first confirm → final confirmation with strong warning → executes via `delete_project.py delete <run-id> --force`). A "project" is the full set of artifacts keyed by a run-id: `ideas/<run-id>/`, `ideas/killed/<run-id>/`, `market-research/<run-id>/`, plus for each slug from that run: `web-apps/<slug>/`, `mobile-apps/<slug>/`, and `generated/**/*<slug>*` exports. The helper script can also be invoked directly without the slash command (`python3 scripts/delete_project.py list|show <run-id>|delete <run-id> --force`) for scripted workflows. Updated `README.md` (utility commands + utility-scripts tables), `HELP.md` (full description), and `CLAUDE.md` (slash command index).
+- **Same-day-patch convention added to CHANGELOG preamble + CLAUDE.md CHANGELOG editing rules**: when today already has a cut version section, new same-day changes get a patch bump (v0.4.0 → v0.4.1) rather than a duplicate-dated entry under `[Unreleased]`. Avoids "two sections with the same date" confusion and is friendlier for merges from multiple contributors.
 - **Cross-shell safety note (zsh's `NOMATCH`)** added to `CLAUDE.md`'s Search-patterns section. zsh errors at parse time on unmatched globs and `2>/dev/null` can't suppress it, while bash (Linux, Git Bash, WSL) is lenient. Bites survey-style probes against possibly-empty state. Documents two cross-shell-safe alternatives: folder-listing (`ls market-research/`) or Python (`python3 -c "import glob; ..."`). Confirms that our own scripts (`scripts/*.sh` with bash shebangs; `scripts/*.py` with `pathlib`/`glob`) are unaffected — the guidance governs only ad-hoc Bash that Claude generates at runtime.
 - **`.claude/commands/discover.md` empty-state probe updated** to use the cross-shell-safe pattern: list `market-research/` first, then drill in with Python. Previous hint used raw globs that error on zsh when no `/scan` has ever been run.
 
@@ -121,7 +131,8 @@ This project does not yet follow strict semantic versioning. Pre-1.0, breaking c
 - Stack-flexibility framing: workspace defaults are dockerized Flask + RN, but the methodologies are stack-agnostic and `/scope-mvp` asks the user to confirm the stack before drafting.
 - Internet access policy: `WebFetch` and `WebSearch` pre-approved in `.claude/settings.json`; permission only requested for non-HTTPS, suspicious, paid, or user-private URLs.
 
-[Unreleased]: https://github.com/aanifowose111/discovery-to-ship-multi-agents/compare/v0.4.0...HEAD
+[Unreleased]: https://github.com/aanifowose111/discovery-to-ship-multi-agents/compare/v0.4.1...HEAD
+[0.4.1]: https://github.com/aanifowose111/discovery-to-ship-multi-agents/compare/v0.4.0...v0.4.1
 [0.4.0]: https://github.com/aanifowose111/discovery-to-ship-multi-agents/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/aanifowose111/discovery-to-ship-multi-agents/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/aanifowose111/discovery-to-ship-multi-agents/compare/v0.1.0...v0.2.0

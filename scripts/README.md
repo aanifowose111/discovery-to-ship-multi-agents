@@ -96,6 +96,22 @@ Reads `market-research/` and prints a tabular summary of every scan / validation
 
 Useful as a quick "where am I across all reports" overview when state has accumulated.
 
+### `delete_project.py` — manage discovery-cycle projects
+
+```bash
+python3 scripts/delete_project.py list                     # list all projects
+python3 scripts/delete_project.py list --json              # machine-readable
+python3 scripts/delete_project.py show <run-id>            # dry-run: what would be deleted
+python3 scripts/delete_project.py show <run-id> --json
+python3 scripts/delete_project.py delete <run-id> --force  # actually delete
+```
+
+A *project* is the full set of artifacts keyed by a single run-id: `ideas/<run-id>/`, `ideas/killed/<run-id>/`, `market-research/<run-id>/`, plus for each slug found in those folders, `web-apps/<slug>/`, `mobile-apps/<slug>/`, and any `generated/**/*<slug>*` exports.
+
+`delete --force` is **irreversible** — files do not go to the Trash (`shutil.rmtree` removes them outright). Without `--force`, the `delete` command refuses with exit code 2.
+
+The intended interactive path is the `/projects` slash command, which wraps this script with a two-step user confirmation before invoking `--force`. Use the script directly when you know exactly which run-id you want gone and don't need the interactive picker (e.g., from another shell script).
+
 ---
 
 ## Shell scripts

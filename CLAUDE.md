@@ -13,10 +13,9 @@ The goal is not a single product — it is a **portfolio pipeline**: discover vi
 We are working through three broad phases. They are not strictly sequential — later phases may loop back to earlier ones — but the *current* center of gravity should always be clear from the active TODOs and the `ideas/` + `market-research/` contents.
 
 1. **Scaffolding (substantially complete; new items added as needs surface).** The supporting infrastructure for the work to come is in place:
-   - Skills, assistants (including **reviewer assistants**), guides, and slash commands covering: product discovery / validation / MVP scoping, market research (scans + trend monitoring), funding strategy, web-app development, mobile-app development, and UI/UX design coordination.
-   - The user's fork of the agent-skills repo is cloned at `external/agent-skills/`. Three personas (`code-reviewer`, `security-auditor`, `test-engineer`) and 23 skills are **file-copied** into `.claude/agents/` and `.claude/skills/` respectively so Claude Code auto-discovers them and GitHub renders them properly. Re-sync with `bash scripts/update-agent-skills.sh`.
-   - The user personally verifies each scaffolding artifact before it becomes load-bearing.
-   - Remaining scaffolding (path-specific funding guides, `design-fidelity-reviewer`, additional companion guides flagged in each domain's "future companion guides" sections) is written when a real product creates the need, not pre-built.
+   - Skills, assistants (including reviewer assistants), guides, and slash commands covering product discovery / validation / MVP scoping, market research, funding strategy, web/mobile dev, and UI/UX design coordination.
+   - Agent-skills personas + skills are file-copied into `.claude/{agents,skills}/` (see folder map below). User personally verifies each scaffolding artifact before it becomes load-bearing.
+   - Remaining scaffolding is written when a real product creates the need, not pre-built.
 2. **Product discovery & validation.** Ready to begin via the pipeline commands. Search for candidate product ideas (`/scan` → `/discover` → `/validate-card`), and land on a prioritized list with the most viable product at the top.
 3. **Build.** Implement the top-priority product(s) — first an initial scrappy MVP for validation, then (if the assumption holds) the optional design phase, then a real v1.
    - **Workspace defaults** (with full scaffold/deploy/storage/auth guides): dockerized Flask (web) + React Native/Expo (mobile). Maintainer's preferred stacks.
@@ -33,12 +32,12 @@ We are working through three broad phases. They are not strictly sequential — 
 | `market-research/` | Research outputs grouped per run-id matched to the originating discovery cycle (so cards in `ideas/<run-id>/` and their downstream artifacts in `market-research/<run-id>/` carry the same `<run-id>`). Files inside: `triage.md`, `validation-<slug>.md`, `scoping-<slug>.md`, `scan.md`, `trends.md` depending on which command produced the folder. Run-id format: `<8-lowercase-alphanumeric>-<MMDDYY>` (e.g., `csi48s2t-053126`); generate via `python3 scripts/gen_run_id.py`. |
 | `web-apps/` | Source for web applications we build (Flask, dockerized). Each product is a subfolder `<slug>/` containing the app source, `MVP.md`, optional `FUNDING.md`, `design/` (created during the optional design phase), and optional `previews/` (for the `web-preview` skill — fixture-driven Jinja renders opened in Chrome). |
 | `mobile-apps/` | Source for mobile applications (React Native + Expo). Same per-product layout as `web-apps/`. |
-| `external/` | Vendored external repos. Currently holds `agent-skills/` — the user's fork of [`addyosmani/agent-skills`](https://github.com/addyosmani/agent-skills) (MIT, © 2025 Addy Osmani). Three personas + 23 skills are file-copied from here into `.claude/agents/` and `.claude/skills/`; re-sync via `bash scripts/update-agent-skills.sh`. |
+| `external/` | Vendored external repos. Currently holds `agent-skills/` (the user's fork of [`addyosmani/agent-skills`](https://github.com/addyosmani/agent-skills), MIT). Three personas + 23 skills are file-copied into `.claude/{agents,skills}/`; re-sync via `bash scripts/update-agent-skills.sh`. |
 | `scripts/` | Utility scripts (Python + Shell) for plumbing and tasks without a slash-command equivalent. Slash commands take priority for pipeline work; scripts are auxiliary. See `scripts/README.md`. |
 | `generated/` | Date-stamped exports of project artifacts (briefs, reports, design docs) to PDF or DOCX via the `doc-export` skill. Subfolders by category: `briefs/`, `reports/`, `design-docs/`, `misc/`. Naming: `<YYYY-MM-DD>-<slug-or-area>-<doc-type>.<ext>`. |
 | `guides/` | Long-form reference documents organized by domain (`product/`, `market/`, `funding/`, `web/`, `mobile/`, `ui-ux/`). Read on demand, not auto-loaded. |
 | `.claude/commands/` | Custom project-specific slash commands. Each `.md` file = one `/command`. |
-| `.claude/agents/` | Subagent definitions — reviewers and independent workers. Flat folder; naming pattern `<domain>-<role>.md`. Three of these (`code-reviewer.md`, `security-auditor.md`, `test-engineer.md`) are file copies from `external/agent-skills/agents/` — re-synced via `bash scripts/update-agent-skills.sh`. |
+| `.claude/agents/` | Subagent definitions — reviewers and independent workers. Flat folder; naming pattern `<domain>-<role>.md`. Three (`code-reviewer.md`, `security-auditor.md`, `test-engineer.md`) are file copies from `external/agent-skills/agents/`. |
 | `.claude/skills/` | Skill definitions — each in its own subfolder containing `SKILL.md`. Naming pattern `<domain>-<topic>/`. |
 
 **Shared domain prefixes** for items in `.claude/agents/`, `.claude/skills/`, and `guides/`:
@@ -146,6 +145,8 @@ The rule does NOT block changes; it makes them deliberate.
 
 5. The ask should be brief — name what the change is, ask "add to CHANGELOG?" — not a long preamble.
 
+6. **Same-day cuts → patch bump.** If today already has a cut version (e.g., `## [0.4.0] - 2026-05-31`), new same-day changes go as a patch (`v0.4.0 → v0.4.1`), not as a duplicate-dated `[Unreleased]` entry. Full convention in `CHANGELOG.md`'s preamble.
+
 ---
 
 ## Commit trailer policy
@@ -226,9 +227,9 @@ If you must chain multiple read-only checks, issue them as **separate Bash tool 
 
 zsh (macOS default) errors at parse time on unmatched globs (`zsh: no matches found: ...`); `2>/dev/null` can't suppress it. Bash (Linux, Git Bash, WSL) is lenient.
 
-This bites survey-style commands probing possibly-empty state (e.g., `ls market-research/*/scan.md` before any `/scan` has run). Cross-shell-safe alternatives: `ls market-research/` (folder listing always succeeds — parse the output), or `python3 -c "import glob; [print(p) for p in glob.glob('market-research/*/scan.md')]"`.
+This bites survey commands against possibly-empty state (e.g., `ls market-research/*/scan.md` before any `/scan` has run). Safe alternatives: `ls market-research/` (folder listing always succeeds), or `python3 -c "import glob; [print(p) for p in glob.glob('market-research/*/scan.md')]"`.
 
-Direct globs are fine when a match is guaranteed. Our own scripts are unaffected (`scripts/*.sh` use `#!/bin/bash`; `scripts/*.py` use `pathlib`/`glob`) — this guidance governs only ad-hoc Bash that Claude generates at runtime.
+Direct globs are fine when a match is guaranteed. Our `scripts/*.sh` (bash shebangs) and `scripts/*.py` (`pathlib`/`glob`) are unaffected — this governs only ad-hoc Bash Claude generates.
 
 ---
 
@@ -330,7 +331,7 @@ Custom commands live in `.claude/commands/` (one file per command, run as `/<com
 
 **Parallel / cross-cutting:** [`/trend-check`](.claude/commands/trend-check.md), [`/preview-product`](.claude/commands/preview-product.md).
 
-**Utility / meta:** [`/menu`](.claude/commands/menu.md) (command map), [`/status`](.claude/commands/status.md) (read-only pipeline snapshot), [`/setup`](.claude/commands/setup.md) (verify tools + identity on new clone), [`/acknowledge-contributing`](.claude/commands/acknowledge-contributing.md) (required for non-owners before editing tracked files), [`/run-tests`](.claude/commands/run-tests.md) (repo health checks).
+**Utility / meta:** [`/menu`](.claude/commands/menu.md) (command map), [`/status`](.claude/commands/status.md) (read-only pipeline snapshot), [`/setup`](.claude/commands/setup.md) (verify tools + identity on new clone), [`/acknowledge-contributing`](.claude/commands/acknowledge-contributing.md) (required for non-owners before editing tracked files), [`/run-tests`](.claude/commands/run-tests.md) (repo health checks), [`/projects`](.claude/commands/projects.md) (list + delete discovery projects).
 
 Most commands take `<slug>` as argument and follow a `read → work → checkpoint → stop` pattern. Never auto-advance an artifact's status; never auto-chain into the next phase.
 

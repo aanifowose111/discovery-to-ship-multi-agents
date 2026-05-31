@@ -212,6 +212,25 @@ Pre-flight verification for a new clone or new machine. Checks: all required too
 
 Complete pipeline-state snapshot — deeper than `/menu`. Shows: active scan with territory count, all active idea cards with statuses and ages, killed-card count, in-flight briefs with their design-path / build-support picks, latest trend report age, active design phases (research / brief / handoff state), and recent generated docs. **Read-only.** Surfaces 2-4 suggested next actions based on the snapshot at the end. Use when you want a full "where am I across all in-flight work" view before deciding what to do next.
 
+### `/projects`
+
+Lists every discovery-cycle project in your workspace (keyed by run-id) and offers actions on a chosen one — primarily **delete**. Wraps `scripts/delete_project.py`.
+
+A *project* = the full set of artifacts keyed by a single run-id: `ideas/<run-id>/`, `ideas/killed/<run-id>/`, `market-research/<run-id>/`, plus for each slug from that run, `web-apps/<slug>/`, `mobile-apps/<slug>/`, and any `generated/**/*<slug>*` exports.
+
+**Flow when you pick "Delete":**
+
+1. Claude lists every file and folder that would be deleted, with a strong warning that the action is irreversible (files bypass the Trash).
+2. **First confirmation** — *Continue to final confirmation* or *Cancel — keep this project*.
+3. **Final confirmation** — *YES, DELETE PERMANENTLY* or *Cancel — do not delete*.
+4. Only after BOTH confirmations does Claude invoke `python3 scripts/delete_project.py delete <run-id> --force`.
+
+The two-step gate is intentional. The script also refuses (`exit 2`) if you try `delete` without `--force` from the command line — so a typo can't wipe a project.
+
+**Use when:** cleaning up abandoned discovery cycles, verification-test runs, or any project you no longer want to keep on disk.
+
+**Don't use for:** killing a single idea card (`/discover` puts killed cards in `ideas/killed/<run-id>/` automatically; that's the auditable kill path). `/projects` is for nuking whole projects, not individual cards.
+
 ---
 
 ## 3. Skills

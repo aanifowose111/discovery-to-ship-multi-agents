@@ -45,7 +45,7 @@ If that matches what you're trying to do, this repo is a head start. If you want
 
 | | What | Where |
 |---|---|---|
-| **Pipeline slash commands** | `/scan`, `/discover`, `/validate-card`, `/scope-mvp`, `/research-design`, `/draft-design-brief`, `/start-build`, `/preview-product`, `/trend-check`, `/menu`, `/setup`, `/status`, `/run-tests`, `/acknowledge-contributing` | `.claude/commands/` |
+| **Pipeline slash commands** | `/scan`, `/discover`, `/validate-card`, `/scope-mvp`, `/research-design`, `/draft-design-brief`, `/start-build`, `/preview-product`, `/trend-check`, `/menu`, `/setup`, `/status`, `/run-tests`, `/projects`, `/acknowledge-contributing` | `.claude/commands/` |
 | **Reviewer assistants** | Product viability / competition / market-segment / scope reviewers, design-brief and design-fidelity reviewers, UI/UX researcher | `.claude/agents/` |
 | **Senior-engineer personas** | `senior-software-engineer` (orchestrator) + 7 specialists: system-design, database, backend, frontend, QA, devops, security. Each plays a senior-IC role during the build phase. | `.claude/agents/senior-*.md` |
 | **Agent-skills personas** | `code-reviewer`, `security-auditor`, `test-engineer` — file copies from [`aanifowose111/agent-skills`](https://github.com/aanifowose111/agent-skills) (fork), originally authored by **Addy Osmani** at [`addyosmani/agent-skills`](https://github.com/addyosmani/agent-skills), MIT-licensed. | Vendored into `.claude/agents/`; re-sync via `scripts/update-agent-skills.sh`. |
@@ -249,6 +249,7 @@ Utility commands (always safe to run; not part of the pipeline cycle):
 | `/status` | Complete pipeline-state snapshot — active scan, all active cards with statuses and ages, in-flight briefs, design phases, recent reports. Read-only. |
 | `/setup` | Pre-flight verification for a new clone or new machine. Checks every required tool, git identity, GitHub auth, submodule init, agent-skills file copies. Pure verification (modifies nothing); surfaces a punch list of what's missing. |
 | `/run-tests` | Repo health / smoke test suite (`scripts/run_tests.py`). 7 categories: required tools, repo structure, YAML frontmatter, cross-references, pipeline lint, script smoke tests, documentation consistency. Green ✓ / yellow ⚠ / red ✗ indicators. **Run this after cloning, before opening a PR, or any time you want to confirm the repo is healthy.** Output includes the maintainer's email for bug reports. |
+| `/projects` | List every discovery-cycle project in your workspace (keyed by run-id) with a one-line summary of each, then offer actions on a chosen one — primarily **delete**. Deletion is **irreversible** (files bypass the Trash) and gated by a two-step user confirmation flow. Wraps `scripts/delete_project.py`. Use to clean up abandoned discovery cycles, verification tests, or any project you no longer need. |
 | `/acknowledge-contributing` | One-time confirmation that you've read `CONTRIBUTING.md` before editing tracked files (required for non-owners). Personal-data folders are exempt; this is a Claude-side convention, not a technical lock. |
 
 Helper skills (Claude invokes these implicitly when relevant phrasing appears):
@@ -305,6 +306,7 @@ Auxiliary tools at `scripts/` (Python + Shell). Slash commands take priority for
 | `gen_run_id.py` | Generate a pipeline run-id (`<8-lowercase-alphanumeric>-<MMDDYY>`). CLI + importable; used by `/scan`, `/discover`, `/validate-card`, `/scope-mvp`, `/trend-check`. |
 | `changelog_helper.py` | Auto-extract commits since the last tag and format as a CHANGELOG entry stub. |
 | `report_summarizer.py` | Pretty-print summaries of all scan / validation / scoping / trend reports. |
+| `delete_project.py` | Manage discovery-cycle projects: `list` (all projects with summaries), `show <run-id>` (dry-run of what would be deleted), `delete <run-id> --force` (actually delete). Identifies a project by run-id and walks every artifact keyed to it (ideas/, killed/, market-research/, web-apps/<slug>/, mobile-apps/<slug>/, generated/**/<slug>). **Destructive when `--force` is passed.** Backs the `/projects` slash command (which adds two interactive confirmations before invoking `--force`). |
 
 **Shell:**
 
