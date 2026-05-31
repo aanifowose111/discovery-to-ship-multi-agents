@@ -102,6 +102,18 @@ If a slug is taken because it was previously killed, **pick a different slug**. 
 
 ---
 
+## User coding & build policy
+
+If `user-context/POLICY.md` exists, **read it before writing any code, drafting any brief, or proposing any architecture decision** in this workspace. It captures the current user's personal coding-and-build preferences — style, patterns to favor/avoid, frameworks, documentation, testing, error handling, security defaults, hard rules, voice for user-facing text, and decision-making preferences. Per its design, the user's policy **overrides workspace defaults and senior-engineer-persona conventions** for matters of taste; the only things it can't override are correctness and security.
+
+If `user-context/POLICY.md` does NOT exist, fall back to the workspace defaults (per the senior-engineer personas in `.claude/agents/senior-*.md` and the agent-skills in `.claude/skills/`). Don't ask the user about policy preferences in every turn — they've opted into defaults by not writing a policy.
+
+When a user's POLICY.md rule conflicts with something an agent-skill or methodology guide says, follow the policy and note the deviation in the work output. When two of the user's rules conflict, surface the conflict to the user before proceeding.
+
+The template is at `user-context/POLICY.md.example`. The file itself is gitignored — different forkers have different policies.
+
+---
+
 ## Working style (how the user wants Claude to operate here)
 
 - **One thing at a time.** Build → present → wait for the user to inspect → next. Do not batch-create scaffolding.

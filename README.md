@@ -62,7 +62,7 @@ See `CLAUDE.md` for the full inventory and how the pieces fit together.
 - **Claude Code** — this whole workspace is designed to be driven from inside Claude Code, which requires a Claude account.
   - **New to Claude?** Use this Claude Max signup link from the maintainer: **<https://claude.ai/referral/4tieocI5Xw>** (3 lifetime passes available, first come first served — once exhausted, sign up normally at [claude.ai](https://claude.ai)).
   - **Install the CLI:** [docs.claude.com/en/docs/claude-code/installation](https://docs.claude.com/en/docs/claude-code/installation).
-- **Git ≥ 2.13** (for submodule support).
+- **Git** (any modern version).
 - **Python 3.11+** if you will build any web apps.
 - **Node.js 20+** if you will build any mobile apps.
 
@@ -147,15 +147,21 @@ If you see `Logged in to github.com account ...`, you're good — `git push`, `g
 #### 4. Clone the repo
 
 ```bash
-git clone --recurse-submodules https://github.com/aanifowose111/discovery-to-ship-multi-agents.git
+git clone https://github.com/aanifowose111/discovery-to-ship-multi-agents.git
 cd discovery-to-ship-multi-agents
 ```
 
-If you forgot the `--recurse-submodules` flag, run this once inside the directory to pull the agent-skills submodule:
+That's all you need to start using the workspace. The three agent-skills personas (`code-reviewer`, `security-auditor`, `test-engineer`) and all 23 agent-skills are **already file-copied** into `.claude/agents/` and `.claude/skills/`, so Claude Code auto-discovers them immediately on first `claude` launch.
+
+**Optional — initialize the agent-skills submodule** if you want to be able to pull future upstream updates via `bash scripts/update-agent-skills.sh`:
 
 ```bash
 git submodule update --init --recursive
 ```
+
+(Or you can clone-and-init in one step with `git clone --recurse-submodules https://github.com/aanifowose111/discovery-to-ship-multi-agents.git`.)
+
+Without the submodule initialized, the workspace works fine for day-to-day use; you just won't be able to sync agent-skills upstream changes until you initialize it.
 
 #### 5. Open Claude Code in the repo
 
@@ -188,8 +194,10 @@ Or, for a more rigorous start, run `/scan` first to map territories before brain
 ```bash
 brew install git gh pandoc typst python@3.12 node@20  # macOS; adjust for Linux
 gh auth login
-git clone --recurse-submodules https://github.com/aanifowose111/discovery-to-ship-multi-agents.git
+git clone https://github.com/aanifowose111/discovery-to-ship-multi-agents.git
 cd discovery-to-ship-multi-agents
+# Optional, only if you want to sync agent-skills upstream later:
+# git submodule update --init --recursive
 claude
 # Then in Claude Code:
 # /discover
@@ -197,17 +205,19 @@ claude
 
 ---
 
-### What the submodule pulls in
+### About the agent-skills (and the optional submodule)
 
-The clone command above pulls the [agent-skills](https://github.com/aanifowose111/agent-skills) fork (a fork of [`addyosmani/agent-skills`](https://github.com/addyosmani/agent-skills) by **Addy Osmani**, MIT-licensed) into `external/agent-skills/`. From there, three personas (`code-reviewer`, `security-auditor`, `test-engineer`) and 23 skills are **copied** into `.claude/agents/` and `.claude/skills/` respectively so Claude Code auto-discovers them and GitHub renders them properly.
+The three agent-skills personas (`code-reviewer`, `security-auditor`, `test-engineer`) and all 23 agent-skills (`incremental-implementation`, `test-driven-development`, `code-review-and-quality`, etc.) are **already in the repo as file copies** inside `.claude/agents/` and `.claude/skills/`. You don't need to do anything special to use them — Claude Code auto-discovers them.
 
-To update agent-skills to the latest upstream:
+These came from the [agent-skills](https://github.com/aanifowose111/agent-skills) fork (a fork of [`addyosmani/agent-skills`](https://github.com/addyosmani/agent-skills) by **Addy Osmani**, MIT-licensed). The fork is also vendored as an optional git submodule at `external/agent-skills/`. The submodule is **only needed if you want to sync future upstream changes** via:
 
 ```bash
 bash scripts/update-agent-skills.sh
 ```
 
-That single command pulls the submodule from `aanifowose111/agent-skills` (which you can sync to upstream `addyosmani/agent-skills` on GitHub by clicking "Sync fork"), re-copies the persona files + skill folders into `.claude/`, and commits the changes. Push with `git push` afterward.
+That script pulls the latest commits from `aanifowose111/agent-skills` (which you can sync to upstream `addyosmani/agent-skills` on GitHub by clicking "Sync fork" on your fork), re-copies the persona files + skill folders into `.claude/`, and commits the changes. Push with `git push` afterward.
+
+If you don't initialize the submodule, day-to-day use of the workspace is unaffected — you only lose the upstream-sync path. You can initialize it later at any time with `git submodule update --init --recursive`.
 
 ---
 
@@ -330,20 +340,20 @@ See **[scripts/README.md](scripts/README.md)** for full usage, flags, and exampl
 
 ## Personalizing the workspace (optional but recommended)
 
-After cloning, populate `user-context/INTERESTS.md` with your professional background, hobbies, domain expertise, and any product ideas you've already had. This file:
-
-- Is **gitignored** — your personal context stays local, never enters git.
-- Is **read by `/discover`** when you run it cold (no args, no active scan) to anchor brainstorming on territories that fit *you*, not the workspace maintainer.
-- Without it, `/discover` either asks you for a few sentences of context just for that run, or defaults to open discovery (broad, no founder-fit constraint).
-
-Copy the template and edit:
+After cloning, the `user-context/` folder is where your personal context lives. It ships with two templates — copy each one you want to use, then fill it in:
 
 ```bash
 cp user-context/INTERESTS.md.example user-context/INTERESTS.md
-# Edit user-context/INTERESTS.md with your specifics
+cp user-context/POLICY.md.example user-context/POLICY.md
+# Edit each with your specifics
 ```
 
-See `user-context/README.md` for what to put there and why.
+Both files are **gitignored** — your personal context stays local and never enters git.
+
+- **`INTERESTS.md`** — your professional background, interests, hobbies, prior product ideas. Read by `/discover` when you run it cold (no args, no active scan) so brainstorming anchors on territories that fit *you*. Without it, `/discover` either asks you for a few sentences inline or defaults to open discovery.
+- **`POLICY.md`** — your personal coding-and-build preferences. Style basics, patterns to favor / avoid, frameworks, documentation style, testing philosophy, error handling, security defaults, hard rules, voice for user-facing text, decision-making preferences. Claude consults it whenever it writes code, drafts a brief, or proposes architecture in this workspace. Your policy overrides workspace defaults for matters of taste; correctness and security still win.
+
+See `user-context/README.md` for what to put in each and why.
 
 ## Personal vs. shared
 
