@@ -9,8 +9,8 @@ You are about to run a discovery cycle. Follow the methodology in @guides/produc
 
 ### Inputs to read before brainstorming
 - @CLAUDE.md (user profile, founder fit)
-- The most recent `status: active` market scan at `market-research/*/scan.md` (look across run folders, newest first) — for territories, anchors, and channel notes. **Pass the glob directly as the command's argument** (no `find -exec`, no `for` loop — both trigger Claude Code permission prompts; see CLAUDE.md "Search patterns" for why): `grep -l "status: active" market-research/*/scan.md 2>/dev/null | head -1`.
-- The most recent `market-research/*/trends.md` (if any) — fresh capability shifts to fold into ideation. Same pattern: `ls -t market-research/*/trends.md 2>/dev/null | head -1` (no `for` loop).
+- The most recent `status: active` market scan at `market-research/*/scan.md` (look across run folders, newest first) — for territories, anchors, and channel notes. **First check the folder is non-empty** (zsh errors on unmatched globs — see CLAUDE.md "Cross-shell safety"), then probe. Cross-shell-safe pattern: `ls market-research/ 2>/dev/null` to confirm run-folders exist, then `python3 -c "import glob; [print(p) for p in glob.glob('market-research/*/scan.md') if 'status: active' in open(p).read()]" | head -1`. If output is empty, fall back to the inline lightweight scan described in step 1.
+- The most recent `market-research/*/trends.md` (if any) — fresh capability shifts to fold into ideation. Same guard: `ls market-research/ 2>/dev/null` first, then `python3 -c "import glob; print('\n'.join(sorted(glob.glob('market-research/*/trends.md'), key=lambda p: -__import__('os').path.getmtime(p))))" | head -1`.
 - Existing `ideas/*.md` (active and `ideas/killed/`) — do not duplicate, and respect filter signals from past kills
 
 ### Do

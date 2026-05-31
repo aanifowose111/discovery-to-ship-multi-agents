@@ -222,6 +222,14 @@ For traversal that can't be expressed as a single glob (recursive walks, conditi
 
 If you must chain multiple read-only checks, issue them as **separate Bash tool calls** in parallel rather than concatenating with `;` / newlines inside one call. Parallel calls are cleaner for the analyzer and faster for the user.
 
+### Cross-shell safety (zsh's `NOMATCH`)
+
+zsh (macOS default) errors at parse time on unmatched globs (`zsh: no matches found: ...`); `2>/dev/null` can't suppress it. Bash (Linux, Git Bash, WSL) is lenient.
+
+This bites survey-style commands probing possibly-empty state (e.g., `ls market-research/*/scan.md` before any `/scan` has run). Cross-shell-safe alternatives: `ls market-research/` (folder listing always succeeds — parse the output), or `python3 -c "import glob; [print(p) for p in glob.glob('market-research/*/scan.md')]"`.
+
+Direct globs are fine when a match is guaranteed. Our own scripts are unaffected (`scripts/*.sh` use `#!/bin/bash`; `scripts/*.py` use `pathlib`/`glob`) — this guidance governs only ad-hoc Bash that Claude generates at runtime.
+
 ---
 
 ## Pipeline orchestration & checkpoints

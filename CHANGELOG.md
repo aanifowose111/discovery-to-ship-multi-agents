@@ -10,7 +10,10 @@ This project does not yet follow strict semantic versioning. Pre-1.0, breaking c
 
 ## [Unreleased]
 
-_No entries yet — next batch lands here under a `### YYYY-MM-DD` subheader._
+### 2026-05-31
+
+- **Cross-shell safety note (zsh's `NOMATCH`)** added to `CLAUDE.md`'s Search-patterns section. zsh errors at parse time on unmatched globs and `2>/dev/null` can't suppress it, while bash (Linux, Git Bash, WSL) is lenient. Bites survey-style probes against possibly-empty state. Documents two cross-shell-safe alternatives: folder-listing (`ls market-research/`) or Python (`python3 -c "import glob; ..."`). Confirms that our own scripts (`scripts/*.sh` with bash shebangs; `scripts/*.py` with `pathlib`/`glob`) are unaffected — the guidance governs only ad-hoc Bash that Claude generates at runtime.
+- **`.claude/commands/discover.md` empty-state probe updated** to use the cross-shell-safe pattern: list `market-research/` first, then drill in with Python. Previous hint used raw globs that error on zsh when no `/scan` has ever been run.
 
 ## [0.4.0] - 2026-05-31
 
