@@ -41,7 +41,7 @@ If that matches what you're trying to do, this repo is a head start. If you want
 
 | | What | Where |
 |---|---|---|
-| **Pipeline slash commands** | `/scan`, `/discover`, `/validate-card`, `/scope-mvp`, `/research-design`, `/draft-design-brief`, `/start-build`, `/trend-check`, `/menu`, `/setup`, `/status`, `/acknowledge-contributing` | `.claude/commands/` |
+| **Pipeline slash commands** | `/scan`, `/discover`, `/validate-card`, `/scope-mvp`, `/research-design`, `/draft-design-brief`, `/start-build`, `/preview-product`, `/trend-check`, `/menu`, `/setup`, `/status`, `/run-tests`, `/acknowledge-contributing` | `.claude/commands/` |
 | **Reviewer assistants** | Product viability / competition / market-segment / scope reviewers, design-brief and design-fidelity reviewers, UI/UX researcher | `.claude/agents/` |
 | **Senior-engineer personas** | `senior-software-engineer` (orchestrator) + 7 specialists: system-design, database, backend, frontend, QA, devops, security. Each plays a senior-IC role during the build phase. | `.claude/agents/senior-*.md` |
 | **Agent-skills personas** | `code-reviewer`, `security-auditor`, `test-engineer` — file copies from [`aanifowose111/agent-skills`](https://github.com/aanifowose111/agent-skills) (fork), originally authored by **Addy Osmani** at [`addyosmani/agent-skills`](https://github.com/addyosmani/agent-skills), MIT-licensed. | Vendored into `.claude/agents/`; re-sync via `scripts/update-agent-skills.sh`. |
@@ -236,7 +236,16 @@ Pipeline phase commands (each stops at a user-checkpoint):
 | `/start-build <slug>` | Kicks off the build phase for a green-lit-to-build product. Invokes the senior-software-engineer to ask orientation questions (web/mobile/hybrid order, MVP vs. full, first subsystem) and route to the right specialist. |
 | `/preview-product <slug> [page]` | Preview a product's UI in the browser. Tries real preview (running app) first; falls back to dummy preview (Jinja + fixture data) if dependencies aren't connected yet. Always says which mode you got. Web only — mobile previews go through Expo Go / EAS preview builds. |
 | `/trend-check [optional triggered <reason>]` | Sweeps a watchlist derived from active pipeline state and recommends downstream commands. |
+
+Utility commands (always safe to run; not part of the pipeline cycle):
+
+| Command | What it does |
+|---|---|
 | `/menu` | Quick menu of available commands and suggested next actions, based on current state. (Named `/menu` because `/help` is shadowed by Claude Code's built-in help dialog.) |
+| `/status` | Complete pipeline-state snapshot — active scan, all active cards with statuses and ages, in-flight briefs, design phases, recent reports. Read-only. |
+| `/setup` | Pre-flight verification for a new clone or new machine. Checks every required tool, git identity, GitHub auth, submodule init, agent-skills file copies. Pure verification (modifies nothing); surfaces a punch list of what's missing. |
+| `/run-tests` | Repo health / smoke test suite (`scripts/run_tests.py`). 7 categories: required tools, repo structure, YAML frontmatter, cross-references, pipeline lint, script smoke tests, documentation consistency. Green ✓ / yellow ⚠ / red ✗ indicators. **Run this after cloning, before opening a PR, or any time you want to confirm the repo is healthy.** Output includes the maintainer's email for bug reports. |
+| `/acknowledge-contributing` | One-time confirmation that you've read `CONTRIBUTING.md` before editing tracked files (required for non-owners). Personal-data folders are exempt; this is a Claude-side convention, not a technical lock. |
 
 Helper skills (Claude invokes these implicitly when relevant phrasing appears):
 
@@ -340,9 +349,18 @@ See **[scripts/README.md](scripts/README.md)** for full usage, flags, and exampl
 
 ## Personalizing the workspace (recommended)
 
-When you launch Claude Code in this repo for the **first time** (with no `user-context/INTERESTS.md` present), Claude runs an interactive onboarding flow **on your first message of that fresh session — regardless of what you type**. Even if your first message is `/discover` or "let's build X", the onboarding fires before that runs.
+### First-launch onboarding — please don't skip it
 
-(Why strict? Because `/discover` and downstream commands produce dramatically better-targeted, reviewer-survivable output when grounded in your interests + seed ideas. Without that context, the system runs in degraded mode — better to surface this once at session start than ship weak outputs.)
+When you launch Claude Code in this repo for the **first time** (with no `user-context/INTERESTS.md` present), Claude runs an interactive onboarding flow **on your very first message of that fresh session — regardless of what you type.** Whether your first message is `hi`, `/discover`, "let's build X", or anything else, the onboarding fires before Claude proceeds with it.
+
+**Why this matters — please take 3 minutes to do the onboarding instead of clicking "Later":**
+
+- `/discover` and every downstream command (validation, scoping, design research) produce **dramatically better-targeted output** when they have your interests + seed ideas to anchor on.
+- Without that context, `/discover` brainstorms from generic capability shifts and adjacent workflows — candidates that look fine in isolation but **get killed in validation** for the "polite-shrug" failure mode (real problem, but the existing workarounds are good enough that users won't switch).
+- With `INTERESTS.md` + `IDEAS.md` populated, the reviewers have founder-fit signals to weigh against the candidate's distribution and willingness-to-pay claims. **Cards that pass validation become products that ship.** Cards that don't pass waste your time.
+- The onboarding takes ~3 minutes. You reply with raw, natural prose ("I'm a Python developer, I built a job board last year, I'm interested in AI eval tooling and indie productivity tools, here are five product ideas I've been chewing on…") and Claude formats it into the right structure for you.
+
+You can pick "Later" if you genuinely need to skip — Claude will proceed with your original message — but the system will run in degraded mode until you populate the files. The picker reminds you each fresh session until both files exist.
 
 The flow:
 
@@ -475,8 +493,8 @@ The agent-skills fork in `external/agent-skills/`, plus the file-level copies in
 
 ## A note from the maintainer — earn by contributing to AI research
 
-Building useful systems takes time, and a lot of the most interesting work right now is in helping frontier AI labs make their models more capable, careful, and trustworthy. The maintainer of this repo (Abiodun Anifowose) currently works as an **AI Chemistry Evaluation expert on [Mercor](https://t.mercor.com/lSU0c)** — designing and implementing Python-based scientific evaluation systems for frontier AI models, including black-box benchmarking functions and chemistry reasoning tasks that directly support major AI research labs.
+Building useful systems takes time, and a lot of the most interesting work right now is in helping frontier AI labs make their models more capable, careful, and trustworthy. The maintainer of this repo (Abiodun Anifowose) currently works at **[Mercor](https://t.mercor.com/lSU0c)** — designing and implementing Python-based scientific evaluation systems for frontier AI models, including black-box benchmarking functions and chemistry reasoning tasks that directly support major AI research labs.
 
 If you have a technical or specialist background — software engineering, science, mathematics, design, writing, language expertise, medicine, law — Mercor matches you with paid AI-training projects from frontier labs. The work is real, the pay is good, and it's a way for domain experts to contribute meaningfully to where AI is going (and earn while doing so).
 
-**[Join Mercor with my referral link →](https://t.mercor.com/lSU0c)**
+**[Join Mercor →](https://t.mercor.com/lSU0c)**

@@ -114,6 +114,57 @@ The template is at `user-context/POLICY.md.example`. The file itself is gitignor
 
 ---
 
+## Core-file edit confirmation rule
+
+Before Claude makes any modification (Write / Edit / NotebookEdit / `git mv` / file deletion) to a **core repo file** — defined as anything not in a gitignored path — Claude must **surface the proposed change and ask the user to confirm before proceeding.**
+
+This applies **to everyone, including the repo owner**. The reasoning: editing a core file means the user is no longer just *consuming* the workspace — they're trying to *change how it behaves*. That kind of change deserves explicit consent, not implicit assumption.
+
+### What counts as a "core repo file"
+
+Anything that gets committed to git, including but not limited to:
+
+- `CLAUDE.md`, `README.md`, `HELP.md`, `CHANGELOG.md`, `CONTRIBUTING.md`, `SECURITY.md`, `LICENSE`, `.gitignore`
+- `.claude/agents/*.md` (personas)
+- `.claude/commands/*.md` (slash commands)
+- `.claude/skills/**` (skills)
+- `.claude/settings.json` (project settings)
+- `guides/**/*.md` (methodology guides)
+- `scripts/*.py`, `scripts/*.sh`, `scripts/README.md`
+- `external/agent-skills/` submodule reference
+- `user-context/README.md`, `user-context/INTERESTS.md.example`, `user-context/IDEAS.md.example`, `user-context/POLICY.md.example` (the templates and README — committed parts of `user-context/`)
+
+### What's exempt (no extra confirmation needed)
+
+Files inside gitignored personal-data paths — the user is operating on their own files:
+
+- `ideas/<run-id>/*.md`, `ideas/killed/<run-id>/*.md`
+- `market-research/<run-id>/*.md`
+- `web-apps/<slug>/**`, `mobile-apps/<slug>/**`
+- `generated/<category>/*`
+- `user-context/INTERESTS.md`, `user-context/IDEAS.md`, `user-context/POLICY.md` (the *live* files, NOT the `.example` templates)
+- `.claude/settings.local.json` (per-user override)
+- `.claude-acknowledged` (per-machine marker)
+
+### The flow
+
+1. **User asks Claude to do something.** Claude assesses whether fulfilling the request will touch any core repo file.
+2. **If yes:**
+   - Surface the list of core files that would be modified (file paths, brief description of the change in each).
+   - Ask: *"Proceed with these changes? (yes / no / adjust)"*.
+   - Wait for confirmation before any Write / Edit / etc. on those files.
+3. **If batched** (one request requires multiple core-file edits): ask **once** with the full list. Don't ask per-file — that's annoying and the user already saw the scope.
+4. **If the user's request itself names specific core files to change** (e.g., "edit CLAUDE.md to add X"): the request itself counts as confirmation for those files. Don't re-ask — just do it, and surface the change after for visibility.
+5. **For non-owners**: this confirmation rule is **on top of** the `/acknowledge-contributing` check. Non-owners must first acknowledge the contributor rules before they can edit any tracked file at all; then, even after acknowledgment, each core-file modification requires the per-change confirmation above.
+
+### Why this exists
+
+This rule trades a small amount of friction for a large amount of safety. A core-file edit changes how the workspace behaves for the user (and, when pushed, for every contributor and forker downstream). Friction at the point of change makes it impossible for Claude to silently drift the workspace's behavior without the user's explicit OK.
+
+The rule does NOT block changes; it just makes them deliberate.
+
+---
+
 ## CHANGELOG editing rules
 
 `CHANGELOG.md` records **workspace-wide** changes that affect contributors and forkers. Claude must follow these rules for any edit to it:
