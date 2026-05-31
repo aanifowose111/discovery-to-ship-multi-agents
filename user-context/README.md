@@ -4,7 +4,9 @@
 
 When you run `/discover` with no arguments and no active scan, Claude bootstraps a discovery cycle by inferring what to brainstorm about. Without your input, that inference defaults to **open discovery** (broad capability shifts + adjacent workflows + competitor weaknesses, no founder-fit constraint) — which works, but produces less personally-relevant candidates.
 
-Add an `INTERESTS.md` file here to give Claude something to anchor on:
+Two files you can populate, both optional, both gitignored once you create the live versions:
+
+**`INTERESTS.md`** — your founder context. Used by `/discover` to anchor brainstorming. Includes:
 
 - Your professional background (languages, frameworks, domains you've shipped in)
 - Hobbies or personal interests you'd consider building a product around
@@ -12,16 +14,32 @@ Add an `INTERESTS.md` file here to give Claude something to anchor on:
 - Specific product ideas you've already had but haven't acted on
 - Things you explicitly do **not** want to work on
 
-Claude will weight discovery toward founder-market fit signals matching your context.
+**`POLICY.md`** — your personal coding-and-build policy. Used by Claude **whenever it writes code, drafts a brief, or proposes architecture** in this workspace. Includes:
 
-## How to populate it
+- Style basics (indent, line length, naming)
+- Patterns to favor / avoid
+- Frameworks & libraries you prefer or refuse
+- Documentation style and depth
+- Testing philosophy (coverage, mocking, TDD, e2e)
+- Error-handling defaults
+- Performance-vs-readability trade-offs
+- Security defaults
+- **Hard rules** — things Claude must never do
+- Voice / tone for user-facing strings
+- Decision-making preferences
+- Things to actively flag (scope creep, premature optimization, etc.)
+
+Your policy **overrides workspace defaults and senior-engineer-persona conventions** for matters of taste. Correctness and security still win.
+
+## How to populate them
 
 ```bash
 cp user-context/INTERESTS.md.example user-context/INTERESTS.md
-# Then edit user-context/INTERESTS.md with your specifics
+cp user-context/POLICY.md.example user-context/POLICY.md
+# Then edit each with your specifics
 ```
 
-`INTERESTS.md` is gitignored — your personal context stays local, never enters git. Same pattern as `ideas/`, `web-apps/`, etc.
+Both files are gitignored — your personal context stays local, never enters git. Same pattern as `ideas/`, `web-apps/`, etc.
 
 ## What about the maintainer's context?
 
@@ -36,6 +54,8 @@ The `/discover` command checks `user-context/INTERESTS.md` first and falls back 
 ## What stays here
 
 - `INTERESTS.md` — your founder profile + interests (gitignored).
+- `POLICY.md` — your personal coding-and-build policy (gitignored).
 - `IDEAS_BACKLOG.md` — optional; a place to jot product ideas you've had outside `/discover` cycles, for `/discover` to mine later (gitignored).
 - `README.md` — this file (committed).
 - `INTERESTS.md.example` — the template (committed).
+- `POLICY.md.example` — the template (committed).

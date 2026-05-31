@@ -1,0 +1,169 @@
+# Coding & Build Policy
+
+This file captures **your personal preferences and rules** for how Claude writes code, structures projects, and makes engineering decisions when working on your behalf in this workspace. Claude consults it whenever it writes code, drafts a brief, or proposes architecture.
+
+**To use it:**
+
+```bash
+cp user-context/POLICY.md.example user-context/POLICY.md
+```
+
+Then edit `user-context/POLICY.md` with your preferences. The file is gitignored — your policy stays local.
+
+**It is optional.** Without it, Claude follows the workspace defaults from the senior-engineer personas and agent-skills. With it, those defaults bend to your specific tastes (within reason — Claude won't follow rules that compromise correctness or security).
+
+**Why "policy" and not "governance"?** *Governance* in software usually refers to project-level decision rules (who can merge to main, how releases are approved, etc.). What this file captures is closer to a **personal coding constitution** — what *you* prefer and what *you* refuse, applied to *your* products built here. Different concept.
+
+---
+
+## How to fill this in
+
+Each section below has a short prompt. Answer the prompts that matter to you; delete the ones that don't. There's no penalty for leaving sections blank — Claude will just use the workspace defaults for anything you don't specify.
+
+**Be specific.** "Write clean code" is not useful. "Prefer pure functions over methods on objects when the state isn't shared across calls" is useful.
+
+**Be honest.** This is for your real preferences, not the ones you think you *should* have.
+
+---
+
+## 1. Style basics
+
+- **Indentation:** _(e.g., "2 spaces always, no tabs anywhere — even in Makefiles use a 2-space-equivalent indentation in comments")_
+- **Line length:** _(e.g., "100 chars hard, 120 only for unbreakable URLs in comments")_
+- **String quotes:** _(e.g., "single in JS/TS, double in Python")_
+- **Trailing commas:** _(e.g., "yes everywhere they're legal")_
+- **Naming:** _(e.g., "snake_case for Python, camelCase for JS variables, PascalCase for component files, kebab-case for filenames")_
+
+---
+
+## 2. Patterns to favor
+
+What architectural / coding patterns Claude should bias toward, with reasoning where it helps:
+
+- _(e.g., "Pure functions over methods on objects when state isn't shared.")_
+- _(e.g., "Composition over inheritance, almost always.")_
+- _(e.g., "Explicit over implicit — no clever metaprogramming, no monkey-patching.")_
+- _(e.g., "Lean toward small, named, single-responsibility helpers; resist 200-line functions.")_
+
+---
+
+## 3. Patterns to avoid
+
+What Claude should refuse to do (unless you specifically override per task):
+
+- _(e.g., "Don't use Tailwind unless I ask. Plain CSS + tokens is the default.")_
+- _(e.g., "Avoid premature abstraction — duplicate twice before extracting a shared helper.")_
+- _(e.g., "No clever one-liners that hurt readability.")_
+- _(e.g., "Don't add dependencies without surfacing the proposal first.")_
+
+---
+
+## 4. Frameworks & libraries
+
+- **Preferred:** _(e.g., "axios for HTTP in JS/TS, requests in Python; pydantic for validation; pytest for tests")_
+- **Avoid:** _(e.g., "no jQuery in new code; no Moment.js (use date-fns or stdlib); no class-based React components")_
+- **Open to either:** _(e.g., "Either FastAPI or Flask is fine for new Python APIs depending on the use case")_
+
+---
+
+## 5. Documentation style
+
+- **Comments:** _(e.g., "Only when the *why* is non-obvious. The *what* should be readable from the code. No comments that just restate the function name.")_
+- **Function / class docstrings:** _(e.g., "Yes for public APIs; no for one-line internal helpers")_
+- **READMEs:** _(e.g., "Every project has a README. First paragraph answers 'what is this' in 2-3 sentences for someone who has never seen it before.")_
+- **Inline TODOs:** _(e.g., "Allowed but must include a github issue link or an explicit owner + date")_
+
+---
+
+## 6. Testing philosophy
+
+- **Coverage:** _(e.g., "Aim for high branch coverage on business logic; lower on glue code.")_
+- **Mocking:** _(e.g., "Mock external services (Stripe, Spaces, third-party APIs) at the boundary; don't mock my own code.")_
+- **Integration vs unit:** _(e.g., "Lean integration-heavy for API tests — they catch the real bugs.")_
+- **E2E:** _(e.g., "Skip e2e for first MVP unless it's the riskiest assumption; add per critical path post-launch.")_
+- **TDD:** _(e.g., "Yes for business logic and APIs; not for one-off scripts or prototypes")_
+
+---
+
+## 7. Error handling
+
+- _(e.g., "Validate at boundaries (HTTP, file I/O, external API responses); trust internal call sites.")_
+- _(e.g., "Never silently swallow exceptions. If you catch, log + re-raise or handle deliberately.")_
+- _(e.g., "User-facing error messages: friendly, actionable, never expose stack traces.")_
+- _(e.g., "Server-side: structured logging with enough context to debug from logs alone.")_
+
+---
+
+## 8. Performance vs. readability
+
+When the two conflict:
+
+- _(e.g., "Readability wins by default. Only optimize when a profiler proves it matters.")_
+- _(e.g., "I care about p99 latency on user-facing endpoints; can tolerate slower batch jobs.")_
+
+---
+
+## 9. Security defaults
+
+- _(e.g., "Argon2id for password hashing, never MD5/SHA1/bcrypt-with-low-cost.")_
+- _(e.g., "Rate-limit every endpoint that doesn't have a strong reason not to.")_
+- _(e.g., "Never log full PII; redact emails/phones/tokens at the logger level.")_
+- _(e.g., "Secrets via env vars only; never check committed `.env` even with placeholders.")_
+
+---
+
+## 10. Hard rules — things Claude must NEVER do
+
+These override everything else (including workspace defaults, agent-skill recommendations, etc.):
+
+- _(e.g., "Never use eval() in any language.")_
+- _(e.g., "Never disable strict type-checking to make tests pass — fix the types.")_
+- _(e.g., "Never auto-deploy without showing me the diff first.")_
+- _(e.g., "Never silently swap a library I picked for one Claude prefers; surface the question.")_
+
+---
+
+## 11. Soft preferences — things Claude should bias toward but can deviate from with a reason
+
+- _(e.g., "Prefer Postgres over MongoDB unless the data is genuinely document-shaped.")_
+- _(e.g., "Prefer one configuration file over many small ones, until it gets unwieldy.")_
+
+---
+
+## 12. Voice and tone for user-facing text
+
+What language Claude uses when writing strings users will read (error messages, empty states, microcopy):
+
+- **Tone:** _(e.g., "Direct, calm, no exclamation points. Never apologetic ('Oh no!' — never).")_
+- **Voice:** _(e.g., "Second person ('You can…'); never first-person plural ('We've encountered…').")_
+- **Length:** _(e.g., "One sentence for error toasts; two short paragraphs max for empty-state explanations.")_
+
+---
+
+## 13. Decision-making preferences
+
+- _(e.g., "When two reasonable options exist, propose both with tradeoffs before picking — don't silently choose.")_
+- _(e.g., "Ask before adding any new top-level folder, dependency, or config file.")_
+- _(e.g., "If a methodology guide says X and I've said Y here, follow Y — my policy overrides workspace defaults.")_
+
+---
+
+## 14. Things I want Claude to actively flag
+
+When Claude notices these, surface them rather than just doing them:
+
+- _(e.g., "Scope creep — if I'm asking for something that wasn't in the MVP brief's must-haves, point it out.")_
+- _(e.g., "Premature optimization — if I'm asking to optimize something before there's evidence it's slow, push back.")_
+- _(e.g., "Security risks — even if I waved them off, surface them again.")_
+
+---
+
+## 15. Anything else
+
+Open section. Quirks, preferences, opinions, hard-won lessons from past projects — whatever helps Claude work the way you actually work.
+
+- _(your text here)_
+
+---
+
+*Last updated: YYYY-MM-DD by `<your-name>`*
