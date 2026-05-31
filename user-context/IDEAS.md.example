@@ -1,0 +1,79 @@
+# Seed Ideas
+
+> **What this file is.** A backlog of product ideas you've already had in your head — half-baked or fully formed — that you'd want `/discover` to weight its brainstorming toward. This is NOT the same as `ideas/` at the repo root (those are *validated* idea cards from formal discovery cycles); this file is your mental staging area before any of them have been formalized.
+>
+> **Why this matters for product discovery.** Without seed ideas, `/discover` bootstraps from broad capability shifts + your interests (from `INTERESTS.md`) alone. Cards it brainstorms will be plausible but generic. **With seed ideas**, the reviewer reads "what's already on your mind" and uses adjacency to produce candidates that resonate with you — and that fit founder-market patterns the reviewers are unlikely to kill in the validation phase.
+>
+> **How to populate.** Just dump ideas. One per section. Don't worry about completeness — even a one-liner is useful. Claude formats your raw text into the structure below when you onboard (or you can edit this file directly any time).
+>
+> **Gitignored.** Your seed ideas stay local; nothing here enters git.
+
+---
+
+## Idea — <one-line title>
+
+**What it is** (1-2 sentences): *e.g., "A platform where independent music teachers can manage their student rosters, scheduled lessons, payment collection, and progress notes — currently they're stitching together 4 separate tools."*
+
+**Who it's for**: *e.g., "Solo piano / guitar / voice teachers with 10-40 active students."*
+
+**Why I think about it**: *e.g., "My sister teaches music and shows me the spreadsheet she uses every month — visibly frustrated. She's not technical so DIY tools don't fit."*
+
+**What I'd want to test first** (the riskiest assumption — the thing I most want to be true): *e.g., "Whether teachers will actually pay for this vs. accepting their spreadsheet friction. Music teachers are price-sensitive."*
+
+**Where I'd find first users**: *e.g., "r/musicteachers, music-teacher Facebook groups, local conservatories."*
+
+---
+
+## Idea — <one-line title>
+
+**What it is**: ...
+
+**Who it's for**: ...
+
+**Why I think about it**: ...
+
+**What I'd want to test first**: ...
+
+**Where I'd find first users**: ...
+
+---
+
+## Idea — <one-line title>
+
+**What it is**: ...
+
+**Who it's for**: ...
+
+**Why I think about it**: ...
+
+**What I'd want to test first**: ...
+
+**Where I'd find first users**: ...
+
+---
+
+## Tail (rough one-liners, no structure)
+
+Quick captures that don't deserve a full section yet — `/discover` will read these too and might combine them with the above to produce stronger candidates.
+
+- *e.g., "Something for small podcast networks to coordinate cross-promotion."*
+- *e.g., "A tool that automatically detects when your shipped React app's bundle size regresses and tells you which import did it."*
+- *e.g., "Better expense splitting for shared houses where one roommate buys everything and the rest pay back inconsistently."*
+- ...
+
+---
+
+## What to avoid
+
+If there are categories or product types you'd specifically NOT want `/discover` to surface (regardless of how trendy or technically interesting), note them here. This is the inverse signal — what to NOT brainstorm.
+
+- *e.g., "Anything in crypto / Web3 — not a domain I want to operate in."*
+- *e.g., "B2B SaaS targeting enterprise sales cycles — wrong scale for me as a solo builder."*
+- *e.g., "Consumer mobile games — not my taste."*
+- ...
+
+---
+
+## Last updated
+
+YYYY-MM-DD

@@ -9,8 +9,8 @@ You are about to run a market scan. Follow the methodology in @guides/market/mar
 
 ### Inputs to read before sweeping
 - @CLAUDE.md (user profile, founder fit, working style)
-- The most recent `market-research/scan-*.md` (if any) — for prior territories and what was left as unresolved
-- The most recent `market-research/trends-*.md` (if any) — material findings feed this scan as priority sources
+- The most recent scan: search for `market-research/*/scan.md` (one per scan run folder); pick the newest by folder date.
+- The most recent trend report: search for `market-research/*/trends.md`; pick the newest by folder date.
 - Recent `ideas/killed/` entries — for filter calibration; do not re-surface territories whose ideas have systematically failed
 
 ### Do
@@ -18,12 +18,12 @@ You are about to run a market scan. Follow the methodology in @guides/market/mar
 2. Run the source sweep across all families in §5.2 of the methodology guide. Cite URLs inline.
 3. Aggregate signals into candidate territories (3-7 in the final list). Each must have: segment, anchor, distribution channel, founder fit, priority.
 4. Prioritize each territory on freshness × founder fit × reachability. Lowest dimension wins.
-5. Write the report to `market-research/scan-<YYYY-MM-DD>.md` with `status: draft`.
+5. **Generate a run-id and create the folder** for this scan: run `RUN_ID=$(python3 scripts/gen_run_id.py); mkdir -p market-research/$RUN_ID`. Then write the report to `market-research/$RUN_ID/scan.md` with `status: draft` and `run-id: $RUN_ID` in the frontmatter.
 6. Show the user: the aperture, the source sweep table, the candidate territories with priorities, the recommended 2-3 seeds for the next discovery cycle.
 
 ### Stop here — user checkpoint
 After showing the summary, **stop**. Do not advance the report status to `active`. Do not start a discovery cycle. Tell the user:
 
-> Scan report at `market-research/scan-<YYYY-MM-DD>.md`. Sign off to advance status to `active`. Next step after sign-off: `/discover` to mine the recommended seeds for ideas (or pass specific territories: `/discover <territory-name>[, <territory-name>]`).
+> Scan report at `market-research/<run-id>/scan.md`. Sign off to advance status to `active`. Next step after sign-off: `/discover` to mine the recommended seeds for ideas (or pass specific territories: `/discover <territory-name>[, <territory-name>]`).
 
 Only after the user signs off, update the report's `status` field to `active`.

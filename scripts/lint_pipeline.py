@@ -78,14 +78,19 @@ def parse_frontmatter(path: Path) -> dict[str, str]:
 # ─── Checks ──────────────────────────────────────────────────────────────
 
 def check_idea_cards(issues: list[Issue]) -> None:
-    """Each idea card needs frontmatter with slug, status, source, date-captured."""
+    """Each idea card needs frontmatter with slug, status, source, date-captured.
+
+    Cards live at `ideas/<run-id>/<slug>.md` (active) and `ideas/killed/<run-id>/<slug>.md`
+    (killed). README.md and .gitkeep are skipped.
+    """
     ideas_dir = REPO_ROOT / "ideas"
     if not ideas_dir.exists():
         return
     required_fields = {"slug", "status", "source", "date-captured"}
     valid_statuses = {"draft", "triaged", "in-validation", "green-lit", "killed"}
 
-    for card_path in ideas_dir.glob("*.md"):
+    # Walk all nested .md files (run folders + killed/run folders). Skip README.md.
+    for card_path in ideas_dir.rglob("*.md"):
         if card_path.name == "README.md":
             continue
         fm = parse_frontmatter(card_path)
@@ -117,14 +122,20 @@ def check_idea_cards(issues: list[Issue]) -> None:
 
 
 def check_status_alignment(issues: list[Issue]) -> None:
-    """Cards in `in-validation` / `green-lit` should have corresponding downstream artifacts."""
+    """Cards in `in-validation` / `green-lit` should have corresponding downstream artifacts.
+
+    Validation reports live at `market-research/<run-id>/validation-<slug>.md`.
+    """
     ideas_dir = REPO_ROOT / "ideas"
     market_dir = REPO_ROOT / "market-research"
     if not ideas_dir.exists():
         return
 
-    for card_path in ideas_dir.glob("*.md"):
+    for card_path in ideas_dir.rglob("*.md"):
+        # Skip killed/ tree (we're checking active cards here) + READMEs
         if card_path.name == "README.md":
+            continue
+        if "killed" in card_path.relative_to(ideas_dir).parts:
             continue
         fm = parse_frontmatter(card_path)
         slug = fm.get("slug", card_path.stem)
@@ -132,12 +143,13 @@ def check_status_alignment(issues: list[Issue]) -> None:
         rel = str(card_path.relative_to(REPO_ROOT))
 
         if status == "in-validation" and market_dir.exists():
-            validation_files = list(market_dir.glob(f"validation-{slug}-*.md"))
+            # Look in nested run folders: market-research/<run-id>/validation-<slug>.md
+            validation_files = list(market_dir.rglob(f"validation-{slug}.md"))
             if not validation_files:
                 issues.append(Issue(
                     severity="warning", file=rel, line=1,
                     rule="status.in-validation-no-report",
-                    message=f"Card status is `in-validation` but no `market-research/validation-{slug}-*.md` exists",
+                    message=f"Card status is `in-validation` but no `market-research/*/validation-{slug}.md` exists",
                     suggestion=f"Run `/validate-card {slug}` to produce the validation report, or roll the card back to `triaged`.",
                 ))
 
@@ -214,7 +226,7 @@ def check_at_references(issues: list[Issue]) -> None:
 
 
 def check_slug_uniqueness(issues: list[Issue]) -> None:
-    """A slug must be unique across ideas/, ideas/killed/, web-apps/, mobile-apps/."""
+    """A slug must be unique across ideas/<run-id>/, ideas/killed/<run-id>/, web-apps/, mobile-apps/."""
     locations: dict[str, list[str]] = {}
 
     def record(slug: str, path: str) -> None:
@@ -222,14 +234,10 @@ def check_slug_uniqueness(issues: list[Issue]) -> None:
 
     ideas_dir = REPO_ROOT / "ideas"
     if ideas_dir.exists():
-        for md in ideas_dir.glob("*.md"):
+        # Walk all .md files nested under run-folders (skip README.md)
+        for md in ideas_dir.rglob("*.md"):
             if md.name == "README.md":
                 continue
-            record(md.stem, str(md.relative_to(REPO_ROOT)))
-
-    killed_dir = REPO_ROOT / "ideas" / "killed"
-    if killed_dir.exists():
-        for md in killed_dir.glob("*.md"):
             record(md.stem, str(md.relative_to(REPO_ROOT)))
 
     for top in ("web-apps", "mobile-apps"):
@@ -253,7 +261,19 @@ def check_slug_uniqueness(issues: list[Issue]) -> None:
 
 
 def check_required_sections_validation(issues: list[Issue]) -> None:
-    """Validation reports must have the locked verdict-format sections."""
+    """Validation reports must have the locked verdict-format sections.
+
+    Two valid formats are accepted (per the methodology guide):
+
+    1. **Heading style** — sections appear as H2/H3/H4 headings:
+       `## Verdict`, `## Confidence`, `## Findings`, etc.
+
+    2. **Bold-label style under a per-reviewer subheading** — when a report
+       integrates THREE reviewers, each reviewer's section uses bold field
+       labels: `**Verdict:**`, `**Confidence:**`, `**Findings:**`. Verifying
+       that each label appears at least once in the file is enough; the
+       sections per-reviewer-block are equivalent to the locked format.
+    """
     market_dir = REPO_ROOT / "market-research"
     if not market_dir.exists():
         return
@@ -261,21 +281,26 @@ def check_required_sections_validation(issues: list[Issue]) -> None:
         "Verdict", "Confidence", "Findings",
         "What I could not verify", "Sources",
     ]
-    for report_path in market_dir.glob("validation-*.md"):
+    for report_path in market_dir.rglob("validation-*.md"):
         try:
             text = report_path.read_text(encoding="utf-8")
         except (UnicodeDecodeError, OSError):
             continue
         for section in required_sections:
-            # Accept H2 or H3 (sub-reviewer reports nest under H3 sometimes)
-            if not re.search(rf"^#{{2,4}}\s+{re.escape(section)}\b", text, re.MULTILINE):
+            heading_re = rf"^#{{2,4}}\s+{re.escape(section)}\b"
+            # Bold-label form: **Section:** OR **Section**:  (either order, possibly
+            # immediately followed by content)
+            bold_label_re = rf"\*\*{re.escape(section)}\*\*\s*:|\*\*{re.escape(section)}:\*\*"
+            has_heading = re.search(heading_re, text, re.MULTILINE)
+            has_bold = re.search(bold_label_re, text)
+            if not (has_heading or has_bold):
                 issues.append(Issue(
                     severity="warning",
                     file=str(report_path.relative_to(REPO_ROOT)),
                     line=0,
                     rule="report.missing-section",
                     message=f"Validation report missing required section: {section}",
-                    suggestion="Add the section per guides/product/idea-validation-methodology.md §5.",
+                    suggestion="Add the section per guides/product/idea-validation-methodology.md §5 (as a heading like `## Verdict` or as a bold label like `**Verdict:**`).",
                 ))
 
 

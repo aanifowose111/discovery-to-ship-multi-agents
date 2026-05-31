@@ -36,8 +36,8 @@ To scope an MVP, the main Claude assembles:
 
 | Input | Source |
 |---|---|
-| The green-lit idea card | `ideas/<slug>.md` |
-| The validation report | `market-research/validation-<slug>-<date>.md` |
+| The green-lit idea card | `ideas/<run-id>/<slug>.md` — find via `find ideas -name "<slug>.md" -not -path "*/killed/*"` |
+| The validation report | `market-research/<run-id>/validation-<slug>.md` (same `<run-id>` as the card) |
 | User profile (founder fit, shipped stacks) | `CLAUDE.md` + the user-profile memory |
 | Discovery + validation methodology guides | for shared vocabulary |
 
@@ -247,7 +247,7 @@ The user signs off on the final brief before any code is written. Per the workin
 
 ## 9. The scoping report
 
-Each scoping run produces one file: `market-research/scoping-<slug>-<YYYY-MM-DD>.md` containing:
+Each scoping run produces one file: `market-research/<run-id>/scoping-<slug>.md` (same `<run-id>` as the card's discovery cycle), containing:
 
 1. **Brief snapshot** — the MVP brief at the moment scoping was reviewed.
 2. **Reviewer verdicts** — both, full.

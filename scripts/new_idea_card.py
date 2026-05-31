@@ -127,8 +127,21 @@ def main() -> int:
     effort = prompt("Rough effort estimate (weeks at ~12 hrs/week)")
 
     today = date.today().isoformat()
+
+    # Generate a run-id for this single-card cycle (one-off creation outside /discover).
+    # We import the generator so the same logic is used as in the slash commands.
+    sys.path.insert(0, str(Path(__file__).resolve().parent))
+    try:
+        from gen_run_id import generate_run_id  # type: ignore
+        run_id = generate_run_id()
+    except ImportError:
+        # Fallback: derive a basic id if gen_run_id isn't importable for some reason
+        import secrets, string
+        run_id = "".join(secrets.choice(string.ascii_lowercase + string.digits) for _ in range(8)) + "-" + date.today().strftime("%m%d%y")
+
     card_text = f"""---
 slug: {slug}
+run-id: {run_id}
 date-captured: {today}
 source: {source}
 status: draft
@@ -164,10 +177,14 @@ status: draft
 {effort}
 """
 
-    card_path = IDEAS_DIR / f"{slug}.md"
+    # Create the run folder and write the card there.
+    run_folder = IDEAS_DIR / run_id
+    run_folder.mkdir(parents=True, exist_ok=True)
+    card_path = run_folder / f"{slug}.md"
     card_path.write_text(card_text, encoding="utf-8")
 
     print(colored(f"\n✓ Idea card written to {card_path.relative_to(REPO_ROOT)}", C.GREEN))
+    print(colored(f"  Run-id: {run_id} (this card has its own one-card run folder; cards from a full /discover cycle would share a folder)", C.DIM))
     print(colored("\nNext steps:", C.BOLD))
     print(f"  - Review the card and tighten any sections.")
     print(f"  - Lint with: {colored('python scripts/lint_pipeline.py', C.CYAN)}")

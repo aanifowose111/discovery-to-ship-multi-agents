@@ -338,22 +338,55 @@ See **[scripts/README.md](scripts/README.md)** for full usage, flags, and exampl
 
 ---
 
-## Personalizing the workspace (optional but recommended)
+## Personalizing the workspace (recommended)
 
-After cloning, the `user-context/` folder is where your personal context lives. It ships with two templates — copy each one you want to use, then fill it in:
+When you launch Claude Code in this repo for the **first time** (with no `user-context/INTERESTS.md` present), Claude runs an interactive onboarding flow **on your first message of that fresh session — regardless of what you type**. Even if your first message is `/discover` or "let's build X", the onboarding fires before that runs.
+
+(Why strict? Because `/discover` and downstream commands produce dramatically better-targeted, reviewer-survivable output when grounded in your interests + seed ideas. Without that context, the system runs in degraded mode — better to surface this once at session start than ship weak outputs.)
+
+The flow:
+
+1. Welcome paragraph (what the workspace does, plus an ack of your original intent if you had one).
+2. Picker (interactive): **"(Recommended) Update user-context first"** vs. **"Prefer to update later"**.
+3. If you pick **Recommended**: Claude shows a **visual todo list** (via Claude Code's task panel — proper checkmarks that tick as items complete, not static text):
+   - **Provide your interests** → you reply in natural prose; Claude formats and writes `user-context/INTERESTS.md`.
+   - **Provide your seed ideas** → you reply with one-liners or anything; Claude formats and writes `user-context/IDEAS.md`.
+
+   After both items complete, Claude proceeds with your original request (or `/menu` if you didn't have one).
+4. If you pick **Prefer to update later**: Claude proceeds with your original message immediately. You can populate the files any time later via `cp user-context/<file>.example user-context/<file>` and editing, or by re-launching a fresh session.
+
+**Triggers:** any first message in a fresh session where `INTERESTS.md` is missing. Examples: `hi`, `hey`, `what can I do?`, `/discover`, "I want to build a SaaS for…", anything. There's no "magic word" — every fresh-session start triggers the onboarding picker when the file is missing.
+
+**You only see this once.** After you've completed the flow (or picked "Later"), future sessions go straight to normal entry.
+
+**To test it yourself:** if you have `INTERESTS.md` populated and want to see the onboarding once, just rename it (`mv user-context/INTERESTS.md user-context/INTERESTS.md.bak`), launch a fresh `claude` session, and you'll see the picker on your first message.
+
+If you'd rather do it manually (or want to add the third optional file), the `user-context/` folder ships with three templates:
 
 ```bash
 cp user-context/INTERESTS.md.example user-context/INTERESTS.md
-cp user-context/POLICY.md.example user-context/POLICY.md
+cp user-context/IDEAS.md.example     user-context/IDEAS.md
+cp user-context/POLICY.md.example    user-context/POLICY.md
 # Edit each with your specifics
 ```
 
-Both files are **gitignored** — your personal context stays local and never enters git.
+All three live files are **gitignored** — your personal context stays local and never enters git.
 
-- **`INTERESTS.md`** — your professional background, interests, hobbies, prior product ideas. Read by `/discover` when you run it cold (no args, no active scan) so brainstorming anchors on territories that fit *you*. Without it, `/discover` either asks you for a few sentences inline or defaults to open discovery.
-- **`POLICY.md`** — your personal coding-and-build preferences. Style basics, patterns to favor / avoid, frameworks, documentation style, testing philosophy, error handling, security defaults, hard rules, voice for user-facing text, decision-making preferences. Claude consults it whenever it writes code, drafts a brief, or proposes architecture in this workspace. Your policy overrides workspace defaults for matters of taste; correctness and security still win.
+- **`INTERESTS.md`** — your professional background, interests, hobbies, expertise areas. Read by `/discover` when you run it cold (no args, no active scan) so brainstorming anchors on territories that fit *you*.
+- **`IDEAS.md`** — your seed-ideas backlog (products you've already thought about but haven't built). Strongest single signal for producing `/discover` candidates that survive validation instead of getting killed for generic-aesthetic mismatch.
+- **`POLICY.md`** — your personal coding-and-build preferences. Claude consults it whenever it writes code, drafts a brief, or proposes architecture. Your policy overrides workspace defaults for matters of taste; correctness and security still win.
 
 See `user-context/README.md` for what to put in each and why.
+
+### Pipeline outputs are grouped per discovery cycle
+
+Every `/discover` run creates a fresh `<run-id>` (format: `<8-lowercase-alphanumeric>-<MMDDYY>`, e.g., `csi48s2t-053126`) and uses it for both the cards folder (`ideas/<run-id>/<slug>.md`) and the related market-research folder (`market-research/<run-id>/`). Downstream artifacts from the SAME cycle — `triage.md`, `validation-<slug>.md`, `scoping-<slug>.md` — all land in `market-research/<run-id>/`. Cards from different `/discover` runs never mix; their validations stay grouped with their cycle.
+
+Killed cards move to `ideas/killed/<run-id>/<slug>.md` (preserving the run-id link back to the discovery cycle that produced them).
+
+`/scan` and `/trend-check` each create their own independent run folder.
+
+Use `python3 scripts/gen_run_id.py` to generate a run-id manually if you need one.
 
 ## Personal vs. shared
 

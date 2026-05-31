@@ -41,7 +41,7 @@ A discovery session should pull from at least three of these sources, not just o
 | **Personal pain points** | Workflows the user has personally hated, including in prior projects (findvil, fijara, the Intel JMP dashboard work). The user has already proven willingness-to-build on this kind of problem. |
 | **Adjacent workflows** | For each shipped project, ask: "what does the user of this product also do, just before or just after, that is still painful?" Job-search adjacency, dashboard-tooling adjacency, multi-tenant SaaS adjacency. |
 | **Competitor weaknesses** | Existing products with bad UX, missing features, or hostile pricing. Look at one-star reviews on G2, Capterra, Product Hunt, App Store. The complaints *are* the product. |
-| **Shifts in capability** | Things that became possible recently — cheap LLM inference, better mobile sensors, new API access, regulatory changes. Each shift opens a window before incumbents close it. The most recent `market-research/trends-*.md` (per `guides/market/trend-monitoring.md`) is the canonical source for fresh capability shifts; check it first. |
+| **Shifts in capability** | Things that became possible recently — cheap LLM inference, better mobile sensors, new API access, regulatory changes. Each shift opens a window before incumbents close it. The most recent `market-research/*/trends.md` (per `guides/market/trend-monitoring.md`) is the canonical source for fresh capability shifts; check it first. |
 | **Underserved segments** | Industries or roles where the dominant tool is "an Excel spreadsheet someone emails around." High pain, low competition, but distribution is usually the hard part. |
 | **Forced multi-step workflows** | Anywhere a person currently glues 3+ tools together by hand. Each glue point is a potential product. |
 
@@ -125,7 +125,7 @@ Sum the six scores → 6-30. Bucket the cards:
 **Hard kills regardless of total:**
 - Any score of **1 on Problem severity or User reachability**. A 5/5/5/5/5/1 idea is still dead; you cannot fix "nobody wants it" or "nobody can find it" with more engineering.
 
-The triage step should produce a single ranked list at `market-research/triage-<YYYY-MM-DD>.md` — date-stamped because we will run this multiple times.
+The triage step produces a single ranked list at `market-research/<run-id>/triage.md` — where `<run-id>` is shared with the discovery cycle's cards folder at `ideas/<run-id>/`. Each `/discover` invocation creates a new `<run-id>` so cycles never mix.
 
 ---
 
@@ -134,7 +134,7 @@ The triage step should produce a single ranked list at `market-research/triage-<
 A discovery cycle is complete when we have:
 
 1. **At least 10 idea cards** in `ideas/`, drawn from at least three of the sources in §3.
-2. **A triage list** at `market-research/triage-<date>.md` with every card scored and bucketed.
+2. **A triage list** at `market-research/<run-id>/triage.md` (matching the cards folder `ideas/<run-id>/`) with every card scored and bucketed.
 3. **A "top 3" callout** at the top of the triage list — the three highest-scoring greens, with a one-paragraph note on each explaining what the next validation step would be.
 
 The top 3 then become the input to the next phase (validation + market research). The other greens stay warm in case the top 3 die in validation.

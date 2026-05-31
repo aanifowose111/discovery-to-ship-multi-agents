@@ -12,7 +12,7 @@ A 90-day scan cadence (per `market-scan-methodology.md`) is too slow for fast-mo
 
 Trend monitoring catches those shifts early enough to act. It produces:
 
-- A **trend report** at `market-research/trends-<YYYY-MM-DD>.md` summarizing what changed.
+- A **trend report** at `market-research/<run-id>/trends.md` summarizing what changed (each `/trend-check` generates a fresh `<run-id>` folder).
 - **Material findings** that warrant action — re-scan, re-validate a card, re-scope a brief, or kill an active artifact.
 - A handoff to the correct downstream command (`/scan`, `/validate-card <slug>`, `/scope-mvp <slug>`) so the action is one command away.
 
@@ -69,8 +69,8 @@ If the active scan or the active cards change, the watchlist changes with them.
 
 Read:
 
-- The most recent `market-research/scan-*.md` with `status: active`.
-- All `ideas/<slug>.md` with `status` in `{green-lit, in-validation}`.
+- The most recent `market-research/*/scan.md` with `status: active` (newest by folder date).
+- All cards under `ideas/*/<slug>.md` with `status` in `{green-lit, in-validation}`.
 - All `web-apps/<slug>/MVP.md` and `mobile-apps/<slug>/MVP.md` with `status` in `{draft, in-scoping, green-lit-to-build}`.
 
 From those, build the watchlist: active territories, active cards' differentiation claims, active briefs' stack and feature set.
@@ -93,7 +93,7 @@ When in doubt between Material and Notable: only call it Material if you can nam
 
 ### 5.4 Write the trend report
 
-Format below in §6. Write it to `market-research/trends-<YYYY-MM-DD>.md`.
+Format below in §6. Write it to `market-research/<run-id>/trends.md` (generate `<run-id>` via `python3 scripts/gen_run_id.py`).
 
 ### 5.5 Show the user and hand off
 
@@ -114,7 +114,7 @@ status: draft | reviewed | acted-on
 # Trend sweep: <date>
 
 ## Watchlist derived from
-- Active scan: market-research/scan-<date>.md
+- Active scan: market-research/<run-id>/scan.md
 - Active cards: <slug list>
 - Active briefs: <slug list>
 
@@ -165,7 +165,7 @@ A trend report is consumed by the user, but it points at specific downstream com
 | Scan is stale or a major territory-level shift | `/scan` (re-run the market scan, incorporating the trend finding) |
 | Active idea card's viability/competitive/segment claim is now contradicted | `/validate-card <slug>` (re-run validation for that card) |
 | Active brief's stack or scope assumptions are invalidated | `/scope-mvp <slug>` (re-scope the brief) |
-| Encroachment finding kills an active card or brief | User decides whether to kill — main Claude updates `ideas/<slug>.md` or the brief to `killed` status with a link to the trend report |
+| Encroachment finding kills an active card or brief | User decides whether to kill — main Claude moves the card from `ideas/<run-id>/<slug>.md` to `ideas/killed/<run-id>/<slug>.md` (or updates the brief) with `killed` status + link to the trend report |
 
 The trend monitor itself never advances any artifact. It surfaces findings and recommends commands. The user decides which to run.
 

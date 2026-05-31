@@ -50,27 +50,26 @@ def existing_slugs() -> dict[str, list[SlugLocation]]:
     def add(slug: str, loc: SlugLocation) -> None:
         found.setdefault(slug, []).append(loc)
 
-    # ideas/<slug>.md
+    # ideas/<run-id>/<slug>.md (active) and ideas/killed/<run-id>/<slug>.md (killed).
+    # Walk nested run-folders.
     ideas_dir = REPO_ROOT / "ideas"
     if ideas_dir.exists():
-        for md in ideas_dir.glob("*.md"):
+        for md in ideas_dir.rglob("*.md"):
             if md.name == "README.md":
                 continue
-            add(md.stem, SlugLocation(
-                kind="idea",
-                path=str(md.relative_to(REPO_ROOT)),
-                detail="active idea card",
-            ))
-
-    # ideas/killed/<slug>.md
-    killed_dir = REPO_ROOT / "ideas" / "killed"
-    if killed_dir.exists():
-        for md in killed_dir.glob("*.md"):
-            add(md.stem, SlugLocation(
-                kind="killed-idea",
-                path=str(md.relative_to(REPO_ROOT)),
-                detail="killed idea card",
-            ))
+            rel_parts = md.relative_to(ideas_dir).parts
+            if "killed" in rel_parts:
+                add(md.stem, SlugLocation(
+                    kind="killed-idea",
+                    path=str(md.relative_to(REPO_ROOT)),
+                    detail="killed idea card",
+                ))
+            else:
+                add(md.stem, SlugLocation(
+                    kind="idea",
+                    path=str(md.relative_to(REPO_ROOT)),
+                    detail="active idea card",
+                ))
 
     # web-apps/<slug>/
     web_dir = REPO_ROOT / "web-apps"

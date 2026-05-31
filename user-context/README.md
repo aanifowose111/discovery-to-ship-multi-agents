@@ -4,15 +4,16 @@
 
 When you run `/discover` with no arguments and no active scan, Claude bootstraps a discovery cycle by inferring what to brainstorm about. Without your input, that inference defaults to **open discovery** (broad capability shifts + adjacent workflows + competitor weaknesses, no founder-fit constraint) — which works, but produces less personally-relevant candidates.
 
-Two files you can populate, both optional, both gitignored once you create the live versions:
+Three files you can populate, all optional, all gitignored once you create the live versions:
 
-**`INTERESTS.md`** — your founder context. Used by `/discover` to anchor brainstorming. Includes:
+**`INTERESTS.md`** — your founder context. Used by `/discover` to anchor brainstorming on territories that fit you. Includes:
 
-- Your professional background (languages, frameworks, domains you've shipped in)
-- Hobbies or personal interests you'd consider building a product around
+- Professional background (languages, frameworks, domains you've shipped in)
+- Hobbies or personal interests you'd consider building around
 - Industries or roles you have inside-track knowledge of
-- Specific product ideas you've already had but haven't acted on
 - Things you explicitly do **not** want to work on
+
+**`IDEAS.md`** — your seed-ideas backlog. **Distinct from `ideas/` at the repo root** (which holds *validated* idea cards from formal `/discover` cycles); this file is your mental staging area — products you've already thought about but not formalized. Used by `/discover` to weight brainstorming toward what's already on your mind. **Strongest single signal** for avoiding generic candidates that get killed in validation.
 
 **`POLICY.md`** — your personal coding-and-build policy. Used by Claude **whenever it writes code, drafts a brief, or proposes architecture** in this workspace. Includes:
 
@@ -27,19 +28,23 @@ Two files you can populate, both optional, both gitignored once you create the l
 - **Hard rules** — things Claude must never do
 - Voice / tone for user-facing strings
 - Decision-making preferences
-- Things to actively flag (scope creep, premature optimization, etc.)
 
 Your policy **overrides workspace defaults and senior-engineer-persona conventions** for matters of taste. Correctness and security still win.
 
 ## How to populate them
 
+The fastest path is the **onboarding flow** that fires automatically when you launch Claude Code in this repo with `INTERESTS.md` missing — Claude walks you through it conversationally and writes the files for you (see `CLAUDE.md` § "Session continuity" for the trigger conditions).
+
+If you'd rather do it manually:
+
 ```bash
 cp user-context/INTERESTS.md.example user-context/INTERESTS.md
-cp user-context/POLICY.md.example user-context/POLICY.md
+cp user-context/IDEAS.md.example     user-context/IDEAS.md
+cp user-context/POLICY.md.example    user-context/POLICY.md
 # Then edit each with your specifics
 ```
 
-Both files are gitignored — your personal context stays local, never enters git. Same pattern as `ideas/`, `web-apps/`, etc.
+All three live files are gitignored — your personal context stays local, never enters git. Same pattern as `ideas/`, `web-apps/`, etc.
 
 ## What about the maintainer's context?
 
@@ -54,8 +59,9 @@ The `/discover` command checks `user-context/INTERESTS.md` first and falls back 
 ## What stays here
 
 - `INTERESTS.md` — your founder profile + interests (gitignored).
+- `IDEAS.md` — your seed-ideas backlog (gitignored).
 - `POLICY.md` — your personal coding-and-build policy (gitignored).
-- `IDEAS_BACKLOG.md` — optional; a place to jot product ideas you've had outside `/discover` cycles, for `/discover` to mine later (gitignored).
 - `README.md` — this file (committed).
-- `INTERESTS.md.example` — the template (committed).
-- `POLICY.md.example` — the template (committed).
+- `INTERESTS.md.example` — the interests template (committed).
+- `IDEAS.md.example` — the ideas-backlog template (committed).
+- `POLICY.md.example` — the policy template (committed).

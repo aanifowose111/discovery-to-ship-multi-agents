@@ -5,14 +5,14 @@ argument-hint: <card-slug>
 
 You are about to scope an MVP for a green-lit card. Follow the methodology in @guides/product/mvp-scoping-methodology.md exactly.
 
-**Arguments:** $ARGUMENTS — the card slug. The card must exist at `ideas/<slug>.md` with `status: green-lit`.
+**Arguments:** $ARGUMENTS — the card slug. The card must exist at `ideas/<run-id>/<slug>.md` (locate it with `find ideas -name "<slug>.md" -not -path "*/killed/*"`) with `status: green-lit`.
 
 ### Inputs to read before drafting
-- The card: `ideas/<slug>.md`
-- The validation report: `market-research/validation-<slug>-*.md` (use the most recent)
+- The card: locate via `find ideas -name "<slug>.md" -not -path "*/killed/*"` → gives you `ideas/<run-id>/<slug>.md`. **Extract `<run-id>` from this path.**
+- The validation report: at `market-research/<run-id>/validation-<slug>.md` (same `<run-id>` as the card). If multiple validations exist for this slug (rare — would mean re-validations), use the most recent by mtime.
 - @guides/product/mvp-scoping-methodology.md (for the brief format and reviewer pair)
 - @CLAUDE.md (for stack defaults and working style)
-- The most recent `market-research/trends-*.md` (if any) — check for encroachment findings that affect this card
+- The most recent `market-research/*/trends.md` (if any) — check for encroachment findings that affect this card
 
 ### Do
 1. Verify the card is `green-lit`. If not, stop and surface the gap to the user.
@@ -45,14 +45,14 @@ You are about to scope an MVP for a green-lit card. Follow the methodology in @g
 
    Each agent should be told to read the brief at `<web-apps|mobile-apps>/<slug>/MVP.md`, the validation report, the scoping methodology guide, and `CLAUDE.md` — and to return its output in the locked verdict format.
 6. Integrate per §8 of the scoping guide.
-7. Write the scoping report to `market-research/scoping-<slug>-<YYYY-MM-DD>.md` per §9.
+7. Write the scoping report to `market-research/<run-id>/scoping-<slug>.md` (same `<run-id>` as the card's discovery cycle) per §9. Add `slug: <slug>`, `run-id: <run-id>`, `date-scoping: <YYYY-MM-DD>` to the frontmatter. The MVP brief itself (`<web-apps|mobile-apps>/<slug>/MVP.md`) stays where it is — it's a per-product artifact, not a cycle artifact.
 
 
 ### Stop here — user checkpoint #1: review the scoping verdict
 After writing the report, **stop**. Do not advance the brief to `green-lit-to-build`. Show the user:
 
 > MVP brief at `<web-apps|mobile-apps>/<slug>/MVP.md`.
-> Scoping report at `market-research/scoping-<slug>-<YYYY-MM-DD>.md`.
+> Scoping report at `market-research/<run-id>/scoping-<slug>.md`.
 >
 > Combined verdict: <APPROVE / APPROVE-WITH-NOTES / REJECT>
 > Notes carried forward: <summary>

@@ -73,6 +73,13 @@ def walk_markdown_files() -> list[Path]:
     return found
 
 
+def _strip_inline_code(line: str) -> str:
+    """Replace inline-code spans (text between single backticks) with spaces so
+    regex matches inside them are skipped. Example: `[text](path)` shouldn't be
+    treated as a real link, because it's an inline-code documentation snippet."""
+    return re.sub(r"`[^`]*`", lambda m: " " * len(m.group(0)), line)
+
+
 def extract_relative_links(text: str) -> list[tuple[int, str, str]]:
     out: list[tuple[int, str, str]] = []
     in_code = False
@@ -82,7 +89,8 @@ def extract_relative_links(text: str) -> list[tuple[int, str, str]]:
             continue
         if in_code:
             continue
-        for match in MARKDOWN_LINK.finditer(line):
+        clean = _strip_inline_code(line)
+        for match in MARKDOWN_LINK.finditer(clean):
             link_text, target = match.group(1), match.group(2)
             if is_external_url(target):
                 continue

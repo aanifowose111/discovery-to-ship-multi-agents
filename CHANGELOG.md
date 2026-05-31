@@ -9,6 +9,13 @@ This project does not yet follow strict semantic versioning. Pre-1.0, breaking c
 ## [Unreleased]
 
 ### Added
+- **Run-folder convention for `ideas/` and `market-research/`** — every `/discover` cycle creates a `<8-alpha>-<MMDDYY>` folder; cards live in `ideas/<run-id>/`; triage + validations + scoping reports for those cards share `market-research/<run-id>/`. Killed cards preserve the link at `ideas/killed/<run-id>/<slug>.md`. `/scan` and `/trend-check` each create their own independent run folder. Folder name format: `<8-lowercase-alphanumeric>-<MMDDYY>` (e.g., `csi48s2t-053126`).
+- `scripts/gen_run_id.py` — generates `<8-lowercase-alphanumeric>-<MMDDYY>` run-ids (CLI + importable; `from gen_run_id import generate_run_id`).
+- `user-context/IDEAS.md` (third optional personal file) with `IDEAS.md.example` template — seed-ideas backlog that `/discover` weights toward. Distinct from `ideas/` at the repo root (which holds *validated* idea cards from formal discovery cycles); this file is the user's mental staging area.
+- **First-launch onboarding flow** with strict trigger: every fresh session where `user-context/INTERESTS.md` is missing prompts the user via `AskUserQuestion` regardless of first message. The recommended path uses Claude Code's `TaskCreate` visual checklist to collect interests and seed ideas conversationally, writing properly-formatted files.
+- **`/run-tests` slash command + `scripts/run_tests.py`** — repo health / smoke test suite. 7 categories (required tools, repo structure, frontmatter, cross-references, pipeline lint, script smoke tests, documentation consistency). Green ✓ / yellow ⚠ / red ✗ output. Includes maintainer email for bug reports.
+- **CHANGELOG editing rules** (new CLAUDE.md section): always ask before adding; never for personal-data changes; never when the user isn't the owner.
+- **Welcome announcement** in `.claude/settings.json` now wraps the message in a unicode box-drawing border so it stands out as a framed panel inside Claude Code's TUI.
 - `/setup` slash command — pre-flight verification of all required tools, git identity, GitHub auth, submodule init, and symlink resolution. Pure verification (never modifies anything). Surfaces a structured punch list.
 - `/status` slash command — complete pipeline-state snapshot deeper than `/help`. Reads all active scans, cards, briefs, design phases, trend reports, and recent generated docs. Read-only.
 - `CHANGELOG.md` (this file) — track meaningful changes over time.
@@ -21,7 +28,17 @@ This project does not yet follow strict semantic versioning. Pre-1.0, breaking c
   - All scripts: executable, color-aware, runnable from the repo root. Documented in `scripts/README.md` plus the index sections of `README.md` and `HELP.md`. Side effect on GitHub: language bar now shows Python and Shell alongside the existing Typst, reflecting the actual code mix in the repo.
 
 ### Changed
+- All 5 pipeline slash commands (`/scan`, `/discover`, `/validate-card`, `/scope-mvp`, `/trend-check`) and 5 methodology guides updated to use the new run-folder paths.
+- Filename conventions inside run folders: generic (`scan.md`, `triage.md`, `trends.md`) when one-of-a-kind; slug-suffixed (`validation-<slug>.md`, `scoping-<slug>.md`) when multiple coexist; slug-as-filename (`<slug>.md`) for cards.
+- `scripts/lint_pipeline.py`, `check_slug.py`, `new_idea_card.py`, `report_summarizer.py` — now walk nested run folders.
+- `user-context/README.md` describes all three personal files (INTERESTS, POLICY, IDEAS) side by side; onboarding flow is the recommended path.
+- README "Personalizing the workspace" section rewritten to explain the strict onboarding trigger.
 - Mercor referral note in `README.md` simplified — removed both the non-referral mercor.com fallback line *and* the parenthetical aside (per maintainer's preference; the referral link stands on its own).
+
+### Fixed
+- `scripts/check_links.py` now strips inline-code spans (text between single backticks) before matching markdown links. Fixes a false positive where documented `[text](path)` examples inside inline code were being treated as real broken links.
+- `scripts/lint_pipeline.py` validation-report section check now accepts both heading-style (`## Verdict`) and bold-label-style (`**Verdict:**`) formats. The bold-label style is what reports use when integrating three reviewers (each reviewer's section uses bold labels under a numbered subheading); the previous check only recognized headings and flagged false positives.
+- `scripts/run_tests.py` documentation-consistency check now excludes generic placeholders (`/command`, `/cmd`, `/name`, `/foo`, `/bar`) that appear in documentation as literal example tokens, not actual commands.
 - **All 23 agent-skills skills now symlinked into `.claude/skills/`** so Claude Code auto-discovers them. Previously only the 3 personas were wired in; the skills sat in the submodule but were not picked up by Claude Code's skill discovery (which only scans `.claude/skills/`). With the symlinks in place, skills like `frontend-ui-engineering`, `idea-refine`, `interview-me`, `spec-driven-development`, `test-driven-development`, `code-review-and-quality`, `security-and-hardening`, etc. are now auto-invoked when their trigger conditions match.
 - **Build-phase skill auto-invocation policy added** to `CLAUDE.md` — 15 skills are now applied *proactively by Claude during build phases* without the user having to ask (incremental-implementation, TDD, code-review-and-quality, code-simplification, security-and-hardening, performance-optimization, debugging-and-error-recovery, frontend-ui-engineering, api-and-interface-design, documentation-and-adrs, git-workflow-and-versioning, browser-testing-with-devtools, ci-cd-and-automation, shipping-and-launch, spec-driven-development). Skills like `idea-refine`, `interview-me`, `planning-and-task-breakdown`, `doubt-driven-development`, etc. remain situational. The Flask and RN scaffold guides got dedicated "Skills Claude applies automatically during the build" sections at §6.
 - **Slash command `/help` renamed to `/menu`** because Claude Code has a built-in `/help` command that shadows custom ones. All cross-references in `CLAUDE.md`, `README.md`, `HELP.md`, and the other slash commands updated. The built-in `/help` still works for Claude Code's own help dialog; our project command is `/menu`.

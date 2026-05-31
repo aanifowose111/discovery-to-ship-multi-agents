@@ -56,10 +56,10 @@ A scan does not start cold. Before running one, the main Claude assembles:
 | Input | Source |
 |---|---|
 | User profile and founder-fit context | `CLAUDE.md` + the user-profile memory |
-| Previous scan reports (if any) | `market-research/scan-*.md` |
-| Recent trend reports | `market-research/trends-*.md` — material findings from these feed the scan's *Source sweep* as priority sources |
+| Previous scan reports (if any) | `market-research/*/scan.md` (one per scan run folder; newest by folder date) |
+| Recent trend reports | `market-research/*/trends.md` — material findings from these feed the scan's *Source sweep* as priority sources |
 | Recent killed ideas with reasons | `ideas/killed/` |
-| Currently active triage lists | `market-research/triage-*.md` |
+| Currently active triage lists | `market-research/*/triage.md` (one per discovery-cycle folder) |
 | Any focused-scan hypothesis the user has given | the user prompt that triggered the scan |
 
 Killed ideas, previous scans, and recent trend reports matter especially — they tell you what filters our pipeline applies and what has shifted since the last scan, so the new scan does not produce territories that will fail those filters again and incorporates the freshest signal.
@@ -122,7 +122,7 @@ Cut LOWs from the output list unless we are deliberately exploring out-of-fit te
 
 ## 6. The market-scan report
 
-Every scan produces one file at `market-research/scan-<YYYY-MM-DD>.md` (date-stamped because we will run multiple). Format:
+Every scan produces one file at `market-research/<run-id>/scan.md` (each scan creates a fresh `<run-id>` folder so multiple scans never mix). Generate `<run-id>` via `python3 scripts/gen_run_id.py`. Format:
 
 ```markdown
 ---

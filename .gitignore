@@ -107,4 +107,5 @@ user-context/*
 !user-context/README.md
 !user-context/INTERESTS.md.example
 !user-context/POLICY.md.example
+!user-context/IDEAS.md.example
 !user-context/.gitkeep

@@ -76,7 +76,8 @@ def first_section_match(text: str, section: str, pattern: str) -> str:
 def summarize_validation(path: Path) -> ReportSummary | None:
     text = path.read_text(encoding="utf-8")
     fm = parse_frontmatter(text)
-    slug = fm.get("slug", path.stem.replace("validation-", "").rsplit("-", 3)[0])
+    # New convention: validation-<slug>.md inside market-research/<run-id>/
+    slug = fm.get("slug", path.stem.replace("validation-", ""))
     date = fm.get("date-validation", "")
     status = fm.get("status", "draft")
     verdict = first_section_match(text, "Verdict", r"\*?\*?(APPROVE-WITH-NOTES|APPROVE|REJECT)\*?\*?") or "(none)"
@@ -136,31 +137,39 @@ def summarize_trend(path: Path) -> ReportSummary | None:
 
 
 def collect_summaries(filter_type: str = "", filter_slug: str = "") -> list[ReportSummary]:
+    """Walk nested run-folders: market-research/<run-id>/<artifact>.md."""
     out: list[ReportSummary] = []
     if not MARKET_DIR.exists():
         return out
-    kind_map = {
-        "validation-": ("validation", summarize_validation),
-        "scoping-": ("scoping", summarize_scoping),
-        "scan-": ("scan", summarize_scan),
-        "trends-": ("trend", summarize_trend),
-    }
-    for path in sorted(MARKET_DIR.glob("*.md")):
+    # Maps filename to (kind, summarizer). Filenames are now generic inside run folders:
+    #   scan.md, trends.md, triage.md, validation-<slug>.md, scoping-<slug>.md
+    def kind_of(filename: str) -> tuple[str, callable] | None:
+        if filename == "scan.md":
+            return ("scan", summarize_scan)
+        if filename == "trends.md":
+            return ("trend", summarize_trend)
+        if filename.startswith("validation-") and filename.endswith(".md"):
+            return ("validation", summarize_validation)
+        if filename.startswith("scoping-") and filename.endswith(".md"):
+            return ("scoping", summarize_scoping)
+        return None  # triage.md and README.md are skipped here
+
+    for path in sorted(MARKET_DIR.rglob("*.md")):
         if path.name == "README.md":
             continue
-        for prefix, (kind, fn) in kind_map.items():
-            if not path.name.startswith(prefix):
-                continue
-            if filter_type and filter_type != kind:
-                break
-            try:
-                summary = fn(path)
-            except Exception as e:
-                print(f"Failed to summarize {path}: {e}", file=sys.stderr)
-                break
-            if summary and (not filter_slug or summary.slug == filter_slug):
-                out.append(summary)
-            break
+        match = kind_of(path.name)
+        if not match:
+            continue
+        kind, fn = match
+        if filter_type and filter_type != kind:
+            continue
+        try:
+            summary = fn(path)
+        except Exception as e:
+            print(f"Failed to summarize {path}: {e}", file=sys.stderr)
+            continue
+        if summary and (not filter_slug or summary.slug == filter_slug):
+            out.append(summary)
     return out
 
 

@@ -29,8 +29,8 @@ We are working through three broad phases. They are not strictly sequential — 
 
 | Folder | Purpose |
 |---|---|
-| `ideas/` | Idea cards from discovery cycles. Active cards at the top level; killed cards under `ideas/killed/` with a one-line reason. |
-| `market-research/` | Research outputs: scan reports (`scan-<date>.md`), triage lists (`triage-<date>.md`), validation reports (`validation-<slug>-<date>.md`), scoping reports (`scoping-<slug>-<date>.md`), trend reports (`trends-<date>.md`). |
+| `ideas/` | Idea cards from discovery cycles, grouped per run: `ideas/<run-id>/<slug>.md` for active cards from one `/discover`; `ideas/killed/<run-id>/<slug>.md` for killed cards (the run-id links back to the cycle that produced them). |
+| `market-research/` | Research outputs grouped per run-id matched to the originating discovery cycle (so cards in `ideas/<run-id>/` and their downstream artifacts in `market-research/<run-id>/` carry the same `<run-id>`). Files inside: `triage.md`, `validation-<slug>.md`, `scoping-<slug>.md`, `scan.md`, `trends.md` depending on which command produced the folder. Run-id format: `<8-lowercase-alphanumeric>-<MMDDYY>` (e.g., `csi48s2t-053126`); generate via `python3 scripts/gen_run_id.py`. |
 | `web-apps/` | Source for web applications we build (Flask, dockerized). Each product is a subfolder `<slug>/` containing the app source, `MVP.md`, optional `FUNDING.md`, `design/` (created during the optional design phase), and optional `previews/` (for the `web-preview` skill — fixture-driven Jinja renders opened in Chrome). |
 | `mobile-apps/` | Source for mobile applications (React Native + Expo). Same per-product layout as `web-apps/`. |
 | `external/` | Vendored external repos. Currently holds `agent-skills/` — the user's fork of [`addyosmani/agent-skills`](https://github.com/addyosmani/agent-skills) (MIT, © 2025 Addy Osmani). Three personas + 23 skills are file-copied from here into `.claude/agents/` and `.claude/skills/`; re-sync via `bash scripts/update-agent-skills.sh`. |
@@ -111,6 +111,22 @@ If `user-context/POLICY.md` does NOT exist, fall back to the workspace defaults 
 When a user's POLICY.md rule conflicts with something an agent-skill or methodology guide says, follow the policy and note the deviation in the work output. When two of the user's rules conflict, surface the conflict to the user before proceeding.
 
 The template is at `user-context/POLICY.md.example`. The file itself is gitignored — different forkers have different policies.
+
+---
+
+## CHANGELOG editing rules
+
+`CHANGELOG.md` records **workspace-wide** changes that affect contributors and forkers. Claude must follow these rules for any edit to it:
+
+1. **Always ask the user before adding a CHANGELOG entry** — regardless of who the user is. The owner has final say on what gets recorded; the ask gives them a chance to say "that's not changelog-worthy."
+
+2. **Do NOT add entries for personal-data changes.** File moves / status updates / migrations within any of the user's personal folders (`ideas/`, `market-research/`, `web-apps/<slug>/`, `mobile-apps/<slug>/`, `generated/`, `user-context/`) are personal state, not workspace improvements. They get reflected in those folders' own contents, not in CHANGELOG.
+
+3. **Do NOT add entries when the current user is not the repo owner.** Identify the owner by `git config user.email` matching the owner email in this file (currently `aanifowose111@gmail.com`). Forkers should not be updating the original repo's CHANGELOG via PRs unless explicitly invited; they're free to fork and maintain their own.
+
+4. **Workspace-improvement changes** (new methodology guides, new slash commands, new reviewer personas, new helper skills, behavioral rule changes, fixes to existing tooling, dependency-shape changes) ARE changelog-worthy if the owner agrees. When asking, propose a draft entry so the owner can approve, edit, or skip.
+
+5. The ask should be brief — name what the change is, ask "add to CHANGELOG?" — not a long preamble.
 
 ---
 
@@ -351,4 +367,28 @@ When a new session starts in this directory:
    - `web-apps/<slug>/design/` and `mobile-apps/<slug>/design/` for any active design phases (research, brief, or handoff in progress).
 4. If a phase is in progress, continue it from the right checkpoint per the pipeline orchestration above. If a phase is complete, confirm with the user before starting the next one.
 5. Do **not** auto-invoke any phase's slash command without the user asking. The chain is one command at a time, by the user.
-6. **Session-entry behavior.** If the user's first message states clear intent (e.g., "let's keep going on findvil's discovery cycle"), follow it without preamble. If the first message is a generic greeting or an open-ended "what's the status?", briefly summarize what's in flight from step 3 and offer a short menu of 2-4 plausible next actions — e.g., "Continue [in-flight phase] for [product]? / Run a fresh trend check? / Start a new product cycle with `/scan`? / Run `/menu` for the full command map?" Keep the menu under 4 items; the user can override with anything.
+6. **Session-entry behavior** — TWO independent rules:
+
+   **Rule A — First-launch onboarding (strictly enforced).** When `user-context/INTERESTS.md` does NOT exist, run the onboarding flow **on the user's first message of every fresh session, regardless of what that message is.** Even if the user immediately types `/discover` or "let's build X", **the onboarding fires first**. The reason: discovery and downstream commands produce dramatically more targeted, reviewer-survivable outputs when grounded in the user's own context (interests + seed ideas). Without that context the system runs degraded — better to surface this once at the start than ship weak outputs.
+
+   The flow:
+
+   1. Show the welcome paragraph (what the workspace does in plain English; reference the user's pending intent if they had one — e.g., "I see you wanted to run `/discover`; before that, a quick setup...").
+   2. Use `AskUserQuestion` with exactly two options:
+      - **"(Recommended) Update user-context first"** — description: "Better-targeted discovery, fewer reviewer kills."
+      - **"Prefer to update later"** — description: "Defer. Claude will proceed with your original message after."
+   3. **If "Recommended":**
+      - **Use `TaskCreate` to create a 2-item todo list** so the user sees proper visual checkmarks (not just markdown text bullets) as items complete:
+        - Item 1: "Provide your interests for INTERESTS.md"
+        - Item 2: "Provide your seed ideas for IDEAS.md"
+      - Mark item 1 as `in_progress`. Prompt: *"Tell me about your interests — professional background, hobbies, industries you know well, anything you'd consider building. Reply in natural prose; I'll structure it into the file."*
+      - When user replies, **format their text into the `user-context/INTERESTS.md.example` shape** (proper grammar, the example's section headings) and write to `user-context/INTERESTS.md`. Mark item 1 `completed` via `TaskUpdate`.
+      - Mark item 2 as `in_progress`. Prompt: *"Now seed ideas — products you've thought about but haven't built. Even one-liners are fine. Reply in your next message."*
+      - When user replies, **format into the `user-context/IDEAS.md.example` shape** and write to `user-context/IDEAS.md`. Mark item 2 `completed`.
+      - Close: *"Both files saved. Now proceeding with your original request, or run `/menu` to see options."* If the user had an original intent (e.g., `/discover`), now run it.
+   4. **If "Prefer to update later":**
+      - Reply: *"Got it. You can populate `user-context/INTERESTS.md` and `IDEAS.md` any time via `cp user-context/<file>.example user-context/<file>` or by re-launching a fresh session. Proceeding with your original message now (note: `/discover` will run with less personally-relevant output without your context)."* Then run their original message.
+
+   **Rule B — Normal session entry** (when `user-context/INTERESTS.md` EXISTS): onboarding has already happened; behave normally. If the user's first message states clear intent, follow it. If generic greeting / open-ended, briefly summarize what's in flight (per steps 3-4 above) and offer a short menu of 2-4 plausible next actions.
+
+   **Why strict, not loose:** the user explicitly asked for enforcement — they want every forker to be prompted about user-context before they can do degraded discovery, because untargeted `/discover` output produces cards that get killed in validation and wastes everyone's time. The picker still has a "Later" option, so the user retains control; the enforcement is a one-time interrupt per missing-file state, not a permanent block.

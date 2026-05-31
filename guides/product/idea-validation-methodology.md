@@ -43,7 +43,7 @@ To run validation on an idea card, the main Claude assembles the following input
 
 | Input | Source |
 |---|---|
-| The idea card itself | `ideas/<slug>.md` |
+| The idea card itself | `ideas/<run-id>/<slug>.md` — locate via `find ideas -name "<slug>.md" -not -path "*/killed/*"` |
 | Discovery methodology (for shared vocabulary) | `guides/product/idea-discovery-methodology.md` |
 | This guide (for the verdict format) | `guides/product/idea-validation-methodology.md` |
 | The user's stack/founder context | `CLAUDE.md` + the user-profile memory |
@@ -142,7 +142,7 @@ After all three reviewers return:
 
 ## 7. The validation report
 
-Each validation run produces one file: `market-research/validation-<card-slug>-<YYYY-MM-DD>.md`.
+Each validation run produces one file: `market-research/<run-id>/validation-<card-slug>.md` — where `<run-id>` is the same as the card's discovery-cycle folder (`ideas/<run-id>/<slug>.md`). This colocates the validation with all other artifacts from the same cycle (triage, sibling validations, downstream scoping).
 
 It contains, in order:
 
@@ -152,7 +152,7 @@ It contains, in order:
 4. **Decision** — populated by the user (kill / advance / override / re-research) with a one-paragraph reason.
 5. **Open questions for MVP scoping** — extracted from the "What I could not verify" sections of the three reviewers, so they don't get lost.
 
-A killed card's status in `ideas/<slug>.md` updates to `killed` with a link to the validation report. An advanced card's status updates to `green-lit` with the same link.
+A killed card moves from `ideas/<run-id>/<slug>.md` to `ideas/killed/<run-id>/<slug>.md` (preserving the `<run-id>` link back to the cycle), with `status: killed` and a `killed-reason` field linking the validation report. An advanced card's status updates to `green-lit` with the link, and the card stays in its `ideas/<run-id>/` folder.
 
 ---
 
