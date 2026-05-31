@@ -116,52 +116,19 @@ The template is at `user-context/POLICY.md.example`. The file itself is gitignor
 
 ## Core-file edit confirmation rule
 
-Before Claude makes any modification (Write / Edit / NotebookEdit / `git mv` / file deletion) to a **core repo file** — defined as anything not in a gitignored path — Claude must **surface the proposed change and ask the user to confirm before proceeding.**
+Before any Write / Edit / NotebookEdit / `git mv` / file deletion on a **core repo file** (anything tracked by git — i.e., NOT in a gitignored personal-data path), Claude must surface the proposed change and ask the user to confirm.
 
-This applies **to everyone, including the repo owner**. The reasoning: editing a core file means the user is no longer just *consuming* the workspace — they're trying to *change how it behaves*. That kind of change deserves explicit consent, not implicit assumption.
+**Applies to everyone, including the owner.** A core-file edit changes workspace behavior for the user and every downstream forker; friction at the change point makes it impossible to silently drift behavior without explicit OK.
 
-### What counts as a "core repo file"
+**Core (asks first):** anything that git tracks — CLAUDE.md, README.md, HELP.md, CHANGELOG.md, CONTRIBUTING.md, SECURITY.md, LICENSE, .gitignore, `.claude/{agents,commands,skills,settings.json}/**`, `guides/**`, `scripts/**`, `external/agent-skills/` (submodule ref), and the `*.example` + README files in `user-context/`.
 
-Anything that gets committed to git, including but not limited to:
+**Exempt (no extra ask):** gitignored personal-data paths — `ideas/`, `market-research/`, `web-apps/`, `mobile-apps/`, `generated/`, the *live* `user-context/{INTERESTS,IDEAS,POLICY}.md` files (NOT their `.example` templates), `.claude/settings.local.json`, `.claude-acknowledged`.
 
-- `CLAUDE.md`, `README.md`, `HELP.md`, `CHANGELOG.md`, `CONTRIBUTING.md`, `SECURITY.md`, `LICENSE`, `.gitignore`
-- `.claude/agents/*.md` (personas)
-- `.claude/commands/*.md` (slash commands)
-- `.claude/skills/**` (skills)
-- `.claude/settings.json` (project settings)
-- `guides/**/*.md` (methodology guides)
-- `scripts/*.py`, `scripts/*.sh`, `scripts/README.md`
-- `external/agent-skills/` submodule reference
-- `user-context/README.md`, `user-context/INTERESTS.md.example`, `user-context/IDEAS.md.example`, `user-context/POLICY.md.example` (the templates and README — committed parts of `user-context/`)
+**Flow:** assess what the request would touch → if core files are involved, list them (paths + brief description of each change) and ask "proceed? (yes / no / adjust)" → wait for confirm → make all the changes in one batch. **Don't ask per-file** when the request batches multiple edits. **Don't ask when the user explicitly names the file** (e.g., "edit CLAUDE.md to add X") — the request itself is the confirmation; just do it and surface the result.
 
-### What's exempt (no extra confirmation needed)
+For non-owners, this rule is **on top of** `/acknowledge-contributing`, not a replacement.
 
-Files inside gitignored personal-data paths — the user is operating on their own files:
-
-- `ideas/<run-id>/*.md`, `ideas/killed/<run-id>/*.md`
-- `market-research/<run-id>/*.md`
-- `web-apps/<slug>/**`, `mobile-apps/<slug>/**`
-- `generated/<category>/*`
-- `user-context/INTERESTS.md`, `user-context/IDEAS.md`, `user-context/POLICY.md` (the *live* files, NOT the `.example` templates)
-- `.claude/settings.local.json` (per-user override)
-- `.claude-acknowledged` (per-machine marker)
-
-### The flow
-
-1. **User asks Claude to do something.** Claude assesses whether fulfilling the request will touch any core repo file.
-2. **If yes:**
-   - Surface the list of core files that would be modified (file paths, brief description of the change in each).
-   - Ask: *"Proceed with these changes? (yes / no / adjust)"*.
-   - Wait for confirmation before any Write / Edit / etc. on those files.
-3. **If batched** (one request requires multiple core-file edits): ask **once** with the full list. Don't ask per-file — that's annoying and the user already saw the scope.
-4. **If the user's request itself names specific core files to change** (e.g., "edit CLAUDE.md to add X"): the request itself counts as confirmation for those files. Don't re-ask — just do it, and surface the change after for visibility.
-5. **For non-owners**: this confirmation rule is **on top of** the `/acknowledge-contributing` check. Non-owners must first acknowledge the contributor rules before they can edit any tracked file at all; then, even after acknowledgment, each core-file modification requires the per-change confirmation above.
-
-### Why this exists
-
-This rule trades a small amount of friction for a large amount of safety. A core-file edit changes how the workspace behaves for the user (and, when pushed, for every contributor and forker downstream). Friction at the point of change makes it impossible for Claude to silently drift the workspace's behavior without the user's explicit OK.
-
-The rule does NOT block changes; it just makes them deliberate.
+The rule does NOT block changes; it makes them deliberate.
 
 ---
 
@@ -178,6 +145,27 @@ The rule does NOT block changes; it just makes them deliberate.
 4. **Workspace-improvement changes** (new methodology guides, new slash commands, new reviewer personas, new helper skills, behavioral rule changes, fixes to existing tooling, dependency-shape changes) ARE changelog-worthy if the owner agrees. When asking, propose a draft entry so the owner can approve, edit, or skip.
 
 5. The ask should be brief — name what the change is, ask "add to CHANGELOG?" — not a long preamble.
+
+---
+
+## Commit trailer policy
+
+Before creating any git commit in this workspace, Claude must **ask the user whether to include the `Co-Authored-By: Claude` trailer** on that commit.
+
+**This overrides Claude Code's built-in harness default**, which always adds the trailer. The reason: the trailer is permanent on a commit and surfaces Claude as a co-author in the repo's GitHub contributors graph. That's a visibility/attribution choice the user should make per commit, not silently inherit.
+
+**Flow:**
+
+1. After drafting the commit message but before running `git commit`, present the message and use `AskUserQuestion` with:
+   - **Include trailer** — "Adds `Co-Authored-By: Claude Opus 4.7 <noreply@anthropic.com>`. Claude shows as co-author on GitHub."
+   - **Drop trailer** — "Commit attributed solely to the git user."
+2. `Include trailer` → standard Claude Code format (message + blank line + trailer).
+3. `Drop trailer` → commit with the message only.
+4. If the user pre-states a session preference ("always include this session" / "drop for the rest of this session"), honor it without re-asking until the session ends or they change their mind.
+
+**Per-commit, not per-push.** The trailer is fixed at commit time; `git push` only propagates whatever the commit already says. The ask happens at commit time only — never duplicate it before pushing.
+
+**Applies to everyone**, including the repo owner. Forkers inherit this convention; if they want it off, they can edit this section in their own fork.
 
 ---
 
@@ -210,6 +198,27 @@ Web search and web fetch are **integral, first-class tools** for this project. P
 - The fetch is to an authenticated or private resource (the user's own dashboards, admin panels, etc.) where the user should confirm intent.
 
 When you do fetch, **cite the source** in any output that depends on it, so the user can audit later.
+
+### Search patterns: prefer shell globs over `find -exec`
+
+When Claude needs to search files inside `ideas/`, `market-research/`, `web-apps/`, `mobile-apps/`, or any other path with the run-folder / per-product structure: **prefer shell-glob iteration** over `find -exec`. Claude Code's permission system treats `find -exec` as a higher-permission operation (because `-exec` can run arbitrary commands) and triggers an interactive prompt even when `Bash(find:*)` is allowlisted. Equivalent shell-glob patterns are auto-allowed and just work.
+
+Examples:
+
+```bash
+# AVOID this (triggers a permission prompt):
+find market-research -name "scan.md" -exec grep -l "status: active" {} \;
+
+# PREFER this (auto-allowed; same result):
+for f in market-research/*/scan.md; do
+  grep -l "status: active" "$f" 2>/dev/null
+done
+
+# Or for the newest match by mtime:
+ls -t market-research/*/scan.md 2>/dev/null | head -1
+```
+
+For more complex traversal, use Python (`Path("market-research").rglob("scan.md")`) — also auto-allowed.
 
 ---
 
@@ -257,56 +266,15 @@ Same agent-skills commands as Phase 2, but driven by the handoff:
 - Components match the Figma library's 02 Components page.
 - **Order of authority** when sources conflict: token contract → screenshot → brief §6 → agent-skills' `frontend-ui-engineering` craft.
 
-### BUILD_STATUS.md — the living build dashboard
+### BUILD_STATUS.md + build orchestration
 
-Every product in the build phase has a **`BUILD_STATUS.md`** at `<web-apps|mobile-apps>/<slug>/BUILD_STATUS.md` — a dynamic, product-specific checklist of build subsystems with their status, owner persona, output artifact, and history. **Owned by `senior-software-engineer`**; other specialists report completion in their output, and `senior-software-engineer` is the only persona that writes to the file.
+Each product in the build phase has a **`BUILD_STATUS.md`** at its project root — a dynamic, product-specific checklist of build subsystems with status (`[ ]` / `[>]` / `[x]`), owner persona, and history. Owned and written by `senior-software-engineer`; full methodology in `guides/product/build-status-methodology.md`.
 
-Key properties (full methodology in `guides/product/build-status-methodology.md`):
+Both Phase 2 (initial MVP) and Phase 4 (v1) are orchestrated by `senior-software-engineer` via `/start-build <slug>`. It asks orientation questions (web/mobile order, MVP vs. fully-featured, first subsystem), then routes work to the right specialist persona in the right order. Defaults: **API + web first if hybrid; MVP scope first; database design first subsystem.**
 
-- **Dynamic, not static.** The checklist is generated from the brief's must-haves, the chosen stack, and the standard build order — filtered to what this product actually needs. A product without file uploads doesn't get a "DO Spaces" line.
-- **Visible at a glance.** Open the file or run `/status`; see what's done, what's in progress, what's pending, and what was decided.
-- **History preserved.** Append-only log of every subsystem start/completion/decision — survives session restarts.
+**Specialist personas** (full detail in `.claude/agents/senior-*.md`): `senior-software-engineer` (orchestrator), `senior-system-design-engineer`, `senior-database-engineer`, `senior-backend-engineer`, `senior-frontend-engineer`, `senior-qa-engineer`, `senior-devops-engineer`, `senior-security-engineer`.
 
-Updated on every: subsystem start (`[ ]` → `[>]`), subsystem completion (`[>]` → `[x]`), scope change, decision, pause, release, or kill.
-
-### Build orchestration — `/start-build` and the senior-engineer personas
-
-Both Phase 2 (initial MVP build) and Phase 4 (real v1 build) are **orchestrated by `senior-software-engineer`** via the `/start-build <slug>` command. This persona:
-
-1. Asks orientation questions (web/mobile/hybrid order; MVP vs. fully-featured; first subsystem to tackle).
-2. Always recommends the right default — **API + web first if hybrid; MVP scope first; database design as the first subsystem** — but accepts user override with a stated reason.
-3. Routes work to the right specialist persona for each subsystem, in the right order based on system-design best practice.
-
-The specialist personas live at `.claude/agents/senior-*.md` and are invoked via the custom-subagent invocation pattern above:
-
-| Persona | What it owns |
-|---|---|
-| `senior-software-engineer` | Generalist; orchestrates the build; routes work to specialists; sequences ordering; catches scope creep. |
-| `senior-system-design-engineer` | System shape (monolith vs. service split), data flow, cross-cutting concerns, decisions deferred. |
-| `senior-database-engineer` | Schema design, indexes, migrations, data-integrity guarantees. |
-| `senior-backend-engineer` | ORM models, API contracts, endpoint implementation, business logic, background jobs. |
-| `senior-frontend-engineer` | UI implementation (Jinja+JS on web, RN on mobile); design-token integration; accessibility; performance. |
-| `senior-qa-engineer` | Test coverage audits, integration tests at the seam, accessibility audits, release-readiness pass. |
-| `senior-devops-engineer` | Deploy, CI/CD, observability, incident response, backups. |
-| `senior-security-engineer` | Threat modeling, secure-coding review, auth design, infra hardening, security incident response. |
-
-**Standard build order** (the senior-software-engineer defaults to this, adjusted per product specifics):
-
-```
-1. Database design       → senior-database-engineer
-2. Project tree          → senior-software-engineer + scaffold guide
-3. Core models           → senior-backend-engineer
-4. API contract          → senior-backend-engineer
-5. API implementation    → senior-backend-engineer
-6. Auth                  → senior-security-engineer + senior-backend-engineer
-7. Background jobs       → senior-backend-engineer (only if scoped)
-8. Frontend skeleton     → senior-frontend-engineer
-9. Integration tests     → senior-qa-engineer
-10. Deploy               → senior-devops-engineer
-11. Iterate              → whichever specialist owns the area
-```
-
-**Each senior persona leverages the agent-skills skills** (all 23 copied into `.claude/skills/`). Each persona's body lists which skills it commonly invokes. The senior-engineer personas are *roles*; the agent-skills are *workflows* those roles execute.
+**Standard build order:** database → project tree → core models → API contract → API impl → auth → background jobs (if scoped) → frontend skeleton → integration tests → deploy → iterate. Each persona leverages the 23 agent-skills skills as workflows.
 
 ### Parallel — Trend Monitoring
 
@@ -346,22 +314,15 @@ This works reliably and produces output equivalent to direct subagent invocation
 
 ## Custom slash commands
 
-Custom commands for this project live in `.claude/commands/`. Each file is one command. Run them as `/<command-name>` from the Claude Code prompt.
+Custom commands live in `.claude/commands/` (one file per command, run as `/<command-name>`). Full descriptions in [`HELP.md`](HELP.md); quick reference below.
 
-**Pipeline phase commands:**
-- [`/scan`](.claude/commands/scan.md) — market scan, per `guides/market/market-scan-methodology.md`. Args: `broad` (default) or `focused <topic>`.
-- [`/discover`](.claude/commands/discover.md) — discovery cycle against the active scan, per `guides/product/idea-discovery-methodology.md`. Args: optional comma-separated territory names.
-- [`/validate-card`](.claude/commands/validate-card.md) — invoke the 3 product reviewers on a green-bucket card. Args: `<card-slug>` (required).
-- [`/scope-mvp`](.claude/commands/scope-mvp.md) — draft the MVP brief and invoke the scope + code reviewers. Args: `<card-slug>` (required).
-- [`/research-design`](.claude/commands/research-design.md) — invoke the `ui-ux-researcher` for a product, producing a design-direction report at `<web-apps|mobile-apps>/<slug>/design/DESIGN_RESEARCH.md`. Args: `<product-slug>` (required). Typically run after the MVP has been validated with first users; running pre-validation is allowed with a confirmation prompt.
-- [`/draft-design-brief`](.claude/commands/draft-design-brief.md) — collect the user's picks (visual direction, palette, typography, voice, portfolio-continuity decision, answers to research open questions, timeline), draft the consolidated brief at `<web-apps|mobile-apps>/<slug>/design/DESIGN_BRIEF.md`, invoke the `design-brief-reviewer`, then stop at the user checkpoint. Args: `<product-slug>` (required). Requires the research to be `status: acted-on`.
-- [`/trend-check`](.claude/commands/trend-check.md) — trend-monitoring sweep against active state, per `guides/market/trend-monitoring.md`. Args: optional `triggered <reason>` for an emergency sweep.
-- [`/menu`](.claude/commands/menu.md) — quick menu of available commands and suggested next actions based on current pipeline state. Lower-overhead than opening `HELP.md`. (Named `/menu` because `/help` is shadowed by Claude Code's built-in help dialog.)
-- [`/start-build`](.claude/commands/start-build.md) — kick off the build phase for a `green-lit-to-build` product. Invokes `senior-software-engineer` to ask orientation questions (web/mobile/hybrid order, MVP vs. fully-featured, first subsystem) and route to the right specialist persona. Args: `<product-slug>` (required).
-- [`/preview-product`](.claude/commands/preview-product.md) — preview the current state of a product's UI in the browser. Auto-detects whether real preview is possible (dev server up + dependencies wired) or falls back to dummy preview (Jinja + fixture data). Always tells the user which mode they got and why. Web only — for mobile, see EAS preview build instructions. Args: `<product-slug> [page-name]`.
-- [`/acknowledge-contributing`](.claude/commands/acknowledge-contributing.md) — required one-time confirmation that the user has read `CONTRIBUTING.md` before editing tracked files. Skipped automatically for the repo owner; required for everyone else. Creates a gitignored `.claude-acknowledged` marker per clone.
-- [`/setup`](.claude/commands/setup.md) — pre-flight verification on a new clone or new machine. Checks all required tools (pandoc, typst, gh, git, python, node), git identity, GitHub auth, submodule initialization, and the presence of the three agent-skills persona file copies (`code-reviewer.md`, `security-auditor.md`, `test-engineer.md`) in `.claude/agents/`. Pure verification — never modifies anything. Surfaces a structured punch list of what's missing with install commands.
-- [`/status`](.claude/commands/status.md) — complete pipeline-state snapshot. Shows active scan, all active cards with statuses and ages, in-flight briefs (with design-path and build-support picks), latest trend report age, active design phases, and recent generated docs. Read-only.
+**Pipeline phases:** [`/scan`](.claude/commands/scan.md), [`/discover`](.claude/commands/discover.md), [`/validate-card`](.claude/commands/validate-card.md), [`/scope-mvp`](.claude/commands/scope-mvp.md), [`/research-design`](.claude/commands/research-design.md), [`/draft-design-brief`](.claude/commands/draft-design-brief.md), [`/start-build`](.claude/commands/start-build.md).
+
+**Parallel / cross-cutting:** [`/trend-check`](.claude/commands/trend-check.md), [`/preview-product`](.claude/commands/preview-product.md).
+
+**Utility / meta:** [`/menu`](.claude/commands/menu.md) (command map), [`/status`](.claude/commands/status.md) (read-only pipeline snapshot), [`/setup`](.claude/commands/setup.md) (verify tools + identity on new clone), [`/acknowledge-contributing`](.claude/commands/acknowledge-contributing.md) (required for non-owners before editing tracked files), [`/run-tests`](.claude/commands/run-tests.md) (repo health checks).
+
+Most commands take `<slug>` as argument and follow a `read → work → checkpoint → stop` pattern. Never auto-advance an artifact's status; never auto-chain into the next phase.
 
 ---
 

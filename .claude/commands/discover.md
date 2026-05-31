@@ -9,8 +9,8 @@ You are about to run a discovery cycle. Follow the methodology in @guides/produc
 
 ### Inputs to read before brainstorming
 - @CLAUDE.md (user profile, founder fit)
-- The most recent `status: active` market scan at `market-research/*/scan.md` (look across run folders, newest first) — for territories, anchors, and channel notes
-- The most recent `market-research/*/trends.md` (if any) — fresh capability shifts to fold into ideation
+- The most recent `status: active` market scan at `market-research/*/scan.md` (look across run folders, newest first) — for territories, anchors, and channel notes. **To find it, use a shell glob loop instead of `find -exec`** (which triggers a Claude Code permission prompt): `for f in market-research/*/scan.md; do grep -l "status: active" "$f" 2>/dev/null; done | head -1`.
+- The most recent `market-research/*/trends.md` (if any) — fresh capability shifts to fold into ideation. Same pattern: use shell-glob iteration, not `find -exec`.
 - Existing `ideas/*.md` (active and `ideas/killed/`) — do not duplicate, and respect filter signals from past kills
 
 ### Do

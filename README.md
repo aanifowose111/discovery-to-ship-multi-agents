@@ -294,9 +294,11 @@ Auxiliary tools at `scripts/` (Python + Shell). Slash commands take priority for
 
 | Script | Purpose |
 |---|---|
+| `run_tests.py` | Repo health / smoke test suite. 7 categories (required tools, repo structure, YAML frontmatter, cross-references, pipeline lint, script smoke tests, documentation consistency). Green ✓ / yellow ⚠ / red ✗ indicators. **Backs the `/run-tests` slash command.** |
 | `lint_pipeline.py` | Validate pipeline state consistency (frontmatter, status alignment, `@path` cross-references, required sections). |
 | `new_idea_card.py` | Interactive idea-card creator for one-off captures outside `/discover`. |
 | `check_links.py` | Scan tracked markdown for broken relative links and `@path` references; optional external-URL HEAD check. |
+| `gen_run_id.py` | Generate a pipeline run-id (`<8-lowercase-alphanumeric>-<MMDDYY>`). CLI + importable; used by `/scan`, `/discover`, `/validate-card`, `/scope-mvp`, `/trend-check`. |
 | `changelog_helper.py` | Auto-extract commits since the last tag and format as a CHANGELOG entry stub. |
 | `report_summarizer.py` | Pretty-print summaries of all scan / validation / scoping / trend reports. |
 
