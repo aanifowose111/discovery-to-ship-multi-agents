@@ -199,26 +199,28 @@ Web search and web fetch are **integral, first-class tools** for this project. P
 
 When you do fetch, **cite the source** in any output that depends on it, so the user can audit later.
 
-### Search patterns: prefer shell globs over `find -exec`
+### Search patterns: prefer direct glob args (avoid both `find -exec` and `for` loops)
 
-When Claude needs to search files inside `ideas/`, `market-research/`, `web-apps/`, `mobile-apps/`, or any other path with the run-folder / per-product structure: **prefer shell-glob iteration** over `find -exec`. Claude Code's permission system treats `find -exec` as a higher-permission operation (because `-exec` can run arbitrary commands) and triggers an interactive prompt even when `Bash(find:*)` is allowlisted. Equivalent shell-glob patterns are auto-allowed and just work.
+When Claude needs to search files inside `ideas/`, `market-research/`, `web-apps/`, `mobile-apps/`, or any other path with the run-folder / per-product structure: **pass the glob directly as the command's argument**. Two Bash patterns trigger interactive permission prompts and should be avoided:
 
-Examples:
+- `find -exec` — Claude Code treats `-exec` as a higher-permission operation (it can run arbitrary commands) and prompts even when `Bash(find:*)` is allowlisted.
+- `for f in <glob>; do ... done` — the static analyzer flags shell control flow ("Contains shell syntax that cannot be statically analyzed") and prompts on the whole command.
+
+The fix is the same in both cases: let the shell expand the glob into the command's argv *before* the command runs. No `find`, no `for`, just a single command with a glob argument.
 
 ```bash
-# AVOID this (triggers a permission prompt):
+# AVOID — both trigger permission prompts:
 find market-research -name "scan.md" -exec grep -l "status: active" {} \;
+for f in market-research/*/scan.md; do grep -l "status: active" "$f"; done
 
-# PREFER this (auto-allowed; same result):
-for f in market-research/*/scan.md; do
-  grep -l "status: active" "$f" 2>/dev/null
-done
-
-# Or for the newest match by mtime:
-ls -t market-research/*/scan.md 2>/dev/null | head -1
+# PREFER — direct glob expansion, no control flow, statically analyzable:
+grep -l "status: active" market-research/*/scan.md 2>/dev/null
+ls -t market-research/*/scan.md 2>/dev/null | head -1   # newest by mtime
 ```
 
-For more complex traversal, use Python (`Path("market-research").rglob("scan.md")`) — also auto-allowed.
+For traversal that can't be expressed as a single glob (recursive walks, conditional logic on file contents), use Python (`Path("market-research").rglob("scan.md")` etc.) — also auto-allowed.
+
+If you must chain multiple read-only checks, issue them as **separate Bash tool calls** in parallel rather than concatenating with `;` / newlines inside one call. Parallel calls are cleaner for the analyzer and faster for the user.
 
 ---
 

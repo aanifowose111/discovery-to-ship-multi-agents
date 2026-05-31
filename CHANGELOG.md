@@ -6,11 +6,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 This project does not yet follow strict semantic versioning. Pre-1.0, breaking changes happen as the methodology evolves. Once the system stabilizes through use, this will move to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+**Convention for entries under `[Unreleased]`:** new batches added during the same dev day are grouped under a `### YYYY-MM-DD` subheader inside the Added / Changed / Fixed buckets, so chronology stays visible before a version is cut.
+
 ## [Unreleased]
 
+_No entries yet — next batch lands here under a `### YYYY-MM-DD` subheader._
+
+## [0.4.0] - 2026-05-31
+
 ### Added
+- **Direct-glob-args preference over `for` loops** when scanning run folders — the previous shell-glob guidance recommended `for f in market-research/*/scan.md; do ...` which trips Claude Code's "Contains shell syntax that cannot be statically analyzed" prompt. Replaced with direct glob arguments: `grep -l "status: active" market-research/*/scan.md` (the shell expands the glob into argv before the command runs — no control flow, statically analyzable). Updated in `CLAUDE.md`'s Internet access section and in `/discover`'s inline hint.
+- **Retroactive git tags for v0.1.0, v0.2.0, v0.3.0** (`b385f95`, `16e5e14`, `a02b156` respectively) — the CHANGELOG documented these versions but no git tags existed, so the compare links at the bottom of the file 404'd on GitHub. All four tags (v0.1.0–v0.4.0) now exist locally and on origin.
+- **GitHub repo About description** set via `gh repo edit` — surfaces what the repo is on the repo homepage, in search results, and in social previews.
 - **Commit trailer policy** in `CLAUDE.md` — before every `git commit`, Claude asks via `AskUserQuestion` whether to include the `Co-Authored-By: Claude` trailer. Overrides Claude Code's harness default (which always adds it). The trailer is permanent and surfaces Claude as a co-author in the GitHub contributors graph; the user should make that visibility choice per commit, not silently inherit it. Per-commit ask, not per-push (trailer is fixed at commit time). Session-pin options ("always include this session" / "drop for this session") supported.
-- **Shell-glob preference over `find -exec`** for scanning run folders — new subsection in `CLAUDE.md`'s Internet access policy, plus inline note in `/discover`. Claude Code's permission system treats `find -exec` as a higher-permission operation and prompts interactively even when `Bash(find:*)` is allowlisted. Equivalent shell-glob iteration (`for f in market-research/*/scan.md; do ...`) is auto-allowed and produces the same result.
+- **Shell-glob preference over `find -exec`** for scanning run folders — new subsection in `CLAUDE.md`'s Internet access policy, plus inline note in `/discover`. Claude Code's permission system treats `find -exec` as a higher-permission operation and prompts interactively even when `Bash(find:*)` is allowlisted. (Initial implementation used `for` loops; corrected to direct-glob-args this version — see Added entry above.)
 - **Core-file edit confirmation rule** in `CLAUDE.md` — Claude must surface the proposed change and ask the user to confirm before any Write / Edit / NotebookEdit / `git mv` / file deletion on a core repo file (anything not in a gitignored personal-data path). Applies to everyone, including the owner. For non-owners, this is on top of `/acknowledge-contributing`, not a replacement. Batched: one ask per request, not per-file. Exempt: changes to gitignored paths (the user is operating on their own files). New "Core-file edit confirmation rule" section sits just above the existing "CHANGELOG editing rules" section.
 - **Run-folder convention for `ideas/` and `market-research/`** — every `/discover` cycle creates a `<8-alpha>-<MMDDYY>` folder; cards live in `ideas/<run-id>/`; triage + validations + scoping reports for those cards share `market-research/<run-id>/`. Killed cards preserve the link at `ideas/killed/<run-id>/<slug>.md`. `/scan` and `/trend-check` each create their own independent run folder. Folder name format: `<8-lowercase-alphanumeric>-<MMDDYY>` (e.g., `csi48s2t-053126`).
 - `scripts/gen_run_id.py` — generates `<8-lowercase-alphanumeric>-<MMDDYY>` run-ids (CLI + importable; `from gen_run_id import generate_run_id`).
@@ -109,7 +118,8 @@ This project does not yet follow strict semantic versioning. Pre-1.0, breaking c
 - Stack-flexibility framing: workspace defaults are dockerized Flask + RN, but the methodologies are stack-agnostic and `/scope-mvp` asks the user to confirm the stack before drafting.
 - Internet access policy: `WebFetch` and `WebSearch` pre-approved in `.claude/settings.json`; permission only requested for non-HTTPS, suspicious, paid, or user-private URLs.
 
-[Unreleased]: https://github.com/aanifowose111/discovery-to-ship-multi-agents/compare/v0.3.0...HEAD
+[Unreleased]: https://github.com/aanifowose111/discovery-to-ship-multi-agents/compare/v0.4.0...HEAD
+[0.4.0]: https://github.com/aanifowose111/discovery-to-ship-multi-agents/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/aanifowose111/discovery-to-ship-multi-agents/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/aanifowose111/discovery-to-ship-multi-agents/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/aanifowose111/discovery-to-ship-multi-agents/releases/tag/v0.1.0
