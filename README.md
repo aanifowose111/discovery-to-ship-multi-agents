@@ -1,5 +1,9 @@
 # Discovery-to-Ship Multi-Agents
 
+<p align="center">
+  <img src="https://scriptvil-cdn.nyc3.cdn.digitaloceanspaces.com/agents/discovery-to-ship-multi-agents.png" alt="Discovery-to-ship pipeline: six stages — discovery, validation, MVP scoping, design, build, ship — with reviewer subagents and senior-engineer personas collaborating across each phase" width="100%">
+</p>
+
 A Claude Code–orchestrated portfolio pipeline for discovering, validating, scoping, designing, and shipping distinctive web and mobile products. Built around opinionated methodology guides, narrow-lens reviewer subagents, helper skills, and pipeline slash commands.
 
 The name reflects what's in the box: many specialized agents (worker, reviewer, and code-review personas), composed into one pipeline that takes a product from **discovery** all the way through **ship**.
