@@ -1,6 +1,6 @@
 # Agents Workspace
 
-This directory (`~/Desktop/agents`) is a long-running, multi-product build effort owned by Abiodun Anifowose (Python-focused software engineer; shipped findvil.com, fijara.com, the Fijara React Native app, and an Intel internal dashboard; currently does chemistry-reasoning eval work at Mercor).
+This directory (`~/Desktop/agents`) is a long-running, multi-product build effort owned by Abiodun Anifowose (Python-focused software engineer; shipped findvil.com, fijara.com, and the Fijara React Native app; currently works at Mercor, where he designs and develops advanced algorithms for training AI models to support frontier AI labs).
 
 The goal is not a single product — it is a **portfolio pipeline**: discover viable product ideas, validate them with market research, then build the top-priority MVPs as web apps and mobile apps. Goals will evolve over time; this file should evolve with them.
 
@@ -285,7 +285,7 @@ Both Phase 2 (initial MVP) and Phase 4 (v1) are orchestrated by `senior-software
 
 **Specialist personas** (full detail in `.claude/agents/senior-*.md`): `senior-software-engineer` (orchestrator), `senior-system-design-engineer`, `senior-database-engineer`, `senior-backend-engineer`, `senior-frontend-engineer`, `senior-qa-engineer`, `senior-devops-engineer`, `senior-security-engineer`.
 
-**Standard build order:** database → project tree → core models → API contract → API impl → auth → background jobs (if scoped) → frontend skeleton → integration tests → deploy → iterate. Each persona leverages the 23 agent-skills skills as workflows.
+**Standard build order:** database → project tree → core models → API contract → API impl → auth → background jobs (if scoped) → frontend skeleton → integration tests → ready-to-deploy state. Each persona leverages the 23 agent-skills skills as workflows. **Deploy / release is a separate gated phase via `/ship-app`** — release-readiness pass (QA + security) → deploy → post-deploy verification.
 
 ### Parallel — Trend Monitoring
 
@@ -327,7 +327,7 @@ This works reliably and produces output equivalent to direct subagent invocation
 
 Custom commands live in `.claude/commands/` (one file per command, run as `/<command-name>`). Full descriptions in [`HELP.md`](HELP.md); quick reference below.
 
-**Pipeline phases:** [`/scan`](.claude/commands/scan.md), [`/discover`](.claude/commands/discover.md), [`/validate-card`](.claude/commands/validate-card.md), [`/scope-mvp`](.claude/commands/scope-mvp.md), [`/research-design`](.claude/commands/research-design.md), [`/draft-design-brief`](.claude/commands/draft-design-brief.md), [`/start-build`](.claude/commands/start-build.md).
+**Pipeline phases:** [`/scan`](.claude/commands/scan.md), [`/discover`](.claude/commands/discover.md), [`/validate-card`](.claude/commands/validate-card.md), [`/scope-mvp`](.claude/commands/scope-mvp.md), [`/research-design`](.claude/commands/research-design.md), [`/draft-design-brief`](.claude/commands/draft-design-brief.md), [`/start-build`](.claude/commands/start-build.md), [`/ship-app`](.claude/commands/ship-app.md).
 
 **Parallel / cross-cutting:** [`/trend-check`](.claude/commands/trend-check.md), [`/preview-product`](.claude/commands/preview-product.md).
 

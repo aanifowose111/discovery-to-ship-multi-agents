@@ -38,7 +38,7 @@ A discovery session should pull from at least three of these sources, not just o
 
 | Source | What it looks like in practice |
 |---|---|
-| **Personal pain points** | Workflows the user has personally hated, including in prior projects (findvil, fijara, the Intel JMP dashboard work). The user has already proven willingness-to-build on this kind of problem. |
+| **Personal pain points** | Workflows the user has personally hated, including in prior projects (e.g., findvil, fijara — substitute whatever the *current* user has actually shipped, per `user-context/INTERESTS.md`). The user has already proven willingness-to-build on this kind of problem. |
 | **Adjacent workflows** | For each shipped project, ask: "what does the user of this product also do, just before or just after, that is still painful?" Job-search adjacency, dashboard-tooling adjacency, multi-tenant SaaS adjacency. |
 | **Competitor weaknesses** | Existing products with bad UX, missing features, or hostile pricing. Look at one-star reviews on G2, Capterra, Product Hunt, App Store. The complaints *are* the product. |
 | **Shifts in capability** | Things that became possible recently — cheap LLM inference, better mobile sensors, new API access, regulatory changes. Each shift opens a window before incumbents close it. The most recent `market-research/*/trends.md` (per `guides/market/trend-monitoring.md`) is the canonical source for fresh capability shifts; check it first. |

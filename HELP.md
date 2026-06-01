@@ -182,6 +182,38 @@ The command **always tells you which mode you got and why**, so you know whether
 
 Web only — for mobile previews, use Expo Go / dev client during development or EAS preview builds for tester distribution (see `guides/mobile/eas-build-and-update.md`).
 
+### `/ship-app <slug> [--web|--mobile|--both]`
+
+Initialize the shipment / release phase for a product whose build is substantially complete. Distinct from `/start-build` (which brings the product *to* ready-to-deploy state); `/ship-app` takes it from there with a gated release-readiness pass + actual deploy + post-deploy verification.
+
+**Flow:**
+
+1. **Verify build readiness** — reads `BUILD_STATUS.md` for the product; if core subsystems aren't all `[x]`, refuses and points you back at `/start-build`.
+2. **QA pre-flight** (`senior-qa-engineer`) — final test pass, acceptance criteria check against the MVP brief's success criterion, accessibility spot-check. Outputs "release-ready" or "not-ready" + blockers.
+3. **Security pre-flight** (`senior-security-engineer`) — auth, secrets, input boundaries, file I/O, OWASP-style spot check. Outputs "ship-safe" or "blockers".
+4. **Final user confirmation** — summary of QA verdict, security verdict, and the deploy steps that will run. Ship-now or cancel.
+5. **Deploy** (`senior-devops-engineer`):
+   - **Web (Flask default):** Docker build → push → deploy to target → confirm HTTPS via Caddy → confirm health endpoint → confirm DNS.
+   - **Mobile (RN default):** `eas build --profile production` → submit to TestFlight / Play Console internal track → confirm reviewer receipt.
+   - **Other stacks:** follows the user's documented plan from MVP.md §7.
+6. **Post-deploy verification** (same persona) — smoke tests against the deployed surface; outputs "ship verified" or "post-deploy issues".
+7. **`BUILD_STATUS.md` updated** — deploy timestamp, version SHA, target environment, verdicts, post-deploy result.
+
+**Args:**
+
+- `<slug>` — required.
+- `--web` / `--mobile` / `--both` — optional scope flag; defaults inferred from the MVP brief's must-have surface.
+
+**Use when:** the build is substantially complete and you're ready to put the v0 in front of the first 10 users named in your success criterion.
+
+**Don't use for:** marketing launches, public beta launches, or app-store-feature campaigns — those are downstream of "first 10 users see the product" and aren't part of this workspace's pipeline.
+
+**Safety rails:**
+
+- Both pre-flight gates must pass (or be explicitly overridden + documented in BUILD_STATUS.md) before any deploy runs.
+- The script never `--force` pushes, never skips a rollback path.
+- After post-deploy issues, the user decides whether to fix-and-reship — there is no auto-iteration.
+
 ### `/start-build <slug>`
 
 Kicks off the build phase for a `green-lit-to-build` product. Invokes the `senior-software-engineer` persona (see §4) to ask three orientation questions in order:

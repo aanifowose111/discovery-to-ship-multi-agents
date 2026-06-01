@@ -90,7 +90,7 @@ A catalog of the paths we will consider, with first-order tradeoffs. Each path h
 ### 3.8 Grants (research, government, foundation)
 
 - **What it is:** Non-dilutive capital for specified work, often in regulated or research-adjacent categories.
-- **Best for:** Products with a genuine research angle, or in sectors with active grant programs (health, education, defense, climate, AI safety). The user's chemistry-eval work at Mercor is a natural touchpoint.
+- **Best for:** Products with a genuine research angle, or in sectors with active grant programs (health, education, defense, climate, AI safety). If the user's `user-context/INTERESTS.md` lists research-adjacent experience, lean into that touchpoint.
 - **Carrying cost:** Application overhead is high. Reporting and use-restrictions are high. Grant deadlines do not flex.
 - **Risk:** Pursuing grants that don't fit can consume months and produce nothing.
 

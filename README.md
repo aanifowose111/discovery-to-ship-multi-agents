@@ -45,7 +45,7 @@ If that matches what you're trying to do, this repo is a head start. If you want
 
 | | What | Where |
 |---|---|---|
-| **Pipeline slash commands** | `/scan`, `/discover`, `/validate-card`, `/scope-mvp`, `/research-design`, `/draft-design-brief`, `/start-build`, `/preview-product`, `/trend-check`, `/menu`, `/setup`, `/status`, `/run-tests`, `/system-check`, `/projects`, `/acknowledge-contributing` | `.claude/commands/` |
+| **Pipeline slash commands** | `/scan`, `/discover`, `/validate-card`, `/scope-mvp`, `/research-design`, `/draft-design-brief`, `/start-build`, `/ship-app`, `/preview-product`, `/trend-check`, `/menu`, `/setup`, `/status`, `/run-tests`, `/system-check`, `/projects`, `/acknowledge-contributing` | `.claude/commands/` |
 | **Reviewer assistants** | Product viability / competition / market-segment / scope reviewers, design-brief and design-fidelity reviewers, UI/UX researcher | `.claude/agents/` |
 | **Senior-engineer personas** | `senior-software-engineer` (orchestrator) + 7 specialists: system-design, database, backend, frontend, QA, devops, security. Each plays a senior-IC role during the build phase. | `.claude/agents/senior-*.md` |
 | **Agent-skills personas** | `code-reviewer`, `security-auditor`, `test-engineer` — file copies from [`aanifowose111/agent-skills`](https://github.com/aanifowose111/agent-skills) (fork), originally authored by **Addy Osmani** at [`addyosmani/agent-skills`](https://github.com/addyosmani/agent-skills), MIT-licensed. | Vendored into `.claude/agents/`; re-sync via `scripts/update-agent-skills.sh`. |
@@ -252,7 +252,8 @@ Pipeline phase commands (each stops at a user-checkpoint):
 | `/scope-mvp <slug>` | Drafts the MVP brief — asks you to confirm the stack first — and runs the scope + code reviewers. |
 | `/research-design <slug>` | Runs the UI/UX researcher to produce a design-direction report (3+ visual directions, color/typography options, brand positioning). |
 | `/draft-design-brief <slug>` | Drafts the consolidated design brief (PRD+FRD) for the human designer, with the design-brief-reviewer. |
-| `/start-build <slug>` | Kicks off the build phase for a green-lit-to-build product. Invokes the senior-software-engineer to ask orientation questions (web/mobile/hybrid order, MVP vs. full, first subsystem) and route to the right specialist. |
+| `/start-build <slug>` | Kicks off the build phase for a green-lit-to-build product. Invokes the senior-software-engineer to ask orientation questions (web/mobile/hybrid order, MVP vs. full, first subsystem) and route to the right specialist. Brings the product to ready-to-deploy state. |
+| `/ship-app <slug> [--web\|--mobile\|--both]` | Initialize the shipment / release phase. Release-readiness gate (QA pre-flight via senior-qa-engineer + security pre-flight via senior-security-engineer), then deploy via senior-devops-engineer (web via flask-deploy-runbook.md; mobile via EAS build + app-store submission), then post-deploy verification. Distinct from `/start-build` (which stops at ready-to-deploy state). Both pre-flight gates must pass before any deploy; user gets a final "ship now / cancel" confirmation in between. |
 | `/preview-product <slug> [page]` | Preview a product's UI in the browser. Tries real preview (running app) first; falls back to dummy preview (Jinja + fixture data) if dependencies aren't connected yet. Always says which mode you got. Web only — mobile previews go through Expo Go / EAS preview builds. |
 | `/trend-check [optional triggered <reason>]` | Sweeps a watchlist derived from active pipeline state and recommends downstream commands. |
 
@@ -518,7 +519,7 @@ The agent-skills fork in `external/agent-skills/`, plus the file-level copies in
 
 ## A note from the maintainer — earn by contributing to AI research
 
-Building useful systems takes time, and a lot of the most interesting work right now is in helping frontier AI labs make their models more capable, careful, and trustworthy. The maintainer of this repo (Abiodun Anifowose) currently works at **[Mercor](https://t.mercor.com/lSU0c)** — designing and implementing Python-based scientific evaluation systems for frontier AI models, including black-box benchmarking functions and chemistry reasoning tasks that directly support major AI research labs.
+Building useful systems takes time, and a lot of the most interesting work right now is in helping frontier AI labs make their models more capable, careful, and trustworthy. The maintainer of this repo (Abiodun Anifowose) currently works at **[Mercor](https://t.mercor.com/lSU0c)**, where he designs and develops advanced algorithms for training AI models to support frontier AI labs.
 
 If you have a technical or specialist background — software engineering, science, mathematics, design, writing, language expertise, medicine, law — Mercor matches you with paid AI-training projects from frontier labs. The work is real, the pay is good, and it's a way for domain experts to contribute meaningfully to where AI is going (and earn while doing so).
 

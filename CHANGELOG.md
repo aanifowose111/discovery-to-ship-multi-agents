@@ -16,6 +16,22 @@ This project does not yet follow strict semantic versioning. Pre-1.0, breaking c
 
 _No entries yet — next batch lands here under a `### YYYY-MM-DD` subheader (or, if today already has a cut version, as a patch bump per the convention above)._
 
+## [0.4.4] - 2026-05-31
+
+### Added
+
+- **`/ship-app <slug>` slash command** — initialize the shipment / release phase for a built product. Distinct from `/start-build` (which brings the product *to* ready-to-deploy state); `/ship-app` runs the release-readiness gate (QA pre-flight via `senior-qa-engineer` + security pre-flight via `senior-security-engineer`), invokes `senior-devops-engineer` to execute the actual deploy (web via `guides/web/flask-deploy-runbook.md`, mobile via `guides/mobile/eas-build-and-update.md` + `rn-app-store-submission.md`), then runs post-deploy verification and updates `BUILD_STATUS.md`. Both pre-flight gates must pass before any deploy; a final "ship now / cancel" user confirmation sits between the gates and the deploy. Args: `<slug>` + optional `--web` / `--mobile` / `--both` scope flag.
+
+### Changed
+
+- **Owner intro reworded in `CLAUDE.md` and the README maintainer note** to drop the "Intel internal dashboard" reference and to reframe the Mercor work as "designs and develops advanced algorithms for training AI models to support frontier AI labs" (replacing the previous "chemistry-reasoning eval work" phrasing). Updated `.claude/commands/discover.md` line 35 (the literal-quote example of what NOT to use as founder-fit) to match.
+- **`guides/product/idea-discovery-methodology.md`, `guides/market/market-scan-methodology.md`, `guides/funding/funding-strategy-methodology.md`** — purged maintainer-specific work references ("Intel JMP dashboard work", "chemistry-eval work at Mercor") in favor of generic guidance that pulls founder-fit from `user-context/INTERESTS.md` (with maintainer examples in parentheses where context helps).
+
+### Fixed
+
+- **`/scan` founder-fit leak.** Previously read `CLAUDE.md` as the founder-fit source, which caused a forker without `user-context/INTERESTS.md` to silently inherit the maintainer's domain context (eval engineering, etc.) — producing territories anchored to someone else's strengths. Now mirrors `/discover`'s fallback: check `user-context/INTERESTS.md` → if missing, ask the user for inline context OR fall back to a no-founder-fit "open scan" mode (territories rated on freshness × reachability only). Explicit do-NOT clause warning against pulling the `CLAUDE.md` owner intro into founder-fit. The user's existing scan at `market-research/efl61o1t-053126/scan.md` was generated under the old behavior and reflects the maintainer's context — re-run `/scan` once `INTERESTS.md` is populated for a properly targeted output.
+- **CLAUDE.md "Standard build order" line** updated to terminate at "ready-to-deploy state" and route deploy / release to the new `/ship-app` phase (previously, deploy was conflated into the build step itself).
+
 ## [0.4.3] - 2026-05-31
 
 ### Fixed
@@ -148,7 +164,8 @@ _No entries yet — next batch lands here under a `### YYYY-MM-DD` subheader (or
 - Stack-flexibility framing: workspace defaults are dockerized Flask + RN, but the methodologies are stack-agnostic and `/scope-mvp` asks the user to confirm the stack before drafting.
 - Internet access policy: `WebFetch` and `WebSearch` pre-approved in `.claude/settings.json`; permission only requested for non-HTTPS, suspicious, paid, or user-private URLs.
 
-[Unreleased]: https://github.com/aanifowose111/discovery-to-ship-multi-agents/compare/v0.4.3...HEAD
+[Unreleased]: https://github.com/aanifowose111/discovery-to-ship-multi-agents/compare/v0.4.4...HEAD
+[0.4.4]: https://github.com/aanifowose111/discovery-to-ship-multi-agents/compare/v0.4.3...v0.4.4
 [0.4.3]: https://github.com/aanifowose111/discovery-to-ship-multi-agents/compare/v0.4.2...v0.4.3
 [0.4.2]: https://github.com/aanifowose111/discovery-to-ship-multi-agents/compare/v0.4.1...v0.4.2
 [0.4.1]: https://github.com/aanifowose111/discovery-to-ship-multi-agents/compare/v0.4.0...v0.4.1
