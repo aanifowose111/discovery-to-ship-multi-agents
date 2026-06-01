@@ -257,6 +257,10 @@ Pipeline phase commands (each stops at a user-checkpoint):
 | `/preview-product <slug> [page]` | Preview a product's UI in the browser. Tries real preview (running app) first; falls back to dummy preview (Jinja + fixture data) if dependencies aren't connected yet. Always says which mode you got. Web only — mobile previews go through Expo Go / EAS preview builds. |
 | `/trend-check [optional triggered <reason>]` | Sweeps a watchlist derived from active pipeline state and recommends downstream commands. |
 
+<p align="center">
+  <img src="https://scriptvil-cdn.nyc3.cdn.digitaloceanspaces.com/agents/discovery-to-ship-multi-agents-flowchart.png" alt="Workflow flowchart: from /scan through onboarding, discovery, validation, scoping, optional design, start-build, and ship-app — with decision branches for advance/revise/kill at each gate, and /trend-check running as a parallel cadence" width="80%">
+</p>
+
 Utility commands (always safe to run; not part of the pipeline cycle):
 
 | Command | What it does |
