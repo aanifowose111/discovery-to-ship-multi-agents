@@ -368,29 +368,26 @@ STATUS_COLOR = {"ok": GREEN, "warn": YELLOW, "fail": RED}
 
 
 def print_table(checks):
-    headers = ["Component", "Required", "Recommended", "Your system", ""]
-    rows = [
-        [c["row"], c["required"], c["recommended"], c["actual"], STATUS_SYMBOL[c["status"]]]
-        for c in checks
-    ]
-    widths = [
-        max(len(h), max(len(str(r[i])) for r in rows)) for i, h in enumerate(headers)
-    ]
+    headers = ["Component", "Required", "Recommended", "Your system", "Status"]
 
-    # Header
-    hdr_parts = [color(h.ljust(w), BOLD) for h, w in zip(headers, widths)]
-    print("  ".join(hdr_parts))
-    print("  ".join("-" * w for w in widths))
+    # Markdown table — renders cleanly in Claude Code's TUI and on GitHub,
+    # and still reads fine as raw text in a plain terminal (pipe-delimited
+    # rows wrap predictably instead of breaking mid-column-header).
+    print("| " + " | ".join(headers) + " |")
+    print("|" + "|".join("---" for _ in headers) + "|")
 
-    # Rows
-    for c, row in zip(checks, rows):
-        cells = []
-        for i, (val, w) in enumerate(zip(row, widths)):
-            if i == 4:
-                cells.append(color(val.ljust(w), STATUS_COLOR[c["status"]]))
-            else:
-                cells.append(val.ljust(w))
-        print("  ".join(cells))
+    for c in checks:
+        # Status emoji stays uncolored inside the table cell because some
+        # markdown renderers strip ANSI codes from table cells; the colored
+        # summary line below preserves the visual signal.
+        cells = [
+            c["row"],
+            c["required"],
+            c["recommended"],
+            c["actual"],
+            STATUS_SYMBOL[c["status"]],
+        ]
+        print("| " + " | ".join(cells) + " |")
 
     # Summary
     passed = sum(1 for c in checks if c["status"] == "ok")

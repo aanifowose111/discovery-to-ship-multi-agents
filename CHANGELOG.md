@@ -16,6 +16,12 @@ This project does not yet follow strict semantic versioning. Pre-1.0, breaking c
 
 _No entries yet — next batch lands here under a `### YYYY-MM-DD` subheader (or, if today already has a cut version, as a patch bump per the convention above)._
 
+## [0.4.3] - 2026-05-31
+
+### Fixed
+
+- **`scripts/check_system.py` table output switched to markdown format.** The previous ASCII-aligned table forced a wide layout that wrapped awkwardly in Claude Code's TUI (the "Recommended" header got split across two lines as "Recommend|ed"). The new markdown table renders cleanly in the TUI, on GitHub, and in any markdown-aware viewer; raw text in a plain terminal still reads fine because pipe-delimited rows wrap predictably instead of breaking mid-column-header. Status emoji stays uncolored inside cells (some markdown renderers strip ANSI); the colored summary line below the table preserves the visual ✓/⚠/✗ signal.
+
 ## [0.4.2] - 2026-05-31
 
 ### Added
@@ -142,7 +148,8 @@ _No entries yet — next batch lands here under a `### YYYY-MM-DD` subheader (or
 - Stack-flexibility framing: workspace defaults are dockerized Flask + RN, but the methodologies are stack-agnostic and `/scope-mvp` asks the user to confirm the stack before drafting.
 - Internet access policy: `WebFetch` and `WebSearch` pre-approved in `.claude/settings.json`; permission only requested for non-HTTPS, suspicious, paid, or user-private URLs.
 
-[Unreleased]: https://github.com/aanifowose111/discovery-to-ship-multi-agents/compare/v0.4.2...HEAD
+[Unreleased]: https://github.com/aanifowose111/discovery-to-ship-multi-agents/compare/v0.4.3...HEAD
+[0.4.3]: https://github.com/aanifowose111/discovery-to-ship-multi-agents/compare/v0.4.2...v0.4.3
 [0.4.2]: https://github.com/aanifowose111/discovery-to-ship-multi-agents/compare/v0.4.1...v0.4.2
 [0.4.1]: https://github.com/aanifowose111/discovery-to-ship-multi-agents/compare/v0.4.0...v0.4.1
 [0.4.0]: https://github.com/aanifowose111/discovery-to-ship-multi-agents/compare/v0.3.0...v0.4.0
