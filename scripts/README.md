@@ -96,14 +96,30 @@ Reads `market-research/` and prints a tabular summary of every scan / validation
 
 Useful as a quick "where am I across all reports" overview when state has accumulated.
 
-### `delete_project.py` — manage discovery-cycle projects
+### `check_system.py` — compare host system against workspace requirements
 
 ```bash
-python3 scripts/delete_project.py list                     # list all projects
-python3 scripts/delete_project.py list --json              # machine-readable
-python3 scripts/delete_project.py show <run-id>            # dry-run: what would be deleted
-python3 scripts/delete_project.py show <run-id> --json
-python3 scripts/delete_project.py delete <run-id> --force  # actually delete
+python3 scripts/check_system.py              # colored table
+python3 scripts/check_system.py --json       # machine-readable
+python3 scripts/check_system.py --no-color   # plain text
+```
+
+Checks: OS, CPU architecture, CPU cores, RAM, free disk at workspace, internet connectivity (`api.anthropic.com` DNS), Python version, Node.js version, required CLI tools (`git`, `gh`, `pandoc`, `typst`), and optional tools (`docker`).
+
+Each row shows *required / recommended / your value / status* (✓ / ⚠ / ✗). The script is **stdlib only** — no third-party deps. RAM detection uses platform-specific commands (`sysctl` on macOS, `/proc/meminfo` on Linux, `wmic` on Windows); if a platform command isn't available, the row falls back to "unable to detect" without failing the overall run.
+
+Exit code: 0 if all required checks pass (warnings allowed); 1 if any required check fails. Optional tools never trigger a non-zero exit.
+
+Backs the `/system-check` slash command, which adds a plain-English summary keyed to the result and suggests next actions.
+
+### `projects.py` — manage discovery-cycle projects
+
+```bash
+python3 scripts/projects.py list                     # list all projects
+python3 scripts/projects.py list --json              # machine-readable
+python3 scripts/projects.py show <run-id>            # dry-run: what would be deleted
+python3 scripts/projects.py show <run-id> --json
+python3 scripts/projects.py delete <run-id> --force  # actually delete
 ```
 
 A *project* is the full set of artifacts keyed by a single run-id: `ideas/<run-id>/`, `ideas/killed/<run-id>/`, `market-research/<run-id>/`, plus for each slug found in those folders, `web-apps/<slug>/`, `mobile-apps/<slug>/`, and any `generated/**/*<slug>*` exports.

@@ -5,22 +5,22 @@ argument-hint: (no arguments)
 
 You are surfacing the project-management interface. This is a maintenance command for cleaning up discovery work the user no longer needs.
 
-A **project** = the full set of artifacts keyed by a single run-id (`<8-alphanumeric>-<MMDDYY>`). The helper script `scripts/delete_project.py` knows how to enumerate and (with `--force`) delete those artifacts; this command wraps it with a safe interactive flow.
+A **project** = the full set of artifacts keyed by a single run-id (`<8-alphanumeric>-<MMDDYY>`). The helper script `scripts/projects.py` knows how to enumerate and (with `--force`) delete those artifacts; this command wraps it with a safe interactive flow.
 
 ### Do
 
-1. **Inventory:** `python3 scripts/delete_project.py list --json` to get the structured list of projects.
+1. **Inventory:** `python3 scripts/projects.py list --json` to get the structured list of projects.
    - If empty (no projects yet): tell the user "No projects found in this workspace yet — run `/discover` to start one," then stop.
 2. **Present the list** to the user in human-readable form (project run-id + date + summary like "12 cards, 3 validations, 0 builds"), then use `AskUserQuestion` to pick one:
    - One option per project: label = `<run-id> (<date>) — <summary>`, description = a fuller breakdown
    - Plus a **Cancel** option at the end
    - If only 1-3 projects exist, all fit comfortably; if more than 4, AskUserQuestion's 4-option cap means you'll need to ask the user to type the run-id directly via "Other" — or do the picker in pages of 4 (show first 4, with the 4th option being "show more"). Pick whichever is cleaner; default to direct-list when ≤4 projects, paged when >4.
 3. **Action picker** for the chosen project — `AskUserQuestion`:
-   - **View artifacts** — run `python3 scripts/delete_project.py show <run-id>`, show the output, then loop back to this action picker
+   - **View artifacts** — run `python3 scripts/projects.py show <run-id>`, show the output, then loop back to this action picker
    - **Delete project (irreversible)** — go to the delete flow (next step)
    - **Cancel** — exit
 4. **Delete flow — Step 1 of 2 (first confirmation):**
-   - Run `python3 scripts/delete_project.py show <run-id>` to list everything that will be deleted.
+   - Run `python3 scripts/projects.py show <run-id>` to list everything that will be deleted.
    - Display the output with a warning header:
      > **⚠ This will permanently delete the following.** Files bypass the Trash and are removed from disk. The action **CANNOT be undone**. Make sure you have anything you want to keep saved elsewhere first.
    - Use `AskUserQuestion` with two options:
@@ -33,7 +33,7 @@ A **project** = the full set of artifacts keyed by a single run-id (`<8-alphanum
      - **YES, DELETE PERMANENTLY** — proceeds to actual deletion
      - **Cancel — do not delete** — exits without deleting
 6. **Execute deletion:**
-   - Run `python3 scripts/delete_project.py delete <run-id> --force`.
+   - Run `python3 scripts/projects.py delete <run-id> --force`.
    - Surface the script's success line to the user (`Deleted project <run-id>: N file(s) removed.`).
    - Suggest 2-3 reasonable next actions (e.g., `/discover` to start fresh, `/menu` for state, `/run-tests` to confirm health).
 

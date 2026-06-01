@@ -331,7 +331,7 @@ Custom commands live in `.claude/commands/` (one file per command, run as `/<com
 
 **Parallel / cross-cutting:** [`/trend-check`](.claude/commands/trend-check.md), [`/preview-product`](.claude/commands/preview-product.md).
 
-**Utility / meta:** [`/menu`](.claude/commands/menu.md) (command map), [`/status`](.claude/commands/status.md) (read-only pipeline snapshot), [`/setup`](.claude/commands/setup.md) (verify tools + identity on new clone), [`/acknowledge-contributing`](.claude/commands/acknowledge-contributing.md) (required for non-owners before editing tracked files), [`/run-tests`](.claude/commands/run-tests.md) (repo health checks), [`/projects`](.claude/commands/projects.md) (list + delete discovery projects).
+**Utility / meta:** [`/menu`](.claude/commands/menu.md) (command map), [`/status`](.claude/commands/status.md) (read-only pipeline snapshot), [`/setup`](.claude/commands/setup.md) (verify tools + identity on new clone), [`/acknowledge-contributing`](.claude/commands/acknowledge-contributing.md) (required for non-owners before editing tracked files), [`/run-tests`](.claude/commands/run-tests.md) (repo health checks), [`/system-check`](.claude/commands/system-check.md) (compare host vs. workspace requirements), [`/projects`](.claude/commands/projects.md) (list + delete discovery projects).
 
 Most commands take `<slug>` as argument and follow a `read → work → checkpoint → stop` pattern. Never auto-advance an artifact's status; never auto-chain into the next phase.
 

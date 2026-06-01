@@ -16,11 +16,22 @@ This project does not yet follow strict semantic versioning. Pre-1.0, breaking c
 
 _No entries yet — next batch lands here under a `### YYYY-MM-DD` subheader (or, if today already has a cut version, as a patch bump per the convention above)._
 
+## [0.4.2] - 2026-05-31
+
+### Added
+
+- **`/system-check` slash command + `scripts/check_system.py` helper** — compare the host machine against this workspace's hardware + tooling requirements. Shows a row-by-row table (required / recommended / your value / status ✓⚠✗) covering OS, CPU architecture, CPU cores, RAM, free disk at workspace, internet connectivity (`api.anthropic.com` DNS probe), Python ≥3.10, Node.js ≥20, required CLI tools (git, gh, pandoc, typst), and optional tools (docker). Stdlib only — no `psutil` or other deps; uses platform-specific commands (`sysctl` on macOS, `/proc/meminfo` on Linux, `wmic` on Windows) for RAM detection with graceful fallback. Read-only (no file writes, no paid API calls, one DNS lookup max). Exit 0 on success or warnings-only; exit 1 on any required-check failure. Backs the `/system-check` slash command, which surfaces a plain-English summary keyed to the result.
+- **New "System requirements" section in `README.md`** (under Getting started, before Prerequisites). Documents minimum vs. recommended specs in a table format so anyone considering the workspace can size up fit before cloning. Points at `/system-check` for runtime verification.
+
+### Changed
+
+- **`scripts/delete_project.py` renamed to `scripts/projects.py`** — the script does list + show + delete, not only delete; new name matches the `/projects` slash command. All references updated (slash-command body, scripts/README.md, README.md, HELP.md, CHANGELOG, the script's own docstring).
+
 ## [0.4.1] - 2026-05-31
 
 ### Added
 
-- **`/projects` slash command + `scripts/delete_project.py` helper** — manage discovery-cycle projects from the workspace. Lists all projects (keyed by run-id) with a summary of cards/validations/scopings/builds per project; offers to view artifacts or delete; deletion is a multi-step confirmation flow (lists everything that will be deleted → first confirm → final confirmation with strong warning → executes via `delete_project.py delete <run-id> --force`). A "project" is the full set of artifacts keyed by a run-id: `ideas/<run-id>/`, `ideas/killed/<run-id>/`, `market-research/<run-id>/`, plus for each slug from that run: `web-apps/<slug>/`, `mobile-apps/<slug>/`, and `generated/**/*<slug>*` exports. The helper script can also be invoked directly without the slash command (`python3 scripts/delete_project.py list|show <run-id>|delete <run-id> --force`) for scripted workflows. Updated `README.md` (utility commands + utility-scripts tables), `HELP.md` (full description), and `CLAUDE.md` (slash command index).
+- **`/projects` slash command + `scripts/projects.py` helper** — manage discovery-cycle projects from the workspace. Lists all projects (keyed by run-id) with a summary of cards/validations/scopings/builds per project; offers to view artifacts or delete; deletion is a multi-step confirmation flow (lists everything that will be deleted → first confirm → final confirmation with strong warning → executes via `projects.py delete <run-id> --force`). A "project" is the full set of artifacts keyed by a run-id: `ideas/<run-id>/`, `ideas/killed/<run-id>/`, `market-research/<run-id>/`, plus for each slug from that run: `web-apps/<slug>/`, `mobile-apps/<slug>/`, and `generated/**/*<slug>*` exports. The helper script can also be invoked directly without the slash command (`python3 scripts/projects.py list|show <run-id>|delete <run-id> --force`) for scripted workflows. Updated `README.md` (utility commands + utility-scripts tables), `HELP.md` (full description), and `CLAUDE.md` (slash command index).
 - **Same-day-patch convention added to CHANGELOG preamble + CLAUDE.md CHANGELOG editing rules**: when today already has a cut version section, new same-day changes get a patch bump (v0.4.0 → v0.4.1) rather than a duplicate-dated entry under `[Unreleased]`. Avoids "two sections with the same date" confusion and is friendlier for merges from multiple contributors.
 - **Cross-shell safety note (zsh's `NOMATCH`)** added to `CLAUDE.md`'s Search-patterns section. zsh errors at parse time on unmatched globs and `2>/dev/null` can't suppress it, while bash (Linux, Git Bash, WSL) is lenient. Bites survey-style probes against possibly-empty state. Documents two cross-shell-safe alternatives: folder-listing (`ls market-research/`) or Python (`python3 -c "import glob; ..."`). Confirms that our own scripts (`scripts/*.sh` with bash shebangs; `scripts/*.py` with `pathlib`/`glob`) are unaffected — the guidance governs only ad-hoc Bash that Claude generates at runtime.
 - **`.claude/commands/discover.md` empty-state probe updated** to use the cross-shell-safe pattern: list `market-research/` first, then drill in with Python. Previous hint used raw globs that error on zsh when no `/scan` has ever been run.
@@ -131,7 +142,8 @@ _No entries yet — next batch lands here under a `### YYYY-MM-DD` subheader (or
 - Stack-flexibility framing: workspace defaults are dockerized Flask + RN, but the methodologies are stack-agnostic and `/scope-mvp` asks the user to confirm the stack before drafting.
 - Internet access policy: `WebFetch` and `WebSearch` pre-approved in `.claude/settings.json`; permission only requested for non-HTTPS, suspicious, paid, or user-private URLs.
 
-[Unreleased]: https://github.com/aanifowose111/discovery-to-ship-multi-agents/compare/v0.4.1...HEAD
+[Unreleased]: https://github.com/aanifowose111/discovery-to-ship-multi-agents/compare/v0.4.2...HEAD
+[0.4.2]: https://github.com/aanifowose111/discovery-to-ship-multi-agents/compare/v0.4.1...v0.4.2
 [0.4.1]: https://github.com/aanifowose111/discovery-to-ship-multi-agents/compare/v0.4.0...v0.4.1
 [0.4.0]: https://github.com/aanifowose111/discovery-to-ship-multi-agents/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/aanifowose111/discovery-to-ship-multi-agents/compare/v0.2.0...v0.3.0

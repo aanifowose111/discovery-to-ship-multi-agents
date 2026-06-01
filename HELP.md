@@ -212,9 +212,32 @@ Pre-flight verification for a new clone or new machine. Checks: all required too
 
 Complete pipeline-state snapshot — deeper than `/menu`. Shows: active scan with territory count, all active idea cards with statuses and ages, killed-card count, in-flight briefs with their design-path / build-support picks, latest trend report age, active design phases (research / brief / handoff state), and recent generated docs. **Read-only.** Surfaces 2-4 suggested next actions based on the snapshot at the end. Use when you want a full "where am I across all in-flight work" view before deciding what to do next.
 
+### `/system-check`
+
+Compares your machine against the workspace's hardware + tooling requirements. Pure read-only — no permissions needed. Wraps `scripts/check_system.py`.
+
+**Output:** a comparison table with four columns per row — *required*, *recommended*, *your system*, *status* (✓ / ⚠ / ✗). Covers:
+
+- **OS** — macOS 12+, Linux, or Windows+WSL
+- **CPU architecture** — x86_64 or arm64
+- **CPU cores (logical)** — 4 minimum, 8+ recommended
+- **RAM** — 8 GB minimum, 16 GB+ recommended
+- **Free disk at workspace** — 10 GB minimum, 25 GB+ recommended
+- **Internet** — `api.anthropic.com` reachable (DNS resolution probe)
+- **Python** — 3.10+ minimum, 3.11+ recommended
+- **Node.js** — 20+
+- **Required tools** — git, gh, pandoc, typst
+- **Optional tools** — docker (for the dockerized Flask default)
+
+After the table, Claude surfaces a plain-English summary keyed to the result: all-green ("you're ready"), warnings-only ("works but you'll feel limits on heavy tasks"), or failures ("address these before running the pipeline"). For failing rows, install commands are suggested per platform.
+
+**Use when:** setting up a new machine, debugging a pipeline command that fails with cryptic "tool not found" or "version mismatch" errors, or answering the question "will this workspace run on my computer?".
+
+**Read-only guarantees:** the script reads system info via Python stdlib (`platform`, `os`, `shutil`, `socket`) and read-only subprocess calls (`sysctl`, `/proc/meminfo`, `wmic`, `<tool> --version`). No file writes, no paid API calls, no network traffic beyond one DNS lookup.
+
 ### `/projects`
 
-Lists every discovery-cycle project in your workspace (keyed by run-id) and offers actions on a chosen one — primarily **delete**. Wraps `scripts/delete_project.py`.
+Lists every discovery-cycle project in your workspace (keyed by run-id) and offers actions on a chosen one — primarily **delete**. Wraps `scripts/projects.py`.
 
 A *project* = the full set of artifacts keyed by a single run-id: `ideas/<run-id>/`, `ideas/killed/<run-id>/`, `market-research/<run-id>/`, plus for each slug from that run, `web-apps/<slug>/`, `mobile-apps/<slug>/`, and any `generated/**/*<slug>*` exports.
 
@@ -223,7 +246,7 @@ A *project* = the full set of artifacts keyed by a single run-id: `ideas/<run-id
 1. Claude lists every file and folder that would be deleted, with a strong warning that the action is irreversible (files bypass the Trash).
 2. **First confirmation** — *Continue to final confirmation* or *Cancel — keep this project*.
 3. **Final confirmation** — *YES, DELETE PERMANENTLY* or *Cancel — do not delete*.
-4. Only after BOTH confirmations does Claude invoke `python3 scripts/delete_project.py delete <run-id> --force`.
+4. Only after BOTH confirmations does Claude invoke `python3 scripts/projects.py delete <run-id> --force`.
 
 The two-step gate is intentional. The script also refuses (`exit 2`) if you try `delete` without `--force` from the command line — so a typo can't wipe a project.
 

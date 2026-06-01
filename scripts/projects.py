@@ -16,9 +16,9 @@ For each slug found in those folders, additionally:
   - generated/**/*<slug>*               (exported PDFs/DOCXs referencing the slug)
 
 USAGE
-    python3 scripts/delete_project.py list [--json]
-    python3 scripts/delete_project.py show <run-id> [--json]
-    python3 scripts/delete_project.py delete <run-id> --force
+    python3 scripts/projects.py list [--json]
+    python3 scripts/projects.py show <run-id> [--json]
+    python3 scripts/projects.py delete <run-id> --force
 
 The `delete` subcommand requires `--force` as a safety guard. The intended
 interactive flow is through `/projects`, which handles the
