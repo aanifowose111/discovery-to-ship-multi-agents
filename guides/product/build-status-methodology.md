@@ -21,7 +21,7 @@ When a build is in flight, "what's next" is the most-asked question. Without a v
 
 ## 2. Where it lives and who owns it
 
-**Location:** `<web-apps|mobile-apps>/<slug>/BUILD_STATUS.md`. For hybrid products, the canonical file is on the side that's being built first (per the `/start-build` orientation question); the other side gets a thin pointer to it.
+**Location:** `<web-apps|mobile-apps|desktop-apps>/<slug>/BUILD_STATUS.md`. For hybrid products, the canonical file is on the side that's being built first (per the `/start-build` orientation question); the other side gets a thin pointer to it.
 
 **Owned by:** `senior-software-engineer`. Other senior personas report subsystem completion in their output; `senior-software-engineer` is the one writing/updating `BUILD_STATUS.md`.
 
@@ -57,7 +57,8 @@ The checklist items use stack-specific language and reference stack-specific gui
 
 - **Flask:** items reference `flask-mvp-scaffold.md`, `flask-deploy-runbook.md`, etc. Schema lines say "SQLAlchemy models." Auth lines say "flask-login + sessions."
 - **React Native + Expo:** items reference `react-native-mvp-scaffold.md`, `eas-build-and-update.md`. Auth line says "JWT in secure-store."
-- **Other stack (Next.js, Django, Swift, Kotlin, etc.):** items use that stack's idioms; no workspace scaffold guide is referenced.
+- **Python + PySide6 (desktop):** items reference `guides/desktop/python-mvp-scaffold.md` + `guides/desktop/packaging-and-distribution.md`. Specific desktop subsystems: project tree + venv + pyproject, core models, core services (Qt-free), UI shell (main window + navigation), per-feature widgets, UI ↔ core bridge (QObject adapters with signals), packaging spec (committed `.spec`), smoke tests (pytest + pytest-qt offscreen), dev / build scripts, optional cross-platform CI, optional v1 code signing / notarization.
+- **Other stack (Next.js, Django, Swift, Kotlin, C# + Avalonia, Electron, Tauri, etc.):** items use that stack's idioms; no workspace scaffold guide is referenced.
 
 ### Source 3 — The standard build order (per `CLAUDE.md` "Build orchestration")
 

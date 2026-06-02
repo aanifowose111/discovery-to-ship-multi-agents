@@ -37,8 +37,8 @@ Same as 1.1. Claude reads:
 
 - The latest reports in `market-research/`.
 - Active idea cards in `ideas/` (anything not in `ideas/killed/`).
-- In-flight MVP briefs in `web-apps/<slug>/MVP.md` and `mobile-apps/<slug>/MVP.md`.
-- Active design phases at `<web-apps|mobile-apps>/<slug>/design/`.
+- In-flight MVP briefs in `web-apps/<slug>/MVP.md`, `mobile-apps/<slug>/MVP.md`, and `desktop-apps/<slug>/MVP.md`.
+- Active design phases at `<web-apps|mobile-apps|desktop-apps>/<slug>/design/`.
 
 If a phase is in progress, Claude picks up at the right checkpoint per the pipeline orchestration in `CLAUDE.md`.
 
@@ -74,7 +74,7 @@ Each returns a verdict with cited sources. You see the integration summary, then
 /scope-mvp <slug>
 ```
 
-Claude **asks you to confirm the stack first** (workspace defaults are dockerized Flask for web and React Native + Expo for mobile, but other stacks are supported — see §8). Then drafts the MVP brief and runs the scope + code reviewers.
+Claude **asks you to confirm the stack first** (workspace defaults: dockerized Flask for web, React Native + Expo for mobile, Python + PySide6 for desktop — but other stacks are supported; see §8). Then drafts the MVP brief and runs the scope + code reviewers.
 
 **After you sign off on the scoping verdict and advance to `green-lit-to-build`, Claude asks two more questions before any build work begins:**
 
@@ -89,7 +89,7 @@ Both picks are recorded in the brief's frontmatter so future sessions know what 
 /research-design <slug>
 ```
 
-Runs the `ui-ux-researcher`. Produces a design-direction report with at least three visual directions, color and typography options, pattern conventions, brand positioning, and a portfolio-continuity question. Lives at `<web-apps|mobile-apps>/<slug>/design/DESIGN_RESEARCH.md`.
+Runs the `ui-ux-researcher`. Produces a design-direction report with at least three visual directions, color and typography options, pattern conventions, brand positioning, and a portfolio-continuity question. Lives at `<web-apps|mobile-apps|desktop-apps>/<slug>/design/DESIGN_RESEARCH.md`.
 
 ### 1.7 Drafting the design brief after research
 
@@ -97,7 +97,7 @@ Runs the `ui-ux-researcher`. Produces a design-direction report with at least th
 /draft-design-brief <slug>
 ```
 
-Claude asks for your picks (visual direction, palette, typography, voice, portfolio-continuity decision, answers to the research's open questions, timeline), drafts the consolidated brief, and runs the `design-brief-reviewer`. The brief lives at `<web-apps|mobile-apps>/<slug>/design/DESIGN_BRIEF.md`. You sign off before it goes to the human designer.
+Claude asks for your picks (visual direction, palette, typography, voice, portfolio-continuity decision, answers to the research's open questions, timeline), drafts the consolidated brief, and runs the `design-brief-reviewer`. The brief lives at `<web-apps|mobile-apps|desktop-apps>/<slug>/design/DESIGN_BRIEF.md`. You sign off before it goes to the human designer.
 
 ### 1.8 Monitoring trends between scans
 
@@ -157,15 +157,15 @@ Validation per `guides/product/idea-validation-methodology.md`. Invokes the thre
 
 ### `/scope-mvp <slug>`
 
-Scoping per `guides/product/mvp-scoping-methodology.md`. **Asks you to confirm the stack first.** Drafts the MVP brief and runs the scope + code reviewers. Output: `<web-apps|mobile-apps>/<slug>/MVP.md` + `market-research/scoping-<slug>-<YYYY-MM-DD>.md`. **Stops at:** decision (build / revise / kill). **Next:** build phase using the relevant scaffold guide.
+Scoping per `guides/product/mvp-scoping-methodology.md`. **Asks you to confirm the stack first.** Drafts the MVP brief and runs the scope + code reviewers. Output: `<web-apps|mobile-apps|desktop-apps>/<slug>/MVP.md` + `market-research/scoping-<slug>-<YYYY-MM-DD>.md`. **Stops at:** decision (build / revise / kill). **Next:** build phase using the relevant scaffold guide.
 
 ### `/research-design <slug>`
 
-Design research per `guides/ui-ux/design-research-methodology.md`. Invokes the `ui-ux-researcher`. Output: `<web-apps|mobile-apps>/<slug>/design/DESIGN_RESEARCH.md`. **Stops at:** sign-off on direction. **Next:** `/draft-design-brief <slug>`.
+Design research per `guides/ui-ux/design-research-methodology.md`. Invokes the `ui-ux-researcher`. Output: `<web-apps|mobile-apps|desktop-apps>/<slug>/design/DESIGN_RESEARCH.md`. **Stops at:** sign-off on direction. **Next:** `/draft-design-brief <slug>`.
 
 ### `/draft-design-brief <slug>`
 
-Brief per `guides/ui-ux/design-brief-methodology.md`. **Asks you for picks first** (visual direction, palette, typography, voice, portfolio-continuity, timeline). Drafts the brief and runs the `design-brief-reviewer`. Output: `<web-apps|mobile-apps>/<slug>/design/DESIGN_BRIEF.md`. **Stops at:** sign-off; status → `sent`. **Next:** transmit to the human designer.
+Brief per `guides/ui-ux/design-brief-methodology.md`. **Asks you for picks first** (visual direction, palette, typography, voice, portfolio-continuity, timeline). Drafts the brief and runs the `design-brief-reviewer`. Output: `<web-apps|mobile-apps|desktop-apps>/<slug>/design/DESIGN_BRIEF.md`. **Stops at:** sign-off; status → `sent`. **Next:** transmit to the human designer.
 
 ### `/trend-check [optional triggered <reason>]`
 
@@ -454,7 +454,7 @@ You missed the stack-confirmation step. Re-run `/scope-mvp <slug>` and explicitl
 
 ### A design brief went to the designer with mistakes
 
-Update `<web-apps|mobile-apps>/<slug>/design/DESIGN_BRIEF.md`, add a revision entry in §10 (the version log), re-export with `doc-export`, and re-send. The file in the repo is the source of truth even after copies have been shared.
+Update `<web-apps|mobile-apps|desktop-apps>/<slug>/design/DESIGN_BRIEF.md`, add a revision entry in §10 (the version log), re-export with `doc-export`, and re-send. The file in the repo is the source of truth even after copies have been shared.
 
 ### A killed card needs to come back
 

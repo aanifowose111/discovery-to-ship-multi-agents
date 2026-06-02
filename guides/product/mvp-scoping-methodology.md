@@ -2,7 +2,7 @@
 
 How a `green-lit` idea card (per the discovery + validation guides) becomes a **shipping plan**. Scoping is the step between "we believe this is worth building" and the first line of production code.
 
-This guide is intentionally biased against scope creep, against premature architecture, and against building code when a non-code MVP would teach us the same thing faster. It is also intentionally biased *for* using the user's strongest stacks (dockerized Flask, React Native) unless the idea forces a stretch.
+This guide is intentionally biased against scope creep, against premature architecture, and against building code when a non-code MVP would teach us the same thing faster. It is also intentionally biased *for* using the user's strongest stacks (dockerized Flask for web, React Native for mobile, Python + PySide6 for desktop) unless the idea forces a stretch.
 
 ---
 
@@ -23,7 +23,7 @@ If any of those four don't have a clear answer at the end of scoping, scoping is
 
 1. **The MVP tests the riskiest assumption, not the full product.** "Minimum viable" means *minimum sufficient to learn whether the assumption is true*. Everything else is deferred.
 2. **Code is one option, not the default.** A concierge MVP (manual fulfillment behind a form) or a landing-page-with-waitlist test can validate the same assumption for a fraction of the build cost. See §10.
-3. **The user's strongest stacks win ties.** Dockerized Flask backend, Jinja or React Native frontend, Postgres or SQLite, DigitalOcean for hosting. Pick something else *only* when the idea has a hard requirement that one of these can't meet — and document that requirement.
+3. **The user's strongest stacks win ties.** Dockerized Flask backend, Jinja or React Native frontend, Python + PySide6 for desktop, Postgres or SQLite, DigitalOcean for hosting. Pick something else *only* when the idea has a hard requirement that one of these can't meet — and document that requirement.
 4. **Estimate in honest hours, not hopeful weeks.** Solo builder working evenings + weekends ≈ 10-15 productive hours per week. A "2-week MVP" usually means 20-30 hours of focused work. Convert.
 5. **Won't-haves are first-class.** Listing what is *out* of the MVP is as important as listing what's in. The won't-have list is what you re-read when you catch yourself adding "just one more feature".
 6. **Stack stretches are learning costs.** Anything in the MVP that the user has never shipped to production before should be counted as build cost *plus* learning cost. If there are three of them, the MVP is too ambitious — pick one stretch at a time.
@@ -68,14 +68,14 @@ The MVP is designed to make this assumption visible. Other assumptions ride alon
 
 ## 5. The MVP brief
 
-Every scoped MVP produces one file at `web-apps/<slug>/MVP.md` or `mobile-apps/<slug>/MVP.md` (whichever domain), using this format:
+Every scoped MVP produces one file at `web-apps/<slug>/MVP.md`, `mobile-apps/<slug>/MVP.md`, or `desktop-apps/<slug>/MVP.md` (whichever domain), using this format:
 
 ```markdown
 ---
 slug: <same slug as the idea card>
 date-scoped: YYYY-MM-DD
 target-ship-date: YYYY-MM-DD
-domain: web | mobile | hybrid
+domain: web | mobile | desktop | hybrid
 status: draft | in-scoping | green-lit-to-build | shipped | killed
 ---
 
@@ -101,6 +101,8 @@ Things we are deliberately choosing not to build, with one line of reasoning per
 - **Web language:** <Python | TypeScript | Ruby | Elixir | Go | Java | other>
 - **Mobile stack** (if any): <workspace default: React Native + Expo | Swift native | Kotlin native | Flutter | other + reason>
 - **Mobile language:** <TypeScript | Swift | Kotlin | Dart | other>
+- **Desktop stack** (if any): <workspace default: Python + PySide6 + PyInstaller | C# + Avalonia | Electron | Tauri | Flet | Qt C++ | other + reason>
+- **Desktop language:** <Python | C# | TypeScript | Rust | C++ | other>
 - **Database:** <Postgres | SQLite | MongoDB | other + reason>
 - **File storage:** <DigitalOcean Spaces | AWS S3 | Cloudflare R2 | local fs | other + reason>
 - **Hosting:** <DigitalOcean droplet | DO App Platform | Vercel | Fly.io | AWS | other + reason>
@@ -144,12 +146,13 @@ Before any infrastructure decision, the brief picks a **stack** for the web and 
 
 - **Web:** dockerized Flask (Python) + Jinja templates + small amount of vanilla JavaScript.
 - **Mobile:** React Native with Expo (managed workflow) + TypeScript, paired with the Flask backend.
+- **Desktop:** Python + PySide6 (Qt for Python) + PyInstaller. Cross-platform-capable; MVP is macOS-first per `guides/desktop/python-mvp-scaffold.md`.
 
-These are the maintainer's choices, not requirements. The methodology guides (discovery, validation, this scoping guide, design, market research) are **stack-agnostic** — they work for any web or mobile stack.
+These are the maintainer's choices, not requirements. The methodology guides (discovery, validation, this scoping guide, design, market research) are **stack-agnostic** — they work for any web, mobile, or desktop stack.
 
-**If the brief picks the workspace defaults:** the existing build-domain guides apply directly — `guides/web/flask-mvp-scaffold.md`, `guides/web/flask-deploy-runbook.md`, `guides/web/do-spaces-integration.md`, `guides/web/flask-auth-patterns.md`, `guides/mobile/react-native-mvp-scaffold.md`, `guides/mobile/eas-build-and-update.md`, `guides/mobile/rn-app-store-submission.md`.
+**If the brief picks the workspace defaults:** the existing build-domain guides apply directly — `guides/web/flask-mvp-scaffold.md`, `guides/web/flask-deploy-runbook.md`, `guides/web/do-spaces-integration.md`, `guides/web/flask-auth-patterns.md`, `guides/mobile/react-native-mvp-scaffold.md`, `guides/mobile/eas-build-and-update.md`, `guides/mobile/rn-app-store-submission.md`, `guides/desktop/python-mvp-scaffold.md`, `guides/desktop/packaging-and-distribution.md`.
 
-**If the brief picks a different stack** (Next.js, Angular, Django, Rails, Phoenix, Go, Java/Spring on the web; Swift native, Kotlin native, Flutter on mobile):
+**If the brief picks a different stack** (Next.js, Angular, Django, Rails, Phoenix, Go, Java/Spring on the web; Swift native, Kotlin native, Flutter on mobile; C# + Avalonia, Electron, Tauri, Flet, Qt C++ on desktop):
 
 - Record the chosen stack in the brief.
 - The build-domain guides above **do not apply** as-is. You will either:

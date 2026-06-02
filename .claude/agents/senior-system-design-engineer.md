@@ -73,7 +73,7 @@ You deviate from this only when a brief explicitly justifies it.
 
 ### 1. Read the brief
 
-`<web-apps|mobile-apps>/<slug>/MVP.md`. Read:
+`<web-apps|mobile-apps|desktop-apps>/<slug>/MVP.md`. Read:
 - *Stack* — confirm Flask + Postgres (or note the alternative the brief picked).
 - *Must-haves* — what features the system has to support at MVP.
 - *Riskiest assumption* — this guides where to invest architectural attention.
@@ -81,7 +81,7 @@ You deviate from this only when a brief explicitly justifies it.
 
 ### 2. Produce the system-shape document
 
-Write to `<web-apps|mobile-apps>/<slug>/SYSTEM_DESIGN.md`:
+Write to `<web-apps|mobile-apps|desktop-apps>/<slug>/SYSTEM_DESIGN.md`:
 
 ```markdown
 ---
@@ -162,7 +162,7 @@ Database: <choice + why>
 Auth: <pattern>
 Notable deferrals: <list>
 
-Document: <web-apps|mobile-apps>/<slug>/SYSTEM_DESIGN.md
+Document: <web-apps|mobile-apps|desktop-apps>/<slug>/SYSTEM_DESIGN.md
 
 Decision needed from you before proceeding: <if any>
 ```

@@ -8,7 +8,7 @@ A Claude Code–orchestrated portfolio pipeline for discovering, validating, sco
 
 The name reflects what's in the box: many specialized agents (worker, reviewer, and code-review personas), composed into one pipeline that takes a product from **discovery** all the way through **ship**.
 
-This repo is the *scaffolding*. Your products (ideas, market research, builds) live in the same workspace but are gitignored — they stay on your disk, never enter git. The shared part is the workflow itself: how to think about discovery, how to validate, how to scope, how to design without producing generic-looking output, and (if you use the workspace defaults) how to build dockerized Flask backends and React Native frontends in a repeatable way.
+This repo is the *scaffolding*. Your products (ideas, market research, builds) live in the same workspace but are gitignored — they stay on your disk, never enter git. The shared part is the workflow itself: how to think about discovery, how to validate, how to scope, how to design without producing generic-looking output, and (if you use the workspace defaults) how to build dockerized Flask backends, React Native frontends, and PySide6 desktop apps in a repeatable way.
 
 ## Stack flexibility — this is important
 
@@ -16,13 +16,14 @@ This workspace ships with **opinionated defaults**:
 
 - **Web:** dockerized Flask (Python) + Jinja templates + vanilla JavaScript.
 - **Mobile:** React Native with Expo + TypeScript, paired with the Flask backend.
+- **Desktop:** Python + PySide6 (Qt for Python) + PyInstaller. Cross-platform-capable; MVP-default is macOS-first.
 
-These are the **maintainer's** stack choices, not requirements baked into the workflow. The methodology guides (discovery, validation, scoping, design, market research, funding) are **stack-agnostic** — they work whether you ship in Flask, Next.js, Django, Rails, Phoenix, Go, Java/Spring, Swift native, Kotlin native, Flutter, or anything else.
+These are the **maintainer's** stack choices, not requirements baked into the workflow. The methodology guides (discovery, validation, scoping, design, market research, funding) are **stack-agnostic** — they work whether you ship in Flask, Next.js, Django, Rails, Phoenix, Go, Java/Spring, Swift native, Kotlin native, Flutter, C# + Avalonia, Electron, Tauri, or anything else.
 
 **Before any build or design work, Claude will ask you what stack you want.** The MVP brief records the choice. From there:
 
-- **If you pick the workspace defaults**, the existing build-domain guides (`guides/web/flask-*`, `guides/mobile/react-native-*`, etc.) apply directly.
-- **If you pick something else**, the build-domain guides do not apply as-is. Claude will work from first principles plus the stack-agnostic skills in [agent-skills](https://github.com/aanifowose111/agent-skills). You can either build without a stack-specific scaffold guide, or contribute one for your chosen stack (e.g., `guides/web/nextjs-mvp-scaffold.md`) — PRs welcome.
+- **If you pick the workspace defaults**, the existing build-domain guides (`guides/web/flask-*`, `guides/mobile/react-native-*`, `guides/desktop/python-*`) apply directly.
+- **If you pick something else**, the build-domain guides do not apply as-is. Claude will work from first principles plus the stack-agnostic skills in [agent-skills](https://github.com/aanifowose111/agent-skills). You can either build without a stack-specific scaffold guide, or contribute one for your chosen stack (e.g., `guides/web/nextjs-mvp-scaffold.md`, `guides/desktop/avalonia-mvp-scaffold.md`) — PRs welcome.
 
 If you forked this workspace and want different defaults for *your* fork, edit `CLAUDE.md` (the stack-preference bullet under Working style) and `guides/product/mvp-scoping-methodology.md` §6.0. The methodology guides themselves don't need changing — they're already stack-agnostic.
 
@@ -51,7 +52,7 @@ If that matches what you're trying to do, this repo is a head start. If you want
 | **Agent-skills personas** | `code-reviewer`, `security-auditor`, `test-engineer` — file copies from [`aanifowose111/agent-skills`](https://github.com/aanifowose111/agent-skills) (fork), originally authored by **Addy Osmani** at [`addyosmani/agent-skills`](https://github.com/addyosmani/agent-skills), MIT-licensed. | Vendored into `.claude/agents/`; re-sync via `scripts/update-agent-skills.sh`. |
 | **Agent-skills skills** (23) | api-and-interface-design, browser-testing-with-devtools, ci-cd-and-automation, code-review-and-quality, code-simplification, context-engineering, debugging-and-error-recovery, deprecation-and-migration, documentation-and-adrs, doubt-driven-development, frontend-ui-engineering, git-workflow-and-versioning, idea-refine, incremental-implementation, interview-me, performance-optimization, planning-and-task-breakdown, security-and-hardening, shipping-and-launch, source-driven-development, spec-driven-development, test-driven-development, using-agent-skills — same upstream credit. | Vendored into `.claude/skills/`; re-sync via `scripts/update-agent-skills.sh`. |
 | **Helper skills** | `doc-export` (markdown → PDF/DOCX), `web-preview` (render Jinja in Chrome) | `.claude/skills/` |
-| **Methodology guides** | Product discovery / validation / MVP scoping; market scan + trend monitoring; funding strategy; Flask scaffold + deploy + storage + auth patterns; React Native scaffold + EAS + store submission; UI/UX research + brief + handoff | `guides/` |
+| **Methodology guides** | Product discovery / validation / MVP scoping; market scan + trend monitoring; funding strategy; Flask scaffold + deploy + storage + auth patterns; React Native scaffold + EAS + store submission; PySide6 desktop scaffold + packaging & distribution; UI/UX research + brief + handoff | `guides/` |
 | **Project-wide context** | The Claude-facing entry point (auto-loaded by Claude Code) | `CLAUDE.md` |
 
 See `CLAUDE.md` for the full inventory and how the pieces fit together.
@@ -62,7 +63,7 @@ See `CLAUDE.md` for the full inventory and how the pieces fit together.
 
 ### System requirements
 
-This workspace runs on top of Claude Code, plus a handful of supporting tools. **Minimum** specs get you through discovery + validation + MVP scoping; **recommended** specs are what you want once you start building real products (Docker for Flask, Metro bundler for React Native, multiple browser tabs).
+This workspace runs on top of Claude Code, plus a handful of supporting tools. **Minimum** specs get you through discovery + validation + MVP scoping; **recommended** specs are what you want once you start building real products (Docker for Flask, Metro bundler for React Native, PySide6 + PyInstaller for desktop, multiple browser tabs).
 
 | Component | Minimum | Recommended |
 |---|---|---|
@@ -71,7 +72,7 @@ This workspace runs on top of Claude Code, plus a handful of supporting tools. *
 | **RAM** | 8 GB | 16 GB+ |
 | **Free disk** | 10 GB | 25 GB+ (for Docker images, node_modules, multiple products) |
 | **Internet** | Required (Claude Code API, web research, package downloads) | Stable broadband |
-| **CLI tools** | `git`, `python3` ≥3.10, `node` ≥20, `pandoc`, `typst`, `gh` | + `docker` for Flask web apps |
+| **CLI tools** | `git`, `python3` ≥3.10, `node` ≥20, `pandoc`, `typst`, `gh` | + `docker` for Flask web apps; + `PySide6` and `pyinstaller` (pip) for desktop apps |
 
 **To compare your machine against this table:** run `/system-check` inside Claude Code, or `python3 scripts/check_system.py` from any terminal. The script shows a row-by-row comparison with ✓/⚠/✗ status and uses Python stdlib only (no extra installs).
 

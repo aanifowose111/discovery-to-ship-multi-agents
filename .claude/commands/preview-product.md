@@ -1,5 +1,5 @@
 ---
-description: Preview the current state of a product's UI in the browser. Tries real preview (the running app) first; falls back to dummy preview (Jinja template + fixture data) if dependencies aren't connected yet. Always tells you which mode you got and why. Web only — for mobile, see EAS preview build instructions in `guides/mobile/eas-build-and-update.md`.
+description: Preview the current state of a product's UI. For web products, tries real preview (the running Flask app) first and falls back to dummy preview (Jinja template + fixture data) if dependencies aren't connected. For desktop products, launches `python -m <slug>` directly. For mobile, see EAS preview build instructions in `guides/mobile/eas-build-and-update.md`. Always tells you which mode you got and why.
 argument-hint: <product-slug> [page-name]
 ---
 
@@ -104,6 +104,25 @@ For mobile products in `mobile-apps/<slug>/`, this command does not apply. Mobil
 - **EAS preview builds** for tester distribution — per `guides/mobile/eas-build-and-update.md` §3 (the `preview` build profile).
 
 If the user asks `/preview-product <mobile-slug>`, surface those two options and don't attempt anything else.
+
+### Desktop note
+
+For desktop products in `desktop-apps/<slug>/`, this command runs the local app directly — no template-render fallback needed because desktop apps are launched, not server-rendered.
+
+The flow when `/preview-product <desktop-slug>` is called and `desktop-apps/<slug>/` exists:
+
+1. Verify the venv exists at `desktop-apps/<slug>/.venv/`. If not, tell the user: "No venv yet — set up the project per `guides/desktop/python-mvp-scaffold.md` first."
+2. Activate venv and run `python -m <slug>` from the project root:
+   ```bash
+   cd desktop-apps/<slug>
+   source .venv/bin/activate
+   python -m <slug>
+   ```
+3. The Qt main window opens. Tell the user:
+   > Previewed: **`desktop-apps/<slug>/`** — `python -m <slug>` launched. Quit the window (Cmd-Q / Alt-F4) to return control here.
+4. If `python -m <slug>` errors (`ModuleNotFoundError`, missing dep), surface the error and suggest `pip install -e ".[dev]"` from the project root.
+
+There is **no dummy / fixture preview mode for desktop** — the app itself is the preview. If a feature needs mock data, set it in `core/services.py` directly during dev (or use a feature flag pattern).
 
 ### Notes
 

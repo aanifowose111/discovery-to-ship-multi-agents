@@ -1,5 +1,5 @@
 ---
-description: Kick off the build phase for a green-lit-to-build product. Invokes senior-software-engineer to ask the orientation questions (web/mobile/hybrid order, MVP vs. fully-featured, build-first subsystem), then routes work to the right senior-engineer persona. Use after /scope-mvp returns green-lit-to-build, or at any point in the build when you want a fresh "where do I start" prompt.
+description: Kick off the build phase for a green-lit-to-build product. Invokes senior-software-engineer to ask the orientation questions (web/mobile/desktop/hybrid order, MVP vs. fully-featured, build-first subsystem), then routes work to the right senior-engineer persona. Use after /scope-mvp returns green-lit-to-build, or at any point in the build when you want a fresh "where do I start" prompt.
 argument-hint: <product-slug>
 ---
 
@@ -7,11 +7,11 @@ You are about to kick off the build phase for a product. This command does not i
 
 The orchestration is owned by the `senior-software-engineer` persona; you invoke that persona and let it drive.
 
-**Arguments:** $ARGUMENTS — the product slug. The brief must exist at `web-apps/<slug>/MVP.md` or `mobile-apps/<slug>/MVP.md` with `status: green-lit-to-build`.
+**Arguments:** $ARGUMENTS — the product slug. The brief must exist at `web-apps/<slug>/MVP.md`, `mobile-apps/<slug>/MVP.md`, or `desktop-apps/<slug>/MVP.md` with `status: green-lit-to-build`.
 
 ### Pre-flight
 
-1. **Verify the brief exists.** Check `web-apps/<slug>/MVP.md` and `mobile-apps/<slug>/MVP.md`. If neither exists, stop and tell the user: "No MVP brief at `web-apps/<slug>/MVP.md` or `mobile-apps/<slug>/MVP.md`. Run `/scope-mvp <slug>` first."
+1. **Verify the brief exists.** Check `web-apps/<slug>/MVP.md`, `mobile-apps/<slug>/MVP.md`, and `desktop-apps/<slug>/MVP.md`. If none exists, stop and tell the user: "No MVP brief at any of `web-apps/<slug>/MVP.md`, `mobile-apps/<slug>/MVP.md`, or `desktop-apps/<slug>/MVP.md`. Run `/scope-mvp <slug>` first."
 
 2. **Verify the brief's status.** Read frontmatter. If `status` is not `green-lit-to-build`, surface:
 
@@ -37,7 +37,7 @@ Invoke the `senior-software-engineer` subagent using the custom-subagent invocat
 Agent({
   subagent_type: "general-purpose",
   description: "Build orchestration for <slug>",
-  prompt: "You are about to act as the senior-software-engineer for the build phase of <slug>. Read .claude/agents/senior-software-engineer.md in full and treat its body as your role and process. Read the brief at <path-to-MVP.md>, the design research and brief at <path-to-design/> (if they exist), and CLAUDE.md for the workspace conventions and the build-phase skill auto-invocation policy. Then ask the user the three orientation questions from §'Build-order questions you ask' in your persona file (in this order: web/mobile/hybrid order if hybrid; MVP or fully-featured; first subsystem to tackle). Wait for the user's answers between questions. After all three are answered, propose the next-step specialist persona to invoke and the specific first task, and tell the user to either confirm to proceed or override."
+  prompt: "You are about to act as the senior-software-engineer for the build phase of <slug>. Read .claude/agents/senior-software-engineer.md in full and treat its body as your role and process. Read the brief at <path-to-MVP.md>, the design research and brief at <path-to-design/> (if they exist), and CLAUDE.md for the workspace conventions and the build-phase skill auto-invocation policy. Then ask the user the three orientation questions from §'Build-order questions you ask' in your persona file (in this order: web/mobile/desktop/hybrid order based on the brief's domain; MVP or fully-featured; first subsystem to tackle). Wait for the user's answers between questions. After all three are answered, propose the next-step specialist persona to invoke and the specific first task, and tell the user to either confirm to proceed or override."
 })
 ```
 

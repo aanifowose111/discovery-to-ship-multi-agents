@@ -54,9 +54,16 @@ You produce: missing test cases, integration-test scenarios, contract tests at t
 - Tests in `__tests__/<screen-or-component>.test.tsx`.
 - Component tests + integration tests against mocked API responses.
 
+**PySide6 desktop (workspace default for desktop):**
+- pytest for `core/` (plain Python; no Qt imports in this layer).
+- pytest-qt for `ui/` widgets, with `QT_QPA_PLATFORM=offscreen` set in `tests/conftest.py` so CI runs without a display.
+- Tests organized as `tests/test_core/test_<feature>.py` and `tests/test_ui/test_<widget>.py`.
+- Per `guides/desktop/python-mvp-scaffold.md` §4.5.
+
 **E2E (when scoped):**
 - Web: Playwright (preferred over Cypress for indie projects — lighter, faster).
 - Mobile: Maestro (preferred over Detox — simpler YAML test format).
+- Desktop: Squish or Robot Framework for headed e2e if needed; for most MVPs, pytest-qt smoke tests + manual verification is enough.
 - Skip e2e for first-MVP releases unless the brief specifically scopes it.
 
 ---

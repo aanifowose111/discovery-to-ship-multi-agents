@@ -55,6 +55,13 @@ You produce: deploy scripts, CI/CD pipeline configs, monitoring setup, runbooks 
 - Sentry for crash reporting from day one (mobile crashes are invisible without it).
 - TestFlight + Play Internal Testing for first 1-10 users.
 
+**For Python + PySide6 (workspace default for desktop):**
+- PyInstaller for distributable bundles (per `guides/desktop/packaging-and-distribution.md`).
+- `bash scripts/build.sh` in each project produces `dist/<App Name>.app` (macOS) / `.exe` (Windows) / directory (Linux + AppImage wrap).
+- **MVP path:** unsigned bundle sideloaded to first 10 users with a right-click-Open note. No CI required at MVP scope.
+- **v1 path:** code-signing + notarization on macOS via `codesign` + `notarytool`; Windows code-signing cert via `signtool`; cross-platform CI via GitHub Actions matrix (`macos-latest`, `windows-latest`, `ubuntu-latest`) — see `packaging-and-distribution.md` §6.
+- **Observability v1:** local crash logs (`~/Library/Logs/DiagnosticReports/` on macOS, Event Viewer on Windows). Add Sentry-for-desktop if MTTR matters.
+
 ---
 
 ## Process

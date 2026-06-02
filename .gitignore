@@ -19,6 +19,10 @@ mobile-apps/*
 !mobile-apps/README.md
 !mobile-apps/.gitkeep
 
+desktop-apps/*
+!desktop-apps/README.md
+!desktop-apps/.gitkeep
+
 generated/*
 !generated/README.md
 !generated/.gitkeep

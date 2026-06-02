@@ -353,7 +353,49 @@ def run_checks():
             }
         )
 
+    # 14. Optional: PySide6 (needed for the Python+PySide6 desktop default)
+    pyside_status, pyside_actual = _python_pkg_check("PySide6")
+    checks.append(
+        {
+            "row": "PySide6 (optional)",
+            "required": "for desktop MVPs",
+            "recommended": "pip install PySide6",
+            "actual": pyside_actual,
+            "status": pyside_status,
+        }
+    )
+
+    # 15. Optional: PyInstaller (needed for desktop packaging)
+    pyi_status, pyi_actual = _python_pkg_check("PyInstaller")
+    checks.append(
+        {
+            "row": "PyInstaller (optional)",
+            "required": "for desktop packaging",
+            "recommended": "pip install pyinstaller",
+            "actual": pyi_actual,
+            "status": pyi_status,
+        }
+    )
+
     return checks
+
+
+def _python_pkg_check(pkg_name):
+    """Return (status, actual_text) for a pip-installable Python package.
+
+    Uses importlib.metadata so it's standard-library only and doesn't
+    actually import the package (PySide6 imports are slow + side-effecty).
+    """
+    try:
+        from importlib.metadata import PackageNotFoundError, version
+
+        try:
+            v = version(pkg_name)
+            return "ok", f"{pkg_name} {v}"
+        except PackageNotFoundError:
+            return "warn", "(not installed)"
+    except Exception:
+        return "warn", "(unable to detect)"
 
 
 # --- output ---------------------------------------------------------------

@@ -16,7 +16,7 @@ You are about to scope an MVP for a green-lit card. Follow the methodology in @g
 
 ### Do
 1. Verify the card is `green-lit`. If not, stop and surface the gap to the user.
-2. Decide `domain: web | mobile | hybrid` based on the card.
+2. Decide `domain: web | mobile | desktop | hybrid` based on the card.
 3. **Confirm the stack choice with the user** before drafting. Read §6.0 of `guides/product/mvp-scoping-methodology.md`. If the user has not already stated a stack choice in their prompt to `/scope-mvp`, ask explicitly:
 
    > Before I draft the brief, what stack do you want to use for this product?
@@ -24,34 +24,37 @@ You are about to scope an MVP for a green-lit card. Follow the methodology in @g
    > Workspace defaults (this is what the build-domain guides cover):
    > - **Web:** dockerized Flask + Jinja + vanilla JS (Python)
    > - **Mobile:** React Native + Expo + TypeScript
+   > - **Desktop:** Python + PySide6 + PyInstaller (per `guides/desktop/python-mvp-scaffold.md`)
    >
    > Alternatives you could pick (no workspace guide for these — Claude will work from first principles + the agent-skills stack-agnostic skills):
    > - **Web:** Next.js, Django, Rails, Phoenix, FastAPI, Go (Gin/Echo), Java (Spring), Angular, Vue, SvelteKit, …
    > - **Mobile:** Swift native, Kotlin native, Flutter, …
+   > - **Desktop:** C# + Avalonia, Electron, Tauri, Python + Flet, Qt C++, …
    >
-   > Reply with your picks (one for web, one for mobile if hybrid). The brief's *Stack* section will record them, and the product-scope-reviewer will assess fit against your shipped experience — not against the workspace defaults.
+   > Reply with your picks (one per domain in the brief). The brief's *Stack* section will record them, and the product-scope-reviewer will assess fit against your shipped experience — not against the workspace defaults.
 
    Wait for the user's reply before proceeding.
 
 4. Draft the MVP brief at the right location:
    - `web-apps/<slug>/MVP.md` for web
    - `mobile-apps/<slug>/MVP.md` for mobile
-   - Both for hybrid; the canonical brief is the web one with the mobile-side noted
+   - `desktop-apps/<slug>/MVP.md` for desktop
+   - For hybrid briefs covering multiple domains, the canonical brief lives in the primary-domain folder (whichever was picked as "build-first" per `/start-build`'s orientation); cross-references go in the other domain's folder.
 4. Fill the brief per the §5 template in the scoping guide. Set `status: in-scoping`. Identify the riskiest assumption, must-haves (each traced to the assumption), could-haves, won't-haves, stack, infrastructure decisions (`.env`, DO Spaces, hosting, auth), success criterion (first-10-users measurable), effort estimate, stack stretches.
 5. Invoke the reviewer pair in parallel, **using the custom-subagent invocation pattern in `CLAUDE.md`** — each call uses `subagent_type: "general-purpose"` and instructs the agent to read and follow the relevant persona file:
    - For scope discipline: read and follow `.claude/agents/product-scope-reviewer.md`
    - For architecture / security / performance: read and follow `.claude/agents/code-reviewer.md` (this is the agent-skills `code-reviewer` persona, file-copied into `.claude/agents/` per `.claude/agents/README.md`)
    - For mobile or hybrid briefs, also invoke `mobile-ux-reviewer` *if and only if it exists in `.claude/agents/`* (we have not built it yet — skip otherwise and note the skip in the report)
 
-   Each agent should be told to read the brief at `<web-apps|mobile-apps>/<slug>/MVP.md`, the validation report, the scoping methodology guide, and `CLAUDE.md` — and to return its output in the locked verdict format.
+   Each agent should be told to read the brief at `<web-apps|mobile-apps|desktop-apps>/<slug>/MVP.md`, the validation report, the scoping methodology guide, and `CLAUDE.md` — and to return its output in the locked verdict format.
 6. Integrate per §8 of the scoping guide.
-7. Write the scoping report to `market-research/<run-id>/scoping-<slug>.md` (same `<run-id>` as the card's discovery cycle) per §9. Add `slug: <slug>`, `run-id: <run-id>`, `date-scoping: <YYYY-MM-DD>` to the frontmatter. The MVP brief itself (`<web-apps|mobile-apps>/<slug>/MVP.md`) stays where it is — it's a per-product artifact, not a cycle artifact.
+7. Write the scoping report to `market-research/<run-id>/scoping-<slug>.md` (same `<run-id>` as the card's discovery cycle) per §9. Add `slug: <slug>`, `run-id: <run-id>`, `date-scoping: <YYYY-MM-DD>` to the frontmatter. The MVP brief itself (`<web-apps|mobile-apps|desktop-apps>/<slug>/MVP.md`) stays where it is — it's a per-product artifact, not a cycle artifact.
 
 
 ### Stop here — user checkpoint #1: review the scoping verdict
 After writing the report, **stop**. Do not advance the brief to `green-lit-to-build`. Show the user:
 
-> MVP brief at `<web-apps|mobile-apps>/<slug>/MVP.md`.
+> MVP brief at `<web-apps|mobile-apps|desktop-apps>/<slug>/MVP.md`.
 > Scoping report at `market-research/<run-id>/scoping-<slug>.md`.
 >
 > Combined verdict: <APPROVE / APPROVE-WITH-NOTES / REJECT>

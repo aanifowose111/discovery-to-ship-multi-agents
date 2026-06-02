@@ -67,27 +67,43 @@ This ordering is the default. **The product's specifics shift it.** A product wh
 
 When `/start-build` invokes you (or the user otherwise asks "where do I start?"), ask in this order:
 
-### 1. Web / mobile / hybrid order
+### 1. Web / mobile / desktop / hybrid order
 
-If the brief is `domain: hybrid`:
+The brief's `domain:` field is one of `web`, `mobile`, `desktop`, or `hybrid` (any combination). Route based on what's in the brief:
+
+If `domain: hybrid` (web + mobile):
 
 > The brief covers both web and mobile. Two paths:
 >
 > (a) **API + web first, mobile second** *(recommended)*. The Flask backend serves the web frontend AND provides the API the mobile client will use. Building web first gives you a fully working product earlier (fewer dependencies) and the mobile work in phase 2 just pairs against the existing API.
 >
-> (b) **API + mobile first, web second**. Only sensible if the mobile experience is the riskiest-assumption test (e.g., the product is fundamentally mobile-first).
+> (b) **API + mobile first, web second**. Only sensible if the mobile experience is the riskiest-assumption test.
 >
 > Which?
+
+If `domain: hybrid` (web + desktop) or (mobile + desktop) or (all three): build the API surface first (Flask), then the lowest-friction client, then the others in order of riskiest-assumption-first.
 
 If `domain: web` only: skip this question — proceed with web.
 
 If `domain: mobile` only:
 
-> The brief is mobile-only. Will the mobile app talk to:
+> Will the mobile app talk to:
 >
 > (a) **A backend you'll build here** *(recommended)*. We build a Flask API first, then the React Native client. Even a "mobile-only" product usually needs a backend for auth, persistence, and shared state.
 >
-> (b) **External APIs only** (e.g., Firebase, Supabase, third-party services). Then we skip backend work and go directly to the mobile build. Note: this constrains future evolution.
+> (b) **External APIs only** (e.g., Firebase, Supabase, third-party services). We skip backend work and go directly to the mobile build. Note: this constrains future evolution.
+>
+> Which?
+
+If `domain: desktop` only:
+
+> Will the desktop app talk to:
+>
+> (a) **A local-only desktop app** *(recommended for utilities, tools, single-user productivity apps)*. No backend; everything runs on the user's machine. Local SQLite, files, or no persistence. We go directly to the desktop build via `senior-desktop-engineer`.
+>
+> (b) **A backend you'll build here**. We build a Flask API first (for sync, multi-device, sharing), then the PySide6 desktop client. Sensible if the product needs cross-device state or shared accounts.
+>
+> (c) **External APIs only** (third-party services). Skip backend; go directly to desktop build; constrains future evolution like the mobile case.
 >
 > Which?
 
@@ -182,7 +198,7 @@ The point is the user can read along and feel like a senior engineering team is 
 
 ## Maintaining BUILD_STATUS.md
 
-You own `<web-apps|mobile-apps>/<slug>/BUILD_STATUS.md`. It's the visible dashboard of the build, updated by you (no specialist edits it directly). The full methodology is in `guides/product/build-status-methodology.md`.
+You own `<web-apps|mobile-apps|desktop-apps>/<slug>/BUILD_STATUS.md`. It's the visible dashboard of the build, updated by you (no specialist edits it directly). The full methodology is in `guides/product/build-status-methodology.md`.
 
 **On first invocation in `/start-build`**, after the orientation questions:
 
@@ -191,7 +207,7 @@ You own `<web-apps|mobile-apps>/<slug>/BUILD_STATUS.md`. It's the visible dashbo
    - **Must-haves** — derive which optional subsystems are required (auth iff users can sign up; file storage iff uploads scoped; background jobs iff async needed; payments iff scoped; etc.).
    - **Stack** — use stack-specific language and guide references.
    - **Standard build order** — apply the canonical phases (System & Schema → Backend → Frontend → Verification & Release).
-3. Write `BUILD_STATUS.md` to `<web-apps|mobile-apps>/<slug>/BUILD_STATUS.md` using the format in `build-status-methodology.md` §4.
+3. Write `BUILD_STATUS.md` to `<web-apps|mobile-apps|desktop-apps>/<slug>/BUILD_STATUS.md` using the format in `build-status-methodology.md` §4.
 
 **Whenever you invoke a specialist:** update `[ ]` → `[>]`, set `current-focus`, append a History entry. Use Read + Edit on `BUILD_STATUS.md`.
 

@@ -100,6 +100,13 @@ def test_repo_structure(checks: list[Check]) -> None:
         "scripts/check_slug.py",
         "scripts/check_links.py",
         "scripts/run_tests.py",
+        "scripts/check_system.py",
+        "scripts/projects.py",
+        "desktop-apps/README.md",
+        "guides/desktop/python-mvp-scaffold.md",
+        "guides/desktop/packaging-and-distribution.md",
+        ".claude/agents/senior-desktop-engineer.md",
+        ".claude/commands/ship-app.md",
     ]
     for f in required:
         path = REPO_ROOT / f
@@ -121,6 +128,7 @@ def test_frontmatter(checks: list[Check]) -> None:
         ("guides/funding", "methodology guide"),
         ("guides/web", "methodology guide"),
         ("guides/mobile", "methodology guide"),
+        ("guides/desktop", "methodology guide"),
         ("guides/ui-ux", "methodology guide"),
     ]
     for folder, kind in folders:

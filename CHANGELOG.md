@@ -16,6 +16,29 @@ This project does not yet follow strict semantic versioning. Pre-1.0, breaking c
 
 _No entries yet — next batch lands here under a `### YYYY-MM-DD` subheader (or, if today already has a cut version, as a patch bump per the convention above)._
 
+## [0.5.0] - 2026-06-01
+
+### Added
+
+- **Desktop apps as a peer build domain to web and mobile.** New `desktop-apps/` folder at the top level, parallel to `web-apps/` and `mobile-apps/` (gitignored except for `README.md`); new build-domain guides at `guides/desktop/python-mvp-scaffold.md` and `guides/desktop/packaging-and-distribution.md`; new senior-engineer persona at `.claude/agents/senior-desktop-engineer.md`. Default stack: **Python + PySide6 (Qt for Python) + PyInstaller**, cross-platform-capable with macOS-first MVP target. Stack-flexibility convention extends to desktop the same way it works for web and mobile — defaults are not requirements; the brief can pick C# + Avalonia, Electron, Tauri, Flet, Qt C++, or anything else, and the workspace adapts.
+- **Why Python + PySide6 as the default** (not C#, not C++): the maintainer is Python-focused; the web stack is already Python (Flask); the user wants generated code to be easy to read alongside the rest of the workspace's code; Qt produces native-looking apps without per-platform UI rewrites; PySide6 is LGPL-licensed and backed by The Qt Company directly. C# + Avalonia is the documented strong alternative for teams that prefer static typing + .NET; C++ is explicitly skipped due to memory-management overhead and readability cost.
+- **Five existing senior personas updated** to know about desktop as a peer domain — `senior-software-engineer` (orchestration now routes web / mobile / desktop / hybrid), `senior-system-design-engineer` (paths reference `desktop-apps/<slug>/`), `senior-qa-engineer` (pytest-qt with `QT_QPA_PLATFORM=offscreen` for CI), `senior-devops-engineer` (PyInstaller packaging + cross-platform CI patterns), and architectural guidance for the new `senior-desktop-engineer` covering UI ↔ core separation, signal/slot composition, packaging, and native integrations.
+- **Four slash commands extended for desktop awareness:**
+  - `/scope-mvp` — stack picker now has 3 default options (web / mobile / desktop) and lists alternative-stack picks for each domain.
+  - `/start-build` — orientation handles `domain: desktop` and `domain: hybrid` variations spanning multiple build domains (web + desktop, mobile + desktop, all three).
+  - `/ship-app` — adds `--desktop` and `--all` flags; deploy path for desktop is PyInstaller bundle + sideload (MVP) or code-signed + notarized release (v1 opt-in); post-deploy verification runs the bundled app once.
+  - `/preview-product` — for desktop products, launches `python -m <slug>` from the project's venv. (No dummy / fixture mode for desktop — the app itself is the preview.)
+- **`scripts/check_system.py`** gains two optional rows: **PySide6** and **PyInstaller** (installable via `pip`). Status reports `(not installed)` as `⚠` rather than `✗` because these are optional unless the user is actively building a desktop product.
+- **`scripts/run_tests.py`** verifies the new files exist (`desktop-apps/README.md`, both desktop guides, the new persona, `/ship-app` command, `projects.py`, `check_system.py`) and adds `guides/desktop/` to the frontmatter check.
+- **Two product methodology guides extended:** `guides/product/mvp-scoping-methodology.md` §5 brief template + §6.0 stack picker now cover the desktop default and alternatives; `guides/product/build-status-methodology.md` documents the desktop subsystem checklist (project tree + venv, core Qt-free services, UI shell, per-feature widgets, packaging spec, smoke tests with pytest-qt offscreen, dev / build scripts, optional cross-platform CI, optional v1 signing).
+- **CLAUDE.md, README.md, HELP.md** all updated for desktop visibility: folder map row, slash-command index, system requirements, stack-flexibility section, intro paragraph.
+
+### Changed
+
+- **CLAUDE.md "Stack flexibility" working-style bullet** tightened to fit under the 40 k auto-load threshold while now covering 3 default stacks instead of 2 (Flask + RN + Python/PySide6).
+
+This is a **minor version bump** (0.4.x → 0.5.0), not a patch — it adds a peer build domain rather than fixing or refining existing capability.
+
 ## [0.4.4] - 2026-05-31
 
 ### Added
@@ -159,7 +182,8 @@ _No entries yet — next batch lands here under a `### YYYY-MM-DD` subheader (or
 - Stack-flexibility framing: workspace defaults are dockerized Flask + RN, but the methodologies are stack-agnostic and `/scope-mvp` asks the user to confirm the stack before drafting.
 - Internet access policy: `WebFetch` and `WebSearch` pre-approved in `.claude/settings.json`; permission only requested for non-HTTPS, suspicious, paid, or user-private URLs.
 
-[Unreleased]: https://github.com/aanifowose111/discovery-to-ship-multi-agents/compare/v0.4.4...HEAD
+[Unreleased]: https://github.com/aanifowose111/discovery-to-ship-multi-agents/compare/v0.5.0...HEAD
+[0.5.0]: https://github.com/aanifowose111/discovery-to-ship-multi-agents/compare/v0.4.4...v0.5.0
 [0.4.4]: https://github.com/aanifowose111/discovery-to-ship-multi-agents/compare/v0.4.3...v0.4.4
 [0.4.3]: https://github.com/aanifowose111/discovery-to-ship-multi-agents/compare/v0.4.2...v0.4.3
 [0.4.2]: https://github.com/aanifowose111/discovery-to-ship-multi-agents/compare/v0.4.1...v0.4.2
