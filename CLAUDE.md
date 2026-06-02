@@ -13,14 +13,14 @@ The goal is not a single product — it is a **portfolio pipeline**: discover vi
 We are working through three broad phases. They are not strictly sequential — later phases may loop back to earlier ones — but the *current* center of gravity should always be clear from the active TODOs and the `ideas/` + `market-research/` contents.
 
 1. **Scaffolding (substantially complete; new items added as needs surface).** The supporting infrastructure for the work to come is in place:
-   - Skills, assistants (including reviewer assistants), guides, and slash commands covering product discovery / validation / MVP scoping, market research, funding strategy, web/mobile dev, and UI/UX design coordination.
+   - Skills, assistants (including reviewer assistants), guides, and slash commands covering product discovery / validation / MVP scoping, market research, funding strategy, web/mobile/desktop dev, and UI/UX design coordination.
    - Agent-skills personas + skills are file-copied into `.claude/{agents,skills}/` (see folder map below). User personally verifies each scaffolding artifact before it becomes load-bearing.
    - Remaining scaffolding is written when a real product creates the need, not pre-built.
 2. **Product discovery & validation.** Ready to begin via the pipeline commands. Search for candidate product ideas (`/scan` → `/discover` → `/validate-card`), and land on a prioritized list with the most viable product at the top.
 3. **Build.** Implement the top-priority product(s) — first an initial scrappy MVP for validation, then (if the assumption holds) the optional design phase, then a real v1.
    - **Workspace defaults** (with build-domain guides): dockerized Flask (web) + React Native/Expo (mobile) + Python + PySide6 (desktop). Maintainer's preferred stacks.
    - **Other stacks are supported** — the methodology guides are stack-agnostic, and `mvp-scoping-methodology.md` §6.0 spells out what changes if a different stack is picked. The brief records the chosen stack; the build proceeds from there.
-   - Sensitive infrastructure decisions (storage config, `.env` strategy, hosting choice) are addressed in `mvp-scoping-methodology.md` §6 and (for default-stack projects) the corresponding web/mobile guides.
+   - Sensitive infrastructure decisions (storage config, `.env` strategy, hosting/distribution choice) are addressed in `mvp-scoping-methodology.md` §6 and (for default-stack projects) the corresponding web/mobile/desktop guides.
 
 ---
 
@@ -282,9 +282,9 @@ Same agent-skills commands as Phase 2, but driven by the handoff:
 
 Each product in the build phase has a **`BUILD_STATUS.md`** at its project root — a dynamic, product-specific checklist of build subsystems with status (`[ ]` / `[>]` / `[x]`), owner persona, and history. Owned and written by `senior-software-engineer`; full methodology in `guides/product/build-status-methodology.md`.
 
-Both Phase 2 (initial MVP) and Phase 4 (v1) are orchestrated by `senior-software-engineer` via `/start-build <slug>`. It asks orientation questions (web/mobile order, MVP vs. fully-featured, first subsystem), then routes work to the right specialist persona in the right order. Defaults: **API + web first if hybrid; MVP scope first; database design first subsystem.**
+Both Phase 2 (initial MVP) and Phase 4 (v1) are orchestrated by `senior-software-engineer` via `/start-build <slug>`. It asks orientation questions (web/mobile/desktop/hybrid order, MVP vs. fully-featured, first subsystem), then routes work to the right specialist persona in the right order. Defaults: **API + web first if hybrid; MVP scope first; database design first subsystem** (for desktop-only briefs, project tree + core models first).
 
-**Specialist personas** (full detail in `.claude/agents/senior-*.md`): `senior-software-engineer` (orchestrator), `senior-system-design-engineer`, `senior-database-engineer`, `senior-backend-engineer`, `senior-frontend-engineer`, `senior-qa-engineer`, `senior-devops-engineer`, `senior-security-engineer`.
+**Specialist personas** (full detail in `.claude/agents/senior-*.md`): `senior-software-engineer` (orchestrator), `senior-system-design-engineer`, `senior-database-engineer`, `senior-backend-engineer`, `senior-frontend-engineer`, `senior-desktop-engineer`, `senior-qa-engineer`, `senior-devops-engineer`, `senior-security-engineer`.
 
 **Standard build order:** database → project tree → core models → API contract → API impl → auth → background jobs (if scoped) → frontend skeleton → integration tests → ready-to-deploy state. Each persona leverages the 23 agent-skills skills as workflows. **Deploy / release is a separate gated phase via `/ship-app`** — release-readiness pass (QA + security) → deploy → post-deploy verification.
 
@@ -308,7 +308,7 @@ This orchestration is the contract the slash commands enforce. If a guide or rev
 
 ### Invoking custom subagents — the universal pattern
 
-The Agent tool's `subagent_type` parameter has a fixed enum (`claude`, `claude-code-guide`, `Explore`, `general-purpose`, `Plan`, `statusline-setup`). Our custom subagents in `.claude/agents/` (`product-viability-reviewer`, `product-competition-reviewer`, `market-segment-reviewer`, `product-scope-reviewer`, `ui-ux-researcher`, `design-brief-reviewer`, `design-fidelity-reviewer`) **cannot be invoked directly via that parameter** — the tool will return "Agent type not found."
+The Agent tool's `subagent_type` parameter accepts only its fixed built-in enum (e.g., `general-purpose`, `Plan`), not our custom subagents in `.claude/agents/`. Direct invocation returns "Agent type not found."
 
 **Always use this pattern instead:**
 

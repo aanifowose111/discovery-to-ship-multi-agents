@@ -16,7 +16,25 @@ This project does not yet follow strict semantic versioning. Pre-1.0, breaking c
 
 _No entries yet — next batch lands here under a `### YYYY-MM-DD` subheader (or, if today already has a cut version, as a patch bump per the convention above)._
 
-## [0.5.0] - 2026-06-01
+## [0.5.1] - 2026-06-02
+
+### Fixed
+
+- **CHANGELOG date typo**: v0.5.0 header was dated `2026-06-01`; corrected to `2026-06-02`.
+- **CLAUDE.md trimmed for headroom** (~140 chars under the 40 k auto-load threshold). Compressed the "Invoking custom subagents" intro paragraph by dropping the literal enumeration of the Agent tool's built-in subagent-type enum and the literal list of every custom subagent file — neither is load-bearing (Claude can re-derive both by reading `.claude/agents/`). Final: 39,854 chars.
+- **Residual web/mobile-only spots updated for desktop awareness:**
+  - `README.md` tagline: "web and mobile products" → "web, mobile, and desktop products".
+  - `README.md` "What ships in the box" row: senior-engineer count updated 7 → 8 specialists.
+  - `README.md` "Install the required tools" table refactored: **Claude Code CLI extracted into a leading callout** above the table so it gets its own width (the wrapped row was visually unbalanced); the Python row now lists "Flask web apps + PySide6 desktop apps (workspace defaults)".
+  - `README.md` senior-engineer personas table: added `senior-desktop-engineer` row; `senior-qa-engineer` row notes pytest-qt offscreen extension; `senior-devops-engineer` row notes PyInstaller + cross-platform CI extension.
+  - `README.md` repository layout tree: added `guides/desktop/` and `desktop-apps/` lines.
+  - `README.md` "Personal vs. shared" paragraph: `desktop-apps/` added to the list of folders that ship a README.
+  - `README.md` `new-product-skeleton.sh` row + `/start-build` slash command row: both reference desktop as a third domain.
+  - `CLAUDE.md` Phased plan §1 + §3 and Pipeline-orchestration "Build orchestration" line: extended to web/mobile/desktop; senior-desktop-engineer added to the specialist-personas list; "for desktop-only briefs, project tree + core models first" noted in the build-order defaults.
+  - `CONTRIBUTING.md` principle #1: "any web/mobile stack" → "any web/mobile/desktop stack"; build-domain examples now list "Flask, RN/EAS, PySide6/PyInstaller".
+  - `.claude/agents/senior-software-engineer.md` "When invoked" line: orientation questions now include desktop.
+
+## [0.5.0] - 2026-06-02
 
 ### Added
 
@@ -182,7 +200,8 @@ This is a **minor version bump** (0.4.x → 0.5.0), not a patch — it adds a pe
 - Stack-flexibility framing: workspace defaults are dockerized Flask + RN, but the methodologies are stack-agnostic and `/scope-mvp` asks the user to confirm the stack before drafting.
 - Internet access policy: `WebFetch` and `WebSearch` pre-approved in `.claude/settings.json`; permission only requested for non-HTTPS, suspicious, paid, or user-private URLs.
 
-[Unreleased]: https://github.com/aanifowose111/discovery-to-ship-multi-agents/compare/v0.5.0...HEAD
+[Unreleased]: https://github.com/aanifowose111/discovery-to-ship-multi-agents/compare/v0.5.1...HEAD
+[0.5.1]: https://github.com/aanifowose111/discovery-to-ship-multi-agents/compare/v0.5.0...v0.5.1
 [0.5.0]: https://github.com/aanifowose111/discovery-to-ship-multi-agents/compare/v0.4.4...v0.5.0
 [0.4.4]: https://github.com/aanifowose111/discovery-to-ship-multi-agents/compare/v0.4.3...v0.4.4
 [0.4.3]: https://github.com/aanifowose111/discovery-to-ship-multi-agents/compare/v0.4.2...v0.4.3

@@ -4,7 +4,7 @@
   <img src="https://scriptvil-cdn.nyc3.cdn.digitaloceanspaces.com/agents/discovery-to-ship-multi-agents.png" alt="Discovery-to-ship pipeline: six stages — discovery, validation, MVP scoping, design, build, ship — with reviewer subagents and senior-engineer personas collaborating across each phase" width="100%">
 </p>
 
-A Claude Code–orchestrated portfolio pipeline for discovering, validating, scoping, designing, and shipping distinctive web and mobile products. Built around opinionated methodology guides, narrow-lens reviewer subagents, helper skills, and pipeline slash commands.
+A Claude Code–orchestrated portfolio pipeline for discovering, validating, scoping, designing, and shipping distinctive web, mobile, and desktop products. Built around opinionated methodology guides, narrow-lens reviewer subagents, helper skills, and pipeline slash commands.
 
 The name reflects what's in the box: many specialized agents (worker, reviewer, and code-review personas), composed into one pipeline that takes a product from **discovery** all the way through **ship**.
 
@@ -48,7 +48,7 @@ If that matches what you're trying to do, this repo is a head start. If you want
 |---|---|---|
 | **Pipeline slash commands** | `/scan`, `/discover`, `/validate-card`, `/scope-mvp`, `/research-design`, `/draft-design-brief`, `/start-build`, `/ship-app`, `/preview-product`, `/trend-check`, `/menu`, `/setup`, `/status`, `/run-tests`, `/system-check`, `/projects`, `/acknowledge-contributing` | `.claude/commands/` |
 | **Reviewer assistants** | Product viability / competition / market-segment / scope reviewers, design-brief and design-fidelity reviewers, UI/UX researcher | `.claude/agents/` |
-| **Senior-engineer personas** | `senior-software-engineer` (orchestrator) + 7 specialists: system-design, database, backend, frontend, QA, devops, security. Each plays a senior-IC role during the build phase. | `.claude/agents/senior-*.md` |
+| **Senior-engineer personas** | `senior-software-engineer` (orchestrator) + 8 specialists: system-design, database, backend, frontend, **desktop**, QA, devops, security. Each plays a senior-IC role during the build phase. | `.claude/agents/senior-*.md` |
 | **Agent-skills personas** | `code-reviewer`, `security-auditor`, `test-engineer` — file copies from [`aanifowose111/agent-skills`](https://github.com/aanifowose111/agent-skills) (fork), originally authored by **Addy Osmani** at [`addyosmani/agent-skills`](https://github.com/addyosmani/agent-skills), MIT-licensed. | Vendored into `.claude/agents/`; re-sync via `scripts/update-agent-skills.sh`. |
 | **Agent-skills skills** (23) | api-and-interface-design, browser-testing-with-devtools, ci-cd-and-automation, code-review-and-quality, code-simplification, context-engineering, debugging-and-error-recovery, deprecation-and-migration, documentation-and-adrs, doubt-driven-development, frontend-ui-engineering, git-workflow-and-versioning, idea-refine, incremental-implementation, interview-me, performance-optimization, planning-and-task-breakdown, security-and-hardening, shipping-and-launch, source-driven-development, spec-driven-development, test-driven-development, using-agent-skills — same upstream credit. | Vendored into `.claude/skills/`; re-sync via `scripts/update-agent-skills.sh`. |
 | **Helper skills** | `doc-export` (markdown → PDF/DOCX), `web-preview` (render Jinja in Chrome) | `.claude/skills/` |
@@ -113,15 +113,18 @@ You should see a prompt that looks something like `~ $` or `~ %`.
 
 For everything to work, you need:
 
+**Claude Code CLI** is the agent runner — it's what reads the workspace, drives the slash commands, and writes the files. Install it from the [Claude Code installation docs](https://docs.claude.com/en/docs/claude-code/installation). It requires a Claude account: use [this Claude Max signup link](https://claude.ai/referral/4tieocI5Xw) (3 lifetime passes from the maintainer) or sign up directly at [claude.ai](https://claude.ai).
+
+Then, the rest:
+
 | Tool | Purpose | Install (macOS) | Install (Ubuntu / WSL) |
 |---|---|---|---|
 | **git** | Version control | comes with Xcode CLI tools (`xcode-select --install`) | `sudo apt update && sudo apt install git` |
-| **Claude Code CLI** | The agent runner. Requires a Claude account — use [this Claude Max signup link](https://claude.ai/referral/4tieocI5Xw) (3 lifetime passes from the maintainer) or [claude.ai](https://claude.ai). | [docs.claude.com/en/docs/claude-code/installation](https://docs.claude.com/en/docs/claude-code/installation) | same link |
 | **Homebrew** (macOS only) | Package manager for the rest | `/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"` | n/a (you have `apt`) |
 | **GitHub CLI** (`gh`) | Auth with GitHub from the terminal | `brew install gh` | `sudo apt install gh` |
 | **pandoc** | Markdown → PDF/DOCX (for `doc-export` skill) | `brew install pandoc` | `sudo apt install pandoc` |
 | **typst** | Modern PDF engine for pandoc | `brew install typst` | see [github.com/typst/typst](https://github.com/typst/typst) |
-| **Python 3.11+** | For Flask web apps (workspace default) | `brew install python@3.12` | `sudo apt install python3 python3-pip` |
+| **Python 3.11+** | For Flask web apps + PySide6 desktop apps (workspace defaults) | `brew install python@3.12` | `sudo apt install python3 python3-pip` |
 | **Node.js 20+** | For React Native (workspace default) | `brew install node@20` | `curl -fsSL https://deb.nodesource.com/setup_20.x \| sudo -E bash -; sudo apt install nodejs` |
 
 After each install, verify with `<tool> --version`. For example: `git --version`, `gh --version`, `pandoc --version`, `typst --version`, `claude --version`.
@@ -253,7 +256,7 @@ Pipeline phase commands (each stops at a user-checkpoint):
 | `/scope-mvp <slug>` | Drafts the MVP brief — asks you to confirm the stack first — and runs the scope + code reviewers. |
 | `/research-design <slug>` | Runs the UI/UX researcher to produce a design-direction report (3+ visual directions, color/typography options, brand positioning). |
 | `/draft-design-brief <slug>` | Drafts the consolidated design brief (PRD+FRD) for the human designer, with the design-brief-reviewer. |
-| `/start-build <slug>` | Kicks off the build phase for a green-lit-to-build product. Invokes the senior-software-engineer to ask orientation questions (web/mobile/hybrid order, MVP vs. full, first subsystem) and route to the right specialist. Brings the product to ready-to-deploy state. |
+| `/start-build <slug>` | Kicks off the build phase for a green-lit-to-build product. Invokes the senior-software-engineer to ask orientation questions (web/mobile/desktop/hybrid order, MVP vs. full, first subsystem) and route to the right specialist. Brings the product to ready-to-deploy state. |
 | `/ship-app <slug> [--web\|--mobile\|--both]` | Initialize the shipment / release phase. Release-readiness gate (QA pre-flight via senior-qa-engineer + security pre-flight via senior-security-engineer), then deploy via senior-devops-engineer (web via flask-deploy-runbook.md; mobile via EAS build + app-store submission), then post-deploy verification. Distinct from `/start-build` (which stops at ready-to-deploy state). Both pre-flight gates must pass before any deploy; user gets a final "ship now / cancel" confirmation in between. |
 | `/preview-product <slug> [page]` | Preview a product's UI in the browser. Tries real preview (running app) first; falls back to dummy preview (Jinja + fixture data) if dependencies aren't connected yet. Always says which mode you got. Web only — mobile previews go through Expo Go / EAS preview builds. |
 | `/trend-check [optional triggered <reason>]` | Sweeps a watchlist derived from active pipeline state and recommends downstream commands. |
@@ -291,16 +294,17 @@ After `/scope-mvp` returns `green-lit-to-build`, run `/start-build <slug>`. That
 2. **Routes each subsystem** to the right specialist persona.
 3. **Sequences work** per system-design best practice — database before models, models before API contract, API contract before frontend, frontend skeleton with mocks before integration, integration before deploy.
 
-The seven specialists are:
+The eight specialists are:
 
 | Persona | Owns |
 |---|---|
 | `senior-system-design-engineer` | System shape, service boundaries, cross-cutting concerns. |
 | `senior-database-engineer` | Schema, indexes, migrations, data-integrity guarantees. |
 | `senior-backend-engineer` | ORM models, API contract, endpoint implementation, business logic. |
-| `senior-frontend-engineer` | UI implementation (Jinja+JS on web, RN on mobile), design-token integration, accessibility. |
-| `senior-qa-engineer` | Test coverage, integration at the seam, accessibility, release-readiness. |
-| `senior-devops-engineer` | Deploy, CI/CD, observability, incident response, backups. |
+| `senior-frontend-engineer` | Web + mobile UI (Jinja+JS on web, RN on mobile), design-token integration, accessibility. |
+| `senior-desktop-engineer` | Desktop UI (PySide6 by default; C# + Avalonia / Electron / Tauri if picked), UI ↔ core separation, packaging via PyInstaller, native integrations, distribution path. |
+| `senior-qa-engineer` | Test coverage, integration at the seam, accessibility, release-readiness. Adds pytest-qt with `QT_QPA_PLATFORM=offscreen` for desktop UI tests. |
+| `senior-devops-engineer` | Deploy, CI/CD, observability, incident response, backups. Adds PyInstaller + cross-platform CI matrix for desktop. |
 | `senior-security-engineer` | Threat modeling, secure coding, auth design, infra hardening. |
 
 Each specialist leverages relevant agent-skills (TDD, code-review-and-quality, security-and-hardening, performance-optimization, etc.) without you having to invoke them by name.
@@ -339,7 +343,7 @@ Auxiliary tools at `scripts/` (Python + Shell). Slash commands take priority for
 | `setup-deps.sh` | Install all required tools in one go (idempotent). Detects macOS vs. Linux. |
 | `update-agent-skills.sh` | Pull the latest agent-skills upstream and commit the new submodule SHA. |
 | `backup-personal-data.sh` | Tar up gitignored folders (ideas/, web-apps/, etc.); optional `--encrypt`. |
-| `new-product-skeleton.sh` | Scaffold a new product folder under `web-apps/<slug>/` or `mobile-apps/<slug>/`. |
+| `new-product-skeleton.sh` | Scaffold a new product folder under `web-apps/<slug>/`, `mobile-apps/<slug>/`, or `desktop-apps/<slug>/`. |
 | `clean-killed-ideas.sh` | Archive old killed-idea files older than N days. |
 
 See **[scripts/README.md](scripts/README.md)** for full usage, flags, and examples.
@@ -366,6 +370,7 @@ See **[scripts/README.md](scripts/README.md)** for full usage, flags, and exampl
 │   ├── funding/                   Funding strategy
 │   ├── web/                       Flask scaffold, deploy, storage, auth
 │   ├── mobile/                    RN scaffold, EAS, app store submission
+│   ├── desktop/                   PySide6 scaffold, packaging + distribution
 │   └── ui-ux/                     Design research, brief, handoff
 ├── external/
 │   └── agent-skills/              git submodule — aanifowose111/agent-skills fork
@@ -373,6 +378,7 @@ See **[scripts/README.md](scripts/README.md)** for full usage, flags, and exampl
 ├── market-research/               (gitignored) Your reports
 ├── web-apps/                      (gitignored) Your Flask web apps
 ├── mobile-apps/                   (gitignored) Your React Native apps
+├── desktop-apps/                  (gitignored) Your PySide6 desktop apps
 └── generated/                     (gitignored) PDF/DOCX exports
 ```
 
@@ -444,7 +450,7 @@ The repo is structured so that:
 - **Scaffolding** (guides, agents, commands, skills) is **committed and shared**.
 - **Your personal product work** (ideas, market research, builds, exports) is **gitignored** — it stays on your disk, never enters git.
 
-The `ideas/`, `market-research/`, `web-apps/`, `mobile-apps/`, and `generated/` folders each have a `README.md` that ships with the repo (explaining the convention). Their other contents are ignored.
+The `ideas/`, `market-research/`, `web-apps/`, `mobile-apps/`, `desktop-apps/`, and `generated/` folders each have a `README.md` that ships with the repo (explaining the convention). Their other contents are ignored.
 
 This means:
 
