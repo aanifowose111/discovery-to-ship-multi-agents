@@ -357,7 +357,11 @@ See **[scripts/README.md](scripts/README.md)** for full usage, flags, and exampl
 .
 ├── CLAUDE.md                      Auto-loaded project context (read first)
 ├── README.md                      This file
-├── HELP.md                        Command-by-command reference (when written)
+├── DOCUMENTATION.md               End-to-end walkthrough; rendered in-terminal via `/documentation`
+├── HELP.md                        Command-by-command reference
+├── CHANGELOG.md                   Per-version log of workspace-wide changes
+├── CONTRIBUTING.md                Contribution rules and required-updates matrix
+├── SECURITY.md                    Responsible-disclosure path for security concerns
 ├── LICENSE                        MIT
 ├── .gitignore
 ├── .claude/
