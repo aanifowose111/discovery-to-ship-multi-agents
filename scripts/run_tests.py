@@ -107,6 +107,8 @@ def test_repo_structure(checks: list[Check]) -> None:
         "guides/desktop/packaging-and-distribution.md",
         ".claude/agents/senior-desktop-engineer.md",
         ".claude/commands/ship-app.md",
+        ".claude/commands/documentation.md",
+        "DOCUMENTATION.md",
     ]
     for f in required:
         path = REPO_ROOT / f

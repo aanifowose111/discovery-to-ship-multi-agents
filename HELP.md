@@ -226,6 +226,16 @@ After your answers, the senior-software-engineer proposes the right specialist p
 
 You can re-run `/start-build <slug>` at any point during the build if you want a fresh "where am I" + "what's next" prompt.
 
+### `/documentation`
+
+Renders a condensed in-terminal walkthrough of the workspace — covering the pipeline phases, slash commands, scripts, helper skills, workspace conventions, and the reviewer-decision model. Wraps the permanent **`DOCUMENTATION.md`** at the repo root, which is the deeper full reference.
+
+**Personalized:** if you have existing artifacts (validation reports, scoping reports, briefs, etc.) the in-terminal rendering names them as the concrete examples — so when it explains `/validate-card`, it can reference your actual `validation-bench-watch.md` instead of using a placeholder.
+
+**Special behavior:** **this is the only command that bypasses the first-launch onboarding interrupt** described in `CLAUDE.md` §Session continuity → Rule A. New users can read about the workspace (including the onboarding workflow and why it matters) before being prompted to populate `user-context/INTERESTS.md`. Every other command — `/scan`, `/discover`, `/menu`, etc. — triggers onboarding on the first message of a fresh session when `INTERESTS.md` is missing.
+
+**Read-only:** the command never modifies any file. It surveys current state to personalize the rendering and then produces terminal output.
+
 ### `/menu`
 
 Surfaces a quick menu of "what you can do right now" based on the current pipeline state. Lower-overhead than reading `HELP.md` end-to-end. **Stops at:** menu shown.

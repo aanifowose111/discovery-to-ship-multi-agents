@@ -16,6 +16,22 @@ This project does not yet follow strict semantic versioning. Pre-1.0, breaking c
 
 _No entries yet — next batch lands here under a `### YYYY-MM-DD` subheader (or, if today already has a cut version, as a patch bump per the convention above)._
 
+## [0.6.0] - 2026-06-02
+
+### Added
+
+- **`DOCUMENTATION.md`** (new top-level reference, ~880 lines) — comprehensive end-to-end walkthrough of using the workspace, from `user-context` onboarding through `/scan` → `/discover` → `/validate-card` → `/scope-mvp` → `/start-build` → `/ship-app`. Each pipeline command gets a consistent treatment: what it does → what you input → what comes out → status meanings → when to stop → why → gotchas. Heavy focus on the build phase (§6, eight subsections) for readers with some technical background but no specific web/mobile/desktop expertise — including §6.5 "Following along when you don't code" with practical signs-of-going-well-vs-badly tables and §6.6 "When Fijara makes more sense" with an honest opt-out framing. §11 "The reviewer-decision model" covers the advise-vs-decide pattern in depth, with the verdict-pattern interpretation table.
+- **`/documentation` slash command** (`.claude/commands/documentation.md`) — renders a condensed in-terminal walkthrough (~350 lines) that personalizes against the user's actual current state (existing scans, cards, validation reports, etc.). When the user has real artifacts at a given phase, the in-terminal version uses them as concrete examples rather than placeholders — so `/validate-card` is explained using the user's actual `validation-bench-watch.md`, not a generic stand-in. Closes by pointing to `DOCUMENTATION.md` for the deeper reference.
+- **Onboarding-override exception for `/documentation`** in CLAUDE.md §Session continuity Rule A. `/documentation` is the **only** command that bypasses the first-launch onboarding interrupt — forcing onboarding before letting users read about the workspace (and the onboarding workflow itself) would be circular. Every other command still triggers the onboarding flow on the first message of a fresh session when `user-context/INTERESTS.md` is missing.
+- **`run_tests.py`** verifies `DOCUMENTATION.md` and `.claude/commands/documentation.md` exist (96 → 98 checks).
+- **`README.md` slash-command list and utility-commands table** + **`HELP.md` §2** updated to include `/documentation`.
+
+### Changed
+
+- **CLAUDE.md trimmed** for headroom under the 40 k auto-load threshold while accommodating the new `/documentation` references and onboarding-override exception. Trims were structural compressions that don't lose load-bearing info: the Specialist Personas line moved to "8 specialists" with a parenthetical list instead of 9 explicit names; the Phased plan §3 sub-bullet shortened; the Build-phase skill auto-invocation closing paragraph compressed; the Flask caveat tightened. Final: 39,960 chars.
+
+This is a **minor version bump** (0.5.x → 0.6.0), not a patch — a new top-level reference document + a new slash command + a new behavioral rule (onboarding override) is more than a fix.
+
 ## [0.5.1] - 2026-06-02
 
 ### Fixed
@@ -200,7 +216,8 @@ This is a **minor version bump** (0.4.x → 0.5.0), not a patch — it adds a pe
 - Stack-flexibility framing: workspace defaults are dockerized Flask + RN, but the methodologies are stack-agnostic and `/scope-mvp` asks the user to confirm the stack before drafting.
 - Internet access policy: `WebFetch` and `WebSearch` pre-approved in `.claude/settings.json`; permission only requested for non-HTTPS, suspicious, paid, or user-private URLs.
 
-[Unreleased]: https://github.com/aanifowose111/discovery-to-ship-multi-agents/compare/v0.5.1...HEAD
+[Unreleased]: https://github.com/aanifowose111/discovery-to-ship-multi-agents/compare/v0.6.0...HEAD
+[0.6.0]: https://github.com/aanifowose111/discovery-to-ship-multi-agents/compare/v0.5.1...v0.6.0
 [0.5.1]: https://github.com/aanifowose111/discovery-to-ship-multi-agents/compare/v0.5.0...v0.5.1
 [0.5.0]: https://github.com/aanifowose111/discovery-to-ship-multi-agents/compare/v0.4.4...v0.5.0
 [0.4.4]: https://github.com/aanifowose111/discovery-to-ship-multi-agents/compare/v0.4.3...v0.4.4

@@ -20,7 +20,7 @@ We are working through three broad phases. They are not strictly sequential — 
 3. **Build.** Implement the top-priority product(s) — first an initial scrappy MVP for validation, then (if the assumption holds) the optional design phase, then a real v1.
    - **Workspace defaults** (with build-domain guides): dockerized Flask (web) + React Native/Expo (mobile) + Python + PySide6 (desktop). Maintainer's preferred stacks.
    - **Other stacks are supported** — the methodology guides are stack-agnostic, and `mvp-scoping-methodology.md` §6.0 spells out what changes if a different stack is picked. The brief records the chosen stack; the build proceeds from there.
-   - Sensitive infrastructure decisions (storage config, `.env` strategy, hosting/distribution choice) are addressed in `mvp-scoping-methodology.md` §6 and (for default-stack projects) the corresponding web/mobile/desktop guides.
+   - Sensitive infrastructure decisions (storage, `.env`, hosting/distribution) are addressed in `mvp-scoping-methodology.md` §6 and (for default-stack projects) the build-domain guides.
 
 ---
 
@@ -98,7 +98,7 @@ Exit 0 = available. Exit 1 = taken (with details of the conflict).
 
 For programmatic use (e.g., from `new_idea_card.py`), the script's `is_available()` function returns `(bool, reason, [conflicts])`. The interactive `/discover` and `/scope-mvp` flows should both call this check before writing files.
 
-If a slug is taken because it was previously killed, **pick a different slug**. Recycling a killed slug confuses the kill-reason audit trail. If the previous kill needs to be undone, restore the killed card to `ideas/` (don't create a new artifact at the same slug).
+If a slug is taken because it was previously killed, **pick a different slug** — recycling confuses the kill-reason audit trail. To undo a kill, restore the killed card to `ideas/` rather than creating a new artifact at the same slug.
 
 ---
 
@@ -284,7 +284,7 @@ Each product in the build phase has a **`BUILD_STATUS.md`** at its project root 
 
 Both Phase 2 (initial MVP) and Phase 4 (v1) are orchestrated by `senior-software-engineer` via `/start-build <slug>`. It asks orientation questions (web/mobile/desktop/hybrid order, MVP vs. fully-featured, first subsystem), then routes work to the right specialist persona in the right order. Defaults: **API + web first if hybrid; MVP scope first; database design first subsystem** (for desktop-only briefs, project tree + core models first).
 
-**Specialist personas** (full detail in `.claude/agents/senior-*.md`): `senior-software-engineer` (orchestrator), `senior-system-design-engineer`, `senior-database-engineer`, `senior-backend-engineer`, `senior-frontend-engineer`, `senior-desktop-engineer`, `senior-qa-engineer`, `senior-devops-engineer`, `senior-security-engineer`.
+**Specialist personas** (`.claude/agents/senior-*.md`): `senior-software-engineer` (orchestrator) + 8 specialists — system-design, database, backend, frontend, desktop, qa, devops, security.
 
 **Standard build order:** database → project tree → core models → API contract → API impl → auth → background jobs (if scoped) → frontend skeleton → integration tests → ready-to-deploy state. Each persona leverages the 23 agent-skills skills as workflows. **Deploy / release is a separate gated phase via `/ship-app`** — release-readiness pass (QA + security) → deploy → post-deploy verification.
 
@@ -332,7 +332,7 @@ Custom commands live in `.claude/commands/` (one file per command, run as `/<com
 
 **Parallel / cross-cutting:** [`/trend-check`](.claude/commands/trend-check.md), [`/preview-product`](.claude/commands/preview-product.md).
 
-**Utility / meta:** [`/menu`](.claude/commands/menu.md) (command map), [`/status`](.claude/commands/status.md) (read-only pipeline snapshot), [`/setup`](.claude/commands/setup.md) (verify tools + identity on new clone), [`/acknowledge-contributing`](.claude/commands/acknowledge-contributing.md) (required for non-owners before editing tracked files), [`/run-tests`](.claude/commands/run-tests.md) (repo health checks), [`/system-check`](.claude/commands/system-check.md) (compare host vs. workspace requirements), [`/projects`](.claude/commands/projects.md) (list + delete discovery projects).
+**Utility / meta:** [`/menu`](.claude/commands/menu.md) (command map), [`/status`](.claude/commands/status.md) (pipeline snapshot), [`/documentation`](.claude/commands/documentation.md) (end-to-end workspace walkthrough; **bypasses onboarding**), [`/setup`](.claude/commands/setup.md) (verify tools on new clone), [`/acknowledge-contributing`](.claude/commands/acknowledge-contributing.md) (non-owners before tracked-file edits), [`/run-tests`](.claude/commands/run-tests.md) (repo health), [`/system-check`](.claude/commands/system-check.md) (host vs. workspace specs), [`/projects`](.claude/commands/projects.md) (list + delete discovery projects).
 
 Most commands take `<slug>` as argument and follow a `read → work → checkpoint → stop` pattern. Never auto-advance an artifact's status; never auto-chain into the next phase.
 
@@ -355,9 +355,9 @@ During any **build phase** (after `/scope-mvp` returns `green-lit-to-build`, thr
 
 **Situational — only when context matches or the user asks:** `idea-refine`, `interview-me`, `planning-and-task-breakdown`, `doubt-driven-development`, `using-agent-skills`, `source-driven-development`, `context-engineering`, `deprecation-and-migration`.
 
-Full mapping of when each is applied is in `guides/product/build-status-methodology.md` and each senior-engineer persona at `.claude/agents/senior-*.md`. Claude does not announce skill invocations every time — they apply silently. If asked "are you applying X right now?", Claude can confirm.
+Full mapping in `guides/product/build-status-methodology.md` and the senior-engineer personas. Claude doesn't announce invocations — they apply silently; ask "are you applying X?" to confirm.
 
-**Flask-side caveat for `frontend-ui-engineering`:** its examples are React/TSX; on Flask projects the *principles* apply, the *examples* don't — implement in Jinja + vanilla JS, not React.
+**Flask caveat for `frontend-ui-engineering`:** examples are React/TSX; on Flask the *principles* apply but implement in Jinja + vanilla JS, not React.
 
 ---
 
@@ -395,6 +395,8 @@ When a new session starts in this directory:
 6. **Session-entry behavior** — TWO independent rules:
 
    **Rule A — First-launch onboarding (strictly enforced).** When `user-context/INTERESTS.md` does NOT exist, run the onboarding flow **on the user's first message of every fresh session, regardless of what that message is.** Even if the user immediately types `/discover` or "let's build X", **the onboarding fires first**. The reason: discovery and downstream commands produce dramatically more targeted, reviewer-survivable outputs when grounded in the user's own context (interests + seed ideas). Without that context the system runs degraded — better to surface this once at the start than ship weak outputs.
+
+   **The ONLY command that bypasses Rule A is `/documentation`.** Reason: forcing onboarding before letting the user read about the workspace (including the onboarding workflow itself) would be circular. When the user's first message is `/documentation`, render the docs directly without firing onboarding — the documentation itself explains why onboarding matters and how to populate `INTERESTS.md`.
 
    The flow:
 
