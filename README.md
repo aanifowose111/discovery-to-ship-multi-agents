@@ -380,6 +380,13 @@ See **[scripts/README.md](scripts/README.md)** for full usage, flags, and exampl
 │   └── ui-ux/                     Design research, brief, handoff
 ├── external/
 │   └── agent-skills/              git submodule — aanifowose111/agent-skills fork
+├── scripts/                       Python + shell utilities (lint, slug check, run-id gen, audit log, ...)
+├── user-context/                  Your founder profile, seed ideas, coding policy, audit log
+│   ├── README.md                  How to populate the four personal files
+│   ├── INTERESTS.md.example       Founder profile template (live INTERESTS.md gitignored)
+│   ├── IDEAS.md.example           Seed-ideas backlog template (live IDEAS.md gitignored)
+│   ├── POLICY.md.example          Coding-and-build policy template (live POLICY.md gitignored)
+│   └── audit-log.jsonl.example    Audit-log format template (live audit-log.jsonl gitignored)
 ├── ideas/                         (gitignored) Your idea cards
 ├── market-research/               (gitignored) Your reports
 ├── web-apps/                      (gitignored) Your Flask web apps
