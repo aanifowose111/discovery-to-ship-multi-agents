@@ -61,3 +61,13 @@ Wait for the user's response before invoking any further specialists.
 - This command is the **entry point** to the build phase. After this, individual specialists are invoked as the build proceeds — `senior-software-engineer` routes them in based on what's done and what's next.
 - The user can re-run `/start-build <slug>` at any point if they want a fresh "where am I" + "what's next" prompt from the senior software engineer.
 - The senior personas all live in `.claude/agents/senior-*.md` and are invoked via the custom-subagent invocation pattern in `CLAUDE.md`.
+
+### Audit-log auto-append (build initialization)
+
+When the user confirms the first subsystem and the senior-software-engineer starts the build (i.e., `BUILD_STATUS.md` is first created or the first subsystem flips to `[>]`), append a `build-milestone` entry per `CLAUDE.md` § Audit log:
+
+```
+python3 scripts/audit_log.py add build-milestone "Build milestone for <slug>: project initialized via /start-build (<stack: flask|react-native|pyside6|...>, first subsystem: <subsystem name>)."
+```
+
+Subsequent milestones (subsystem completion, ready-to-deploy, shipped) are appended by `senior-software-engineer` and `/ship-app` — see their respective files.

@@ -106,10 +106,11 @@ Thumbs.db
 *.log
 logs/
 
-# Personal user-context for this clone (founder profile, interests, coding policy, ideas backlog)
+# Personal user-context for this clone (founder profile, interests, coding policy, ideas backlog, audit log)
 user-context/*
 !user-context/README.md
 !user-context/INTERESTS.md.example
 !user-context/POLICY.md.example
 !user-context/IDEAS.md.example
+!user-context/audit-log.jsonl.example
 !user-context/.gitkeep

@@ -41,3 +41,5 @@ After writing the report, **stop**. Do not advance the card to `green-lit` or `k
 > - Kill
 
 Update the card's `status` and the report's *Decision* section only after the user has decided.
+
+**If the user picks Kill**, also append a `card-kill` audit-log entry (per `CLAUDE.md` § Audit log): `python3 scripts/audit_log.py add card-kill "Killed card <slug> after validation (run-id: <run-id>). Reason: <one-line user reason>."`. This is in addition to moving the card to `ideas/killed/<run-id>/<slug>.md`.

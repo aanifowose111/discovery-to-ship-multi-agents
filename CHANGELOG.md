@@ -16,6 +16,28 @@ This project does not yet follow strict semantic versioning. Pre-1.0, breaking c
 
 _No entries yet — next batch lands here under a `### YYYY-MM-DD` subheader (or, if today already has a cut version, as a patch bump per the convention above)._
 
+## [0.7.0] - 2026-06-06
+
+### Added
+
+- **Personal-space audit log + `/log` slash command + `scripts/audit_log.py` helper.** New persistent record at `user-context/audit-log.jsonl` (JSONL — one entry per line, gitignored, never enters git) for important user-driven decisions and key build moments. Valid entry types: `onboarding-skip`, `project-delete`, `card-kill`, `card-revive`, `build-milestone`, `user-note`. Routine reads / command invocations / status flips / commits are deliberately NOT logged — git history covers those. The `/log` slash command is the user-facing entry point: `/log` (display newest first), `/log <text>` (append `user-note`), `/log type <type>` (filter — e.g., `/log type build-milestone` yields a per-product build journal), `/log delete <id>` (remove, with confirm), `/log clear` (wipe, with confirm). Backed by `scripts/audit_log.py` (add / list / delete / clear / has subcommands). New `CLAUDE.md § Audit log` section locks the policy in.
+- **Build-milestone auto-append wired into the build orchestrator.** `senior-software-engineer` appends a `build-milestone` entry whenever a `BUILD_STATUS.md` subsystem flips to `[x]` (e.g., "database schema completed", "authentication flow completed", "ready-to-deploy state reached"), giving the user a queryable per-product build journal via `/log type build-milestone`. `/start-build` appends the initial "project initialized" milestone; `/ship-app` appends the "shipped" milestone. Recorded in `guides/product/build-status-methodology.md` as part of the standard subsystem-completion routine.
+- **`/scan` mode picker when `user-context/IDEAS.md` is populated** — three options: *Focused* (sweep territories adjacent to seed-idea clusters), *Open* (default scan; ignore seeds), *Hybrid + compare* (recommended default — open sweep + a "compared against your seeds" subsection naming overlaps/complements/threats). Chosen mode is recorded at the top of the report. `IDEAS.md` shapes which territories rank higher; `INTERESTS.md` still defines the founder-fit lens. If `IDEAS.md` is missing or only contains placeholders, the picker is skipped and the scan runs in default open mode. Documented in `guides/market/market-scan-methodology.md` §5.0a.
+- **`/discover` mode picker when `user-context/IDEAS.md` is populated** — three options: *(a) Promote seeds* (skip brainstorming entirely; convert each seed into a formal card; the ≥10-cards floor does NOT apply), *(b) Full discovery* (10+ brainstormed candidates; ignore seeds), *(c) Hybrid + compare* (recommended default — 10+ brainstormed candidates AND one card per seed, with an explicit "Seeds vs. brainstormed candidates" comparison subsection in the triage). Cards drawn from `IDEAS.md` carry `source: user-context/IDEAS.md` in frontmatter; brainstorm cards keep the regular source tag. From triage onward they compete on the same rubric. Documented in `guides/product/idea-discovery-methodology.md` §3.
+- **Auto-append wiring for `card-kill` (in `/validate-card` and `/scope-mvp`) and `project-delete` (in `/projects`)** — these destructive decisions now leave an audit trail alongside the file-system changes.
+- **`user-context/audit-log.jsonl.example`** — committed template documenting the JSONL entry shape, with example rows for each valid type. `.gitignore` allowlists the example; the live `audit-log.jsonl` is created lazily on first write and stays personal-local.
+- **`scripts/audit_log.py` smoke test** added to `run_tests.py` (98 → 104 checks: +3 required-file checks for the script / `.jsonl.example` / `.claude/commands/log.md`, +1 smoke test, +others ride along with the file additions).
+
+### Changed
+
+- **CLAUDE.md § Session continuity Rule A** now fires when EITHER `user-context/INTERESTS.md` OR `user-context/IDEAS.md` is missing (was: only `INTERESTS.md`). The audit log gates re-prompts — once an `onboarding-skip` entry exists (user picked "Prefer to update later"), Rule A no longer fires; the user re-enables onboarding by deleting the entry via `/log delete <id>` or `/log clear`. Rule B's trigger condition broadened accordingly.
+- **CLAUDE.md § Custom slash commands** Utility / meta line includes `/log`.
+- **CLAUDE.md trimmed for headroom** under the 40 k auto-load threshold while accommodating the new sections: the Audit log section was compacted to a single type table; the "Search patterns" + "Cross-shell safety" subsections under Internet access policy were consolidated; Rule A's "Why strict, not loose" paragraph was dropped (rationale already obvious from the rule itself). Final: 39,930 chars.
+- **`user-context/README.md`** updated to describe `audit-log.jsonl` alongside `INTERESTS.md` / `IDEAS.md` / `POLICY.md`, and to list `audit-log.jsonl.example` as a committed template.
+- **`HELP.md` §2** added a `/log` subsection with the full type table; **`DOCUMENTATION.md`** §3 (user-context onboarding) updated for the both-files gate + `onboarding-skip` audit-log mechanism, §5.1 and §5.2 documenting the mode pickers, §13 utility table includes `/log`; **`README.md`** slash-command list and utility-commands table include `/log`.
+
+This is a **minor version bump** (0.6.x → 0.7.0), not a patch — a new top-level personal-space log + a new slash command + a new behavioral rule (audit-log-gated onboarding re-prompt) + mode-pickers added to two pipeline commands is more than a fix.
+
 ## [0.6.0] - 2026-06-02
 
 ### Added
@@ -216,7 +238,8 @@ This is a **minor version bump** (0.4.x → 0.5.0), not a patch — it adds a pe
 - Stack-flexibility framing: workspace defaults are dockerized Flask + RN, but the methodologies are stack-agnostic and `/scope-mvp` asks the user to confirm the stack before drafting.
 - Internet access policy: `WebFetch` and `WebSearch` pre-approved in `.claude/settings.json`; permission only requested for non-HTTPS, suspicious, paid, or user-private URLs.
 
-[Unreleased]: https://github.com/aanifowose111/discovery-to-ship-multi-agents/compare/v0.6.0...HEAD
+[Unreleased]: https://github.com/aanifowose111/discovery-to-ship-multi-agents/compare/v0.7.0...HEAD
+[0.7.0]: https://github.com/aanifowose111/discovery-to-ship-multi-agents/compare/v0.6.0...v0.7.0
 [0.6.0]: https://github.com/aanifowose111/discovery-to-ship-multi-agents/compare/v0.5.1...v0.6.0
 [0.5.1]: https://github.com/aanifowose111/discovery-to-ship-multi-agents/compare/v0.5.0...v0.5.1
 [0.5.0]: https://github.com/aanifowose111/discovery-to-ship-multi-agents/compare/v0.4.4...v0.5.0

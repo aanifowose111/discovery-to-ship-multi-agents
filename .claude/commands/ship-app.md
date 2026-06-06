@@ -63,6 +63,12 @@ This command is the natural sequel to `/start-build`. `/start-build` brings the 
 
 8. **Update `BUILD_STATUS.md`.** `senior-software-engineer` (the BUILD_STATUS owner) writes an entry recording: deploy timestamp, deployed version (git SHA), target environment, deploy mode (web / mobile / desktop / multi), QA + security verdicts, post-deploy verification result. Status marker changes from `[>]` to `[x]` for the "Deploy" / "Release" subsystem.
 
+9. **Append a `build-milestone` audit-log entry** (per `CLAUDE.md` § Audit log):
+
+   ```
+   python3 scripts/audit_log.py add build-milestone "Build milestone for <slug>: shipped to <environment> via /ship-app (<stack>, git SHA <short-sha>, QA: <verdict>, security: <verdict>, post-deploy: <result>)."
+   ```
+
 ### Stop here — user checkpoint
 
 After post-deploy verification, **stop**. Show the user:

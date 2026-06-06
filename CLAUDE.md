@@ -71,9 +71,7 @@ This table grows as new folders or domains open. Keep it current.
 
 **Tracked files** are anything *not* in the gitignored personal-data folders or `.claude/settings.local.json`. If you are unsure, run `git check-ignore <path>` — if the file is gitignored, no acknowledgment is needed; otherwise it is.
 
-**This is a convention, not a technical lock.** Anyone editing files outside Claude Code (vim, VSCode, the GitHub web UI) bypasses this entirely. The convention exists for the 99% case where contributors use Claude Code to edit; for the 1% where they don't, the protection is GitHub branch protection + PR review on the owner's repo. The owner email above is the canonical anchor — changing it without going through the owner's PR review is the kind of change that gets caught.
-
-> **For forkers who want to make their own fork the canonical source for *their* work:** update the `Repository owner` line and the email check above to your own identity in your fork's CLAUDE.md. That's part of customizing the workspace for yourself.
+**This is a convention, not a technical lock.** Editing outside Claude Code (vim, VSCode, GitHub web UI) bypasses it. The convention covers the 99% Claude-Code case; the 1% remainder is covered by GitHub branch protection + PR review. Forkers customizing the workspace for themselves: update the `Repository owner` line and the email check above to your own identity in your fork's CLAUDE.md.
 
 ---
 
@@ -86,17 +84,9 @@ A **product slug** is the canonical identifier for a product across the workspac
 - `web-apps/<slug>/` (web app project folders)
 - `mobile-apps/<slug>/` (mobile app project folders)
 
-A slug appearing in two of those locations means two different things share an identifier — that's a workspace-integrity problem. Lint catches it (`scripts/lint_pipeline.py` has a `slug.collision` rule).
+A slug appearing in two of those locations is a workspace-integrity problem; `scripts/lint_pipeline.py` catches it via its `slug.collision` rule.
 
-**Before creating any new slug-keyed artifact**, verify availability:
-
-```bash
-python3 scripts/check_slug.py <proposed-slug>
-```
-
-Exit 0 = available. Exit 1 = taken (with details of the conflict).
-
-For programmatic use (e.g., from `new_idea_card.py`), the script's `is_available()` function returns `(bool, reason, [conflicts])`. The interactive `/discover` and `/scope-mvp` flows should both call this check before writing files.
+**Before creating any new slug-keyed artifact**, verify availability with `python3 scripts/check_slug.py <proposed-slug>` (exit 0 = available, exit 1 = taken with conflict details). The interactive `/discover` and `/scope-mvp` flows must call this before writing files; programmatic callers can use the script's `is_available()` function.
 
 If a slug is taken because it was previously killed, **pick a different slug** — recycling confuses the kill-reason audit trail. To undo a kill, restore the killed card to `ideas/` rather than creating a new artifact at the same slug.
 
@@ -171,6 +161,23 @@ Before creating any git commit in this workspace, Claude must **ask the user whe
 
 ---
 
+## Audit log
+
+Important user-driven decisions are recorded in `user-context/audit-log.jsonl` (gitignored — never enters git). Helper: `scripts/audit_log.py`. User-facing command: `/log`.
+
+| Type | When Claude appends it (auto) | Effect |
+|---|---|---|
+| `onboarding-skip` | User picks "Prefer to update later" at Rule A | Gates the Rule A re-prompt |
+| `project-delete` | User confirms a destructive `/projects delete` | Audit trail of destructive ops |
+| `card-kill` | User kills a card during `/validate-card` or `/scope-mvp` | Mirrors frontmatter, queryable |
+| `card-revive` | User restores a killed card | Audit trail |
+| `build-milestone` | A build-stage key moment lands: project initialized via `/start-build`, a `BUILD_STATUS.md` subsystem flips to `[x]`, ready-to-deploy state reached, app shipped via `/ship-app` | Timeline of build achievements |
+| `user-note` | Only via `/log <text>` (no auto path) | Free-text personal note |
+
+What does NOT get logged: file reads, command invocations, status flips, commits — git history covers those. The log is for state decisions and intentional records, not telemetry. Forkers inherit the convention; the live log stays local.
+
+---
+
 ## Working style (how the user wants Claude to operate here)
 
 - **One thing at a time.** Build → present → wait for the user to inspect → next. Do not batch-create scaffolding.
@@ -201,36 +208,21 @@ Web search and web fetch are **integral, first-class tools** for this project. P
 
 When you do fetch, **cite the source** in any output that depends on it, so the user can audit later.
 
-### Search patterns: prefer direct glob args (avoid both `find -exec` and `for` loops)
+### Search patterns
 
-When Claude needs to search files inside `ideas/`, `market-research/`, `web-apps/`, `mobile-apps/`, or any other path with the run-folder / per-product structure: **pass the glob directly as the command's argument**. Two Bash patterns trigger interactive permission prompts and should be avoided:
-
-- `find -exec` — Claude Code treats `-exec` as a higher-permission operation (it can run arbitrary commands) and prompts even when `Bash(find:*)` is allowlisted.
-- `for f in <glob>; do ... done` — the static analyzer flags shell control flow ("Contains shell syntax that cannot be statically analyzed") and prompts on the whole command.
-
-The fix is the same in both cases: let the shell expand the glob into the command's argv *before* the command runs. No `find`, no `for`, just a single command with a glob argument.
+For searches across `ideas/`, `market-research/`, `web-apps/`, `mobile-apps/`, etc.: **pass the glob directly as the command's argument** — neither `find -exec` nor `for f in <glob>; do` (both trigger permission prompts; the former because `-exec` is privileged, the latter because the static analyzer flags shell control flow).
 
 ```bash
-# AVOID — both trigger permission prompts:
-find market-research -name "scan.md" -exec grep -l "status: active" {} \;
-for f in market-research/*/scan.md; do grep -l "status: active" "$f"; done
-
-# PREFER — direct glob expansion, no control flow, statically analyzable:
+# AVOID:  find market-research -name "scan.md" -exec grep -l "status: active" {} \;
+# AVOID:  for f in market-research/*/scan.md; do grep -l "status: active" "$f"; done
+# PREFER:
 grep -l "status: active" market-research/*/scan.md 2>/dev/null
 ls -t market-research/*/scan.md 2>/dev/null | head -1   # newest by mtime
 ```
 
-For traversal that can't be expressed as a single glob (recursive walks, conditional logic on file contents), use Python (`Path("market-research").rglob("scan.md")` etc.) — also auto-allowed.
+For recursive walks or conditional logic on contents, use Python (`Path("market-research").rglob("scan.md")`) — also auto-allowed. Chain read-only checks as **separate parallel Bash tool calls**, not `;`-concatenated.
 
-If you must chain multiple read-only checks, issue them as **separate Bash tool calls** in parallel rather than concatenating with `;` / newlines inside one call. Parallel calls are cleaner for the analyzer and faster for the user.
-
-### Cross-shell safety (zsh's `NOMATCH`)
-
-zsh (macOS default) errors at parse time on unmatched globs (`zsh: no matches found: ...`); `2>/dev/null` can't suppress it. Bash (Linux, Git Bash, WSL) is lenient.
-
-This bites survey commands against possibly-empty state (e.g., `ls market-research/*/scan.md` before any `/scan` has run). Safe alternatives: `ls market-research/` (folder listing always succeeds), or `python3 -c "import glob; [print(p) for p in glob.glob('market-research/*/scan.md')]"`.
-
-Direct globs are fine when a match is guaranteed. Our `scripts/*.sh` (bash shebangs) and `scripts/*.py` (`pathlib`/`glob`) are unaffected — this governs only ad-hoc Bash Claude generates.
+**zsh `NOMATCH` caveat:** zsh (macOS default) errors at parse time on unmatched globs; `2>/dev/null` can't suppress it. For surveys that may match nothing (e.g., `ls market-research/*/scan.md` before any `/scan`), prefer `ls market-research/` or `python3 -c "import glob; [print(p) for p in glob.glob('market-research/*/scan.md')]"`. Our `scripts/*.{sh,py}` are unaffected — this only governs ad-hoc Bash.
 
 ---
 
@@ -332,7 +324,7 @@ Custom commands live in `.claude/commands/` (one file per command, run as `/<com
 
 **Parallel / cross-cutting:** [`/trend-check`](.claude/commands/trend-check.md), [`/preview-product`](.claude/commands/preview-product.md).
 
-**Utility / meta:** [`/menu`](.claude/commands/menu.md) (command map), [`/status`](.claude/commands/status.md) (pipeline snapshot), [`/documentation`](.claude/commands/documentation.md) (end-to-end workspace walkthrough; **bypasses onboarding**), [`/setup`](.claude/commands/setup.md) (verify tools on new clone), [`/acknowledge-contributing`](.claude/commands/acknowledge-contributing.md) (non-owners before tracked-file edits), [`/run-tests`](.claude/commands/run-tests.md) (repo health), [`/system-check`](.claude/commands/system-check.md) (host vs. workspace specs), [`/projects`](.claude/commands/projects.md) (list + delete discovery projects).
+**Utility / meta:** [`/menu`](.claude/commands/menu.md) (command map), [`/status`](.claude/commands/status.md) (pipeline snapshot), [`/documentation`](.claude/commands/documentation.md) (end-to-end walkthrough; **bypasses onboarding**), [`/setup`](.claude/commands/setup.md) (verify tools), [`/acknowledge-contributing`](.claude/commands/acknowledge-contributing.md) (non-owners), [`/log`](.claude/commands/log.md) (audit log), [`/run-tests`](.claude/commands/run-tests.md) (repo health), [`/system-check`](.claude/commands/system-check.md) (host vs. workspace), [`/projects`](.claude/commands/projects.md) (list + delete projects).
 
 Most commands take `<slug>` as argument and follow a `read → work → checkpoint → stop` pattern. Never auto-advance an artifact's status; never auto-chain into the next phase.
 
@@ -394,7 +386,7 @@ When a new session starts in this directory:
 5. Do **not** auto-invoke any phase's slash command without the user asking. The chain is one command at a time, by the user.
 6. **Session-entry behavior** — TWO independent rules:
 
-   **Rule A — First-launch onboarding (strictly enforced).** When `user-context/INTERESTS.md` does NOT exist, run the onboarding flow **on the user's first message of every fresh session, regardless of what that message is.** Even if the user immediately types `/discover` or "let's build X", **the onboarding fires first**. The reason: discovery and downstream commands produce dramatically more targeted, reviewer-survivable outputs when grounded in the user's own context (interests + seed ideas). Without that context the system runs degraded — better to surface this once at the start than ship weak outputs.
+   **Rule A — First-launch onboarding (strictly enforced).** Fires when EITHER `user-context/INTERESTS.md` OR `user-context/IDEAS.md` is missing, AND no `onboarding-skip` entry exists in `user-context/audit-log.jsonl` (check via `python3 scripts/audit_log.py has onboarding-skip` — exit 0 = skip recorded, exit 1 = no skip). When it fires, run the onboarding flow **on the user's first message of every fresh session, regardless of what that message is.** Even if the user immediately types `/discover` or "let's build X", onboarding fires first — discovery and downstream commands produce dramatically more targeted, reviewer-survivable outputs when grounded in the user's own context. Once an `onboarding-skip` entry exists (user picked "later"), Rule A no longer fires; the user can re-enable by deleting the entry via `/log delete <id>`.
 
    **The ONLY command that bypasses Rule A is `/documentation`.** Reason: forcing onboarding before letting the user read about the workspace (including the onboarding workflow itself) would be circular. When the user's first message is `/documentation`, render the docs directly without firing onboarding — the documentation itself explains why onboarding matters and how to populate `INTERESTS.md`.
 
@@ -414,8 +406,7 @@ When a new session starts in this directory:
       - When user replies, **format into the `user-context/IDEAS.md.example` shape** and write to `user-context/IDEAS.md`. Mark item 2 `completed`.
       - Close: *"Both files saved. Now proceeding with your original request, or run `/menu` to see options."* If the user had an original intent (e.g., `/discover`), now run it.
    4. **If "Prefer to update later":**
-      - Reply: *"Got it. You can populate `user-context/INTERESTS.md` and `IDEAS.md` any time via `cp user-context/<file>.example user-context/<file>` or by re-launching a fresh session. Proceeding with your original message now (note: `/discover` will run with less personally-relevant output without your context)."* Then run their original message.
+      - **Record the skip in the audit log** so Rule A doesn't fire next session: `python3 scripts/audit_log.py add onboarding-skip "User deferred INTERESTS.md / IDEAS.md at first-launch."`
+      - Reply: *"Got it — logged the skip (delete via `/log delete <id>` to re-enable). Populate `INTERESTS.md` / `IDEAS.md` any time via `cp user-context/<file>.example user-context/<file>`. Proceeding with your original message — `/discover` and `/scan` will run with less personally-relevant output until you populate them."* Then run their original message.
 
-   **Rule B — Normal session entry** (when `user-context/INTERESTS.md` EXISTS): onboarding has already happened; behave normally. If the user's first message states clear intent, follow it. If generic greeting / open-ended, briefly summarize what's in flight (per steps 3-4 above) and offer a short menu of 2-4 plausible next actions.
-
-   **Why strict, not loose:** the user explicitly asked for enforcement — they want every forker to be prompted about user-context before they can do degraded discovery, because untargeted `/discover` output produces cards that get killed in validation and wastes everyone's time. The picker still has a "Later" option, so the user retains control; the enforcement is a one-time interrupt per missing-file state, not a permanent block.
+   **Rule B — Normal session entry** (both files exist, OR an `onboarding-skip` entry exists): behave normally. If first message states clear intent, follow it; if generic, briefly summarize what's in flight (per steps 3-4 above) and offer a short menu of 2-4 next actions.

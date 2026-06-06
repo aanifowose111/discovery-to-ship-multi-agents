@@ -1,0 +1,8 @@
+{"timestamp": "2026-01-01T00:00:00Z", "id": "00000001", "type": "user-note", "description": "Example: free-text note added via /log <text>. Use this for things you want to remember about your own workspace state."}
+{"timestamp": "2026-01-01T00:01:00Z", "id": "00000002", "type": "onboarding-skip", "description": "Example: user picked 'Prefer to update later' at first-launch onboarding. Suppresses future re-prompts. Delete this entry to re-enable the onboarding interrupt."}
+{"timestamp": "2026-01-01T00:02:00Z", "id": "00000003", "type": "project-delete", "description": "Example: deleted discovery project run-id abc12345-010126 via /projects (5 cards, 2 validations, 0 builds)."}
+{"timestamp": "2026-01-01T00:03:00Z", "id": "00000004", "type": "card-kill", "description": "Example: killed card <slug> (reason: market too small)."}
+{"timestamp": "2026-01-01T00:04:00Z", "id": "00000005", "type": "card-revive", "description": "Example: restored killed card <slug> back to ideas/<run-id>/ after re-evaluation."}
+{"timestamp": "2026-01-01T00:05:00Z", "id": "00000006", "type": "build-milestone", "description": "Example: build milestone for <slug>: project initialized (Flask + Postgres scaffolded via /start-build)."}
+{"timestamp": "2026-01-01T00:06:00Z", "id": "00000007", "type": "build-milestone", "description": "Example: build milestone for <slug>: authentication flow completed (session-cookie + bcrypt password hashing)."}
+{"timestamp": "2026-01-01T00:07:00Z", "id": "00000008", "type": "build-milestone", "description": "Example: build milestone for <slug>: shipped to first 10 users via /ship-app."}

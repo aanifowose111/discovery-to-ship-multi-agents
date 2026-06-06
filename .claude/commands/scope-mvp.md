@@ -67,6 +67,8 @@ After writing the report, **stop**. Do not advance the brief to `green-lit-to-bu
 
 Update the brief's `status` and the report's *Decision* section only after the user has decided.
 
+**If the user picks Kill**, also append a `card-kill` audit-log entry (per `CLAUDE.md` § Audit log): `python3 scripts/audit_log.py add card-kill "Killed card <slug> at MVP scoping (run-id: <run-id>). Reason: <one-line user reason>."`. This is in addition to moving the card to `ideas/killed/<run-id>/<slug>.md`.
+
 ### Stop here — user checkpoint #2: pre-build decisions (only if advanced)
 
 Once the user signs off on `green-lit-to-build`, ask two more questions **before any build work begins**. Both at once:

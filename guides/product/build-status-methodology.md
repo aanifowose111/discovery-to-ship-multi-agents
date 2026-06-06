@@ -164,7 +164,7 @@ Who updates the file and when:
 |---|---|---|
 | `/start-build` orientation completes | `senior-software-engineer` | Initial file created with full dynamic checklist |
 | A specialist persona starts a subsystem | `senior-software-engineer` | `[ ]` → `[>]`; `current-focus` updated; History entry added |
-| A specialist completes a subsystem | `senior-software-engineer` | `[>]` → `[x]`; timestamp + persona + artifact recorded; History entry added |
+| A specialist completes a subsystem | `senior-software-engineer` | `[>]` → `[x]`; timestamp + persona + artifact recorded; History entry added; **`build-milestone` entry appended to the audit log** (per `CLAUDE.md` § Audit log) — gives the user a queryable per-product build journal via `/log type build-milestone` |
 | A subsystem is added or removed (scope change) | `senior-software-engineer` | Checklist updated; History entry explains the change |
 | A non-obvious decision is made | `senior-software-engineer` | Decisions section appended |
 | Build pauses | `senior-software-engineer` | `build-status: paused`; History note |

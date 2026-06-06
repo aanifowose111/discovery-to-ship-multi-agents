@@ -123,24 +123,32 @@ In parallel with all of the above: `/trend-check` runs on a weekly cadence (or t
 
 ## 3. Before you start — the user-context onboarding
 
-When you first run any command in a fresh Claude Code session, the workspace checks whether `user-context/INTERESTS.md` exists. If it does **not**, Claude interrupts your request with a one-time onboarding flow that captures:
+When you first run any command in a fresh Claude Code session, the workspace checks two things:
+
+1. Does `user-context/INTERESTS.md` exist?
+2. Does `user-context/IDEAS.md` exist?
+
+If **either** is missing AND the audit log (`user-context/audit-log.jsonl`) does not yet contain an `onboarding-skip` entry, Claude interrupts your request with a one-time onboarding flow that captures:
 
 1. **Your interests** — professional background, hobbies, industries you know well, anything you'd consider building. Saved to `user-context/INTERESTS.md`.
 2. **Your seed ideas** — products you've thought about but haven't built. Even one-liners are fine. Saved to `user-context/IDEAS.md`.
 
-This onboarding is **strict**: it fires on the very first message of every fresh session where `INTERESTS.md` is missing, regardless of what you typed. The reason is straightforward — without that context, `/discover` and `/scan` fall back to less-targeted output, and the cards they produce are more likely to be killed in validation. That wastes a real hour of your time per killed card. The onboarding takes maybe two minutes and reframes everything downstream.
+This onboarding is **strict**: it fires on the very first message of every fresh session where either file is missing and no skip has been recorded, regardless of what you typed. The reason is straightforward — without that context, `/discover` and `/scan` fall back to less-targeted output, and the cards they produce are more likely to be killed in validation. That wastes a real hour of your time per killed card. The onboarding takes maybe two minutes and reframes everything downstream.
 
 | File | Purpose | Required? |
 |---|---|---|
-| `user-context/INTERESTS.md` | Your professional background, strengths, domain expertise — used by `/scan` and `/discover` as the founder-fit lens. | Strongly recommended; onboarding fires when missing |
-| `user-context/IDEAS.md` | Your seed-ideas backlog, distinct from `ideas/` (which holds validated cards from formal discovery cycles). | Strongly recommended |
+| `user-context/INTERESTS.md` | Your professional background, strengths, domain expertise — used by `/scan` and `/discover` as the founder-fit lens. | Strongly recommended; gates the onboarding interrupt |
+| `user-context/IDEAS.md` | Your seed-ideas backlog, distinct from `ideas/` (which holds validated cards from formal discovery cycles). Drives the mode picker in `/scan` and `/discover`. | Strongly recommended; gates the onboarding interrupt |
 | `user-context/POLICY.md` | Your personal coding style, framework preferences, voice, hard rules — overrides workspace defaults and senior-engineer-persona conventions for matters of taste. | Optional |
+| `user-context/audit-log.jsonl` | Auto-written by Claude when you make important user-driven decisions (skipping onboarding, deleting a project, killing/reviving a card), when build milestones land (project initialized, subsystem completed, ready-to-deploy reached, shipped), and free-text notes you add via `/log`. Gates the onboarding re-prompt and gives you a per-product build journal. | Auto-managed |
 
-All three files are **gitignored** — your context stays local to your clone and never enters git. Templates ship in the repo as `<file>.md.example` so you can copy them as starting points (`cp user-context/INTERESTS.md.example user-context/INTERESTS.md`).
+All four live files are **gitignored** — your context stays local to your clone and never enters git. Templates ship in the repo as `<file>.<ext>.example` so you can copy them as starting points (`cp user-context/INTERESTS.md.example user-context/INTERESTS.md`).
 
-**The only command that bypasses the onboarding interrupt is `/documentation`** — because forcing onboarding before letting you read about the workspace would be circular. Every other command (including `/scan`, `/discover`, `/menu`, etc.) triggers the onboarding flow on the first message of a fresh session when `INTERESTS.md` is missing.
+**The only command that bypasses the onboarding interrupt is `/documentation`** — because forcing onboarding before letting you read about the workspace would be circular. Every other command (including `/scan`, `/discover`, `/menu`, etc.) triggers the onboarding flow on the first message of a fresh session when either file is missing and no skip has been logged.
 
-**If you opt to defer onboarding** ("Prefer to update later" in the picker), the system still runs but in degraded mode. `/scan` will fall back to a no-founder-fit "open scan" mode that rates territories on freshness × reachability only. `/discover` will ask for a one-line context or run open discovery. Both will produce broader, less-targeted output. Populate `INTERESTS.md` whenever you're ready and the next run will be properly grounded.
+**If you opt to defer onboarding** ("Prefer to update later" in the picker), Claude writes an `onboarding-skip` entry to the audit log so it does NOT ask again on future sessions — your skip is respected permanently until you delete it. View skips with `/log type onboarding-skip`, and re-enable onboarding by deleting the entry: `/log delete <id>`. In the meantime, the system still runs but in degraded mode. `/scan` falls back to a no-founder-fit "open scan" mode rating territories on freshness × reachability only. `/discover` will ask for a one-line context or run open discovery. Both will produce broader, less-targeted output. Populate `INTERESTS.md` and `IDEAS.md` whenever you're ready and the next run will be properly grounded.
+
+**When `IDEAS.md` is populated, `/scan` and `/discover` offer a mode picker** — instead of running the default sweep blindly, you can choose to focus the work on your seed ideas, ignore them, or compare them against fresh discoveries. See §5.1 and §5.2 for the per-command mode details.
 
 ---
 
@@ -191,6 +199,16 @@ A market scan is the *upstream* of discovery. It does not produce ideas; it prod
 
 Claude will check `user-context/INTERESTS.md` first to ground the founder-fit lens. If `INTERESTS.md` is missing, it offers to fall back to open-scan mode or asks you for inline context.
 
+**If `user-context/IDEAS.md` is populated** with real seed ideas (not just placeholders), Claude then offers a mode picker before the sweep starts:
+
+| Mode | Behavior | When to pick |
+|---|---|---|
+| **Focused** | Prioritize territories adjacent to your seed-idea clusters. | When your seeds are coherent and you want the scan to deepen that map. |
+| **Open** | Default scan behavior — sweep broadly, no seed-ideas constraint. | When you want fresh territories independent of what's already on your mind. |
+| **Hybrid + compare** *(recommended default)* | Open sweep, then add a "compared against your seeds" subsection naming which discovered territories overlap / complement / threaten the seeds. | Best of both. |
+
+The chosen mode is recorded at the top of the report under a `Mode:` line. `IDEAS.md` shapes which territories rank higher; `INTERESTS.md` still defines the founder-fit lens used for scoring — modes do not override that.
+
 **What comes out**
 
 A file at `market-research/<run-id>/scan.md` with frontmatter `status: draft` and a structured report:
@@ -240,6 +258,16 @@ Discovery without a scan often produces a batch of cards that all fail at the sa
 ```
 
 If no active scan exists, Claude offers to run an **inline lightweight scan** using `user-context/INTERESTS.md` (or ask you for inline context if INTERESTS.md is missing). This makes `/discover` a one-command bootstrap when you want to skip the formal scan.
+
+**If `user-context/IDEAS.md` is populated** with real seed ideas, Claude then offers a mode picker before brainstorming begins:
+
+| Mode | Behavior | When to pick |
+|---|---|---|
+| **(a) Promote seeds** | Skip the brainstorm entirely. Convert each seed in `IDEAS.md` directly into a formal card (`ideas/<run-id>/<slug>.md`), score on the rubric, triage. The ≥10-cards floor does NOT apply — you get however many seeds you have. | When you already know what you want to validate and want to skip ideation. |
+| **(b) Full discovery (ignore seeds)** | Standard brainstorm of 10+ candidates from territories / trends / capability shifts; do not pull from `IDEAS.md`. | When seeds feel stale or you want a fresh angle. |
+| **(c) Hybrid + compare** *(recommended default)* | Brainstorm 10+ candidates AND add one card per seed idea. The triage table compares them side-by-side with a "Seeds vs. brainstormed candidates" subsection. | Best for "I have ideas but want to see how they stack up against fresh discoveries." |
+
+Cards drawn from `IDEAS.md` get `source: user-context/IDEAS.md` in their frontmatter; brainstorm cards keep the regular source tag. From the triage onward, all cards are treated identically — they compete on the same rubric. If `IDEAS.md` is missing or only has placeholders, this picker is skipped and the cycle proceeds as full discovery (mode b implicit).
 
 **What comes out**
 
@@ -756,6 +784,7 @@ These are the commands that don't fit a pipeline phase but are essential for dai
 | `/system-check` | Compares your machine against the workspace's hardware + tooling requirements. Row-by-row table with required / recommended / your value / status. | New machine, or troubleshooting a "tool not found" error. |
 | `/run-tests` | Repo health / smoke test suite. 7 categories — required tools, repo structure, frontmatter, cross-references, pipeline lint, script smoke tests, documentation consistency. | After cloning, before opening a PR, or when something seems off. |
 | `/projects` | List every discovery-cycle project (keyed by run-id) and offer actions on a chosen one — primarily delete. Two-step confirmation gate. | Cleaning up abandoned discovery cycles, verification tests, or whole projects you no longer need. |
+| `/log` | View, add, or delete entries in your personal-space audit log at `user-context/audit-log.jsonl`. The log records important user-driven decisions (skipping onboarding, deleting a project, killing/reviving a card), build-stage milestones (project initialized, subsystem completed, ready-to-deploy reached, shipped), and any free-text notes you add. Gitignored — never enters git. Subcommands: `/log` (display), `/log <text>` (add note), `/log type <type>` (filter — e.g., `/log type build-milestone` gives a per-product build journal), `/log delete <id>` (remove one), `/log clear` (wipe). | When you want to see the audit trail, review a product's build history, add a personal note, or re-enable onboarding by deleting an `onboarding-skip` entry. |
 | `/acknowledge-contributing` | One-time confirmation that you've read `CONTRIBUTING.md` before editing tracked files. Required for non-owner users (forkers). Creates a gitignored `.claude-acknowledged` marker. | Forkers, first time you want to edit a tracked file. |
 
 ---

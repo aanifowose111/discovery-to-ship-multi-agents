@@ -26,6 +26,20 @@ You are about to run a market scan. Follow the methodology in @guides/market/mar
    **Important — do NOT use the `CLAUDE.md` owner intro (`This directory is ... owned by Abiodun Anifowose ... currently works at Mercor, where he designs and develops advanced algorithms for training AI models...`) as the founder-fit source.** That line is *attribution to the maintainer*, not the current user's context. Forkers will inherit it but it does not apply to them. The canonical source is `user-context/INTERESTS.md`; if absent, ask or fall back to the open-scan mode above. **Never silently pull the maintainer's context into a forker's scan output.**
 
    Record which source was used at the top of the report's *Aperture* section: e.g., "Founder-fit lens: `user-context/INTERESTS.md`" or "Founder-fit lens: open scan (no user-context found)" or "Founder-fit lens: inline-provided context this run".
+
+1b. **Check `user-context/IDEAS.md` for seed ideas** — if it exists AND is non-empty (i.e., the user has actually populated it beyond the template placeholders), surface a mode choice via `AskUserQuestion`:
+
+   > Your `user-context/IDEAS.md` has seed ideas. Three modes for this scan:
+   >
+   > (a) **Focused** — sweep territories adjacent to your seed ideas (e.g., if your seeds cluster around developer tools, prioritize developer-tool capability shifts, anchors, and channels). Narrowest, most personally relevant.
+   >
+   > (b) **Open** — sweep broadly with no seed-ideas constraint (default scan behavior). Use when you want fresh territory ideas independent of what's already on your mind.
+   >
+   > (c) **Hybrid + compare** — open sweep, then add a "compared against your seeds" subsection that names which discovered territories overlap with / complement / threaten the seed ideas. Best of both. (Recommended default.)
+
+   Record the chosen mode at the top of the report under a "Mode:" line. If the user picks (a) or (c), read the seed ideas from `user-context/IDEAS.md` and weight territory prioritization accordingly. **Do NOT use IDEAS.md to override the founder-fit lens from step 1** — IDEAS.md shapes *which* territories rank higher; INTERESTS.md still defines the founder-fit lens used for scoring.
+
+   If `IDEAS.md` does not exist or contains only the example placeholders, skip this step silently and proceed in default open-scan mode.
 2. Set the aperture and write it down at the top of the report.
 3. Run the source sweep across all families in §5.2 of the methodology guide. Cite URLs inline.
 4. Aggregate signals into candidate territories (3-7 in the final list). Each must have: segment, anchor, distribution channel, founder fit (or "n/a — open scan"), priority.

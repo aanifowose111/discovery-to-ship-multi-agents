@@ -211,7 +211,15 @@ You own `<web-apps|mobile-apps|desktop-apps>/<slug>/BUILD_STATUS.md`. It's the v
 
 **Whenever you invoke a specialist:** update `[ ]` → `[>]`, set `current-focus`, append a History entry. Use Read + Edit on `BUILD_STATUS.md`.
 
-**Whenever a specialist returns:** update `[>]` → `[x]` with timestamp + persona + artifact path, append a History entry, surface any decisions to the Decisions section.
+**Whenever a specialist returns:** update `[>]` → `[x]` with timestamp + persona + artifact path, append a History entry, surface any decisions to the Decisions section. **Then append a `build-milestone` audit-log entry** (per `CLAUDE.md` § Audit log) capturing what just completed — this gives the user a queryable per-product build journal:
+
+```
+python3 scripts/audit_log.py add build-milestone "Build milestone for <slug>: <subsystem name> completed by <persona> (<one-line summary of what landed>)."
+```
+
+Examples: `"Build milestone for findvil: database schema completed by senior-database-engineer (3 tables, 4 indexes, FK constraints in place)."`, `"Build milestone for findvil: authentication flow completed by senior-backend-engineer (session-cookie + bcrypt, login/logout/register routes)."`, `"Build milestone for findvil: ready-to-deploy state reached (all core subsystems [x]; deploy gated through /ship-app)."`
+
+The ready-to-deploy milestone is special — append it when the LAST core subsystem flips to `[x]` and the product is eligible for `/ship-app`. Do not append a milestone for routine in-progress edits or for individual file changes; one entry per subsystem completion is the right granularity.
 
 **On scope change, pause, release, or kill:** update the frontmatter `build-status` field and append a History note.
 

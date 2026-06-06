@@ -36,6 +36,16 @@ Every step in this methodology is derived from one of these. If a step does not 
 
 A discovery session should pull from at least three of these sources, not just one. Single-source ideation tends to produce a narrow batch that all fails at the same step.
 
+**Mode selection when `user-context/IDEAS.md` is populated.** If the user has populated `user-context/IDEAS.md` with seed ideas (their mental backlog of products they've thought about but not formalized), the discovery cycle offers three modes before the brainstorm begins:
+
+| Mode | Behavior | When to pick |
+|---|---|---|
+| **(a) Promote seeds** | Skip the brainstorm. Convert each seed in `IDEAS.md` directly into a formal card (`ideas/<run-id>/<slug>.md`), score, triage. The ≥10-cards floor does not apply. | When the user already knows what they want to validate and wants to skip ideation entirely. |
+| **(b) Full discovery (ignore seeds)** | Brainstorm 10+ candidates from the sources below as usual; do not pull from `IDEAS.md`. | When seeds feel stale, or the user wants a fresh angle. |
+| **(c) Hybrid + compare** | Brainstorm 10+ candidates AND add one card per seed idea. Triage compares them side-by-side with an explicit "Seeds vs. brainstormed candidates" subsection. | Default recommendation — best for "I have ideas but want to see how they stack up." |
+
+If `IDEAS.md` is missing or contains only placeholders, the cycle proceeds as full discovery (mode b implicit). Cards drawn from `IDEAS.md` get `source: user-context/IDEAS.md` in frontmatter; cards from the brainstorm get the regular source tag from the table below.
+
 | Source | What it looks like in practice |
 |---|---|
 | **Personal pain points** | Workflows the user has personally hated, including in prior projects (e.g., findvil, fijara — substitute whatever the *current* user has actually shipped, per `user-context/INTERESTS.md`). The user has already proven willingness-to-build on this kind of problem. |

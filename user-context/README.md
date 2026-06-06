@@ -4,7 +4,7 @@
 
 When you run `/discover` with no arguments and no active scan, Claude bootstraps a discovery cycle by inferring what to brainstorm about. Without your input, that inference defaults to **open discovery** (broad capability shifts + adjacent workflows + competitor weaknesses, no founder-fit constraint) — which works, but produces less personally-relevant candidates.
 
-Three files you can populate, all optional, all gitignored once you create the live versions:
+Four files live here, all gitignored once you create the live versions. Three are user-populated (`INTERESTS.md`, `IDEAS.md`, `POLICY.md`); the fourth (`audit-log.jsonl`) is written by Claude on important actions and viewable via the `/log` slash command.
 
 **`INTERESTS.md`** — your founder context. Used by `/discover` to anchor brainstorming on territories that fit you. Includes:
 
@@ -30,6 +30,8 @@ Three files you can populate, all optional, all gitignored once you create the l
 - Decision-making preferences
 
 Your policy **overrides workspace defaults and senior-engineer-persona conventions** for matters of taste. Correctness and security still win.
+
+**`audit-log.jsonl`** — your personal audit trail. Auto-written by Claude when you make important user-driven decisions (skipping onboarding, deleting a discovery project, killing or reviving a card) and any free-text notes you add via `/log <text>`. JSONL format — one entry per line. View / add / delete via the `/log` slash command (see `CLAUDE.md` § "Audit log" for the full type table). Routine file reads, command invocations, status flips, and commits are NOT logged — git history covers those.
 
 ## How to populate them
 
@@ -61,7 +63,9 @@ The `/discover` command checks `user-context/INTERESTS.md` first and falls back 
 - `INTERESTS.md` — your founder profile + interests (gitignored).
 - `IDEAS.md` — your seed-ideas backlog (gitignored).
 - `POLICY.md` — your personal coding-and-build policy (gitignored).
+- `audit-log.jsonl` — your personal audit trail, written by Claude on important actions (gitignored).
 - `README.md` — this file (committed).
 - `INTERESTS.md.example` — the interests template (committed).
 - `IDEAS.md.example` — the ideas-backlog template (committed).
 - `POLICY.md.example` — the policy template (committed).
+- `audit-log.jsonl.example` — the audit-log format template (committed).

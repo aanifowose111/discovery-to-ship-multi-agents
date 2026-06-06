@@ -55,7 +55,8 @@ A scan does not start cold. Before running one, the main Claude assembles:
 
 | Input | Source |
 |---|---|
-| User profile and founder-fit context | `CLAUDE.md` + the user-profile memory |
+| User profile and founder-fit context | `user-context/INTERESTS.md` (canonical; falls back to inline-asked context if missing — never the `CLAUDE.md` owner intro) |
+| User's seed ideas (optional) | `user-context/IDEAS.md` — if populated, drives mode selection (focused / open / hybrid + compare; see §5.0a) |
 | Previous scan reports (if any) | `market-research/*/scan.md` (one per scan run folder; newest by folder date) |
 | Recent trend reports | `market-research/*/trends.md` — material findings from these feed the scan's *Source sweep* as priority sources |
 | Recent killed ideas with reasons | `ideas/killed/` |
@@ -67,6 +68,20 @@ Killed ideas, previous scans, and recent trend reports matter especially — the
 ---
 
 ## 5. The scan workflow
+
+### 5.0a Mode selection (when `user-context/IDEAS.md` is populated)
+
+If `user-context/IDEAS.md` exists and contains real seed ideas (not just template placeholders), the scan offers three modes — the user picks one before the sweep starts:
+
+| Mode | Behavior | When to pick |
+|---|---|---|
+| **Focused** | Prioritize territories adjacent to the seed-idea clusters in `IDEAS.md`. | When the user's seeds are coherent and they want the scan to deepen that map. |
+| **Open** (default scan behavior) | Sweep broadly with no seed-ideas constraint. | When the user wants fresh territories independent of what's already on their mind. |
+| **Hybrid + compare** | Open sweep, then add a "compared against your seeds" subsection naming which discovered territories overlap / complement / threaten the seeds. | Default recommendation — best of both. |
+
+Record the chosen mode at the top of the report under a "Mode:" line. `IDEAS.md` shapes which territories rank higher; `INTERESTS.md` still defines the founder-fit lens used for scoring — modes do not override that.
+
+If `IDEAS.md` is missing or only contains placeholders, skip this step — the scan proceeds in default open mode.
 
 ### 5.1 Set the aperture
 

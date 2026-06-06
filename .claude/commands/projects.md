@@ -35,6 +35,7 @@ A **project** = the full set of artifacts keyed by a single run-id (`<8-alphanum
 6. **Execute deletion:**
    - Run `python3 scripts/projects.py delete <run-id> --force`.
    - Surface the script's success line to the user (`Deleted project <run-id>: N file(s) removed.`).
+   - **Append a `project-delete` entry to the audit log** (per `CLAUDE.md` § Audit log): `python3 scripts/audit_log.py add project-delete "Deleted discovery project <run-id> (<N> files, <M> directories) via /projects."`
    - Suggest 2-3 reasonable next actions (e.g., `/discover` to start fresh, `/menu` for state, `/run-tests` to confirm health).
 
 ### Important — no auto-actions

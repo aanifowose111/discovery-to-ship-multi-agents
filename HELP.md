@@ -296,6 +296,37 @@ The two-step gate is intentional. The script also refuses (`exit 2`) if you try 
 
 **Don't use for:** killing a single idea card (`/discover` puts killed cards in `ideas/killed/<run-id>/` automatically; that's the auditable kill path). `/projects` is for nuking whole projects, not individual cards.
 
+### `/log [<text> | delete <id> | clear | type <type>]`
+
+View, add, or delete entries in your personal-space audit log at `user-context/audit-log.jsonl`. The log is gitignored — it never leaves your machine. Wraps `scripts/audit_log.py`.
+
+**What the audit log records (and only these):**
+
+| Type | Auto-appended when | Effect |
+|---|---|---|
+| `onboarding-skip` | You pick "Prefer to update later" at first-launch onboarding | Gates the Rule A re-prompt — once present, onboarding will not fire again in future sessions until you delete it |
+| `project-delete` | You confirm a destructive `/projects delete` | Records which run-id was wiped |
+| `card-kill` | A card is killed during `/validate-card` or `/scope-mvp` | Queryable kill history; mirrors the card's frontmatter |
+| `card-revive` | A killed card is restored to `ideas/` | Records the revival |
+| `build-milestone` | A key build moment lands — project initialized via `/start-build`, a `BUILD_STATUS.md` subsystem flips to `[x]` (e.g., "authentication flow completed", "module X completed"), ready-to-deploy state reached, app shipped via `/ship-app` | Timeline of build achievements per product |
+| `user-note` | Only via `/log <text>` | Free-text personal note |
+
+The `build-milestone` description starts with the product's slug (e.g., `"Build milestone for findvil: authentication flow completed (session-cookie + bcrypt)"`), so `/log type build-milestone` gives you a chronological per-product build journal.
+
+**What it does NOT record:** routine file reads, command invocations, status flips, commits. Git history covers those.
+
+**Subcommand surface:**
+
+| Invocation | Effect |
+|---|---|
+| `/log` | Show every entry, newest first. |
+| `/log <free text>` | Append a `user-note` entry; print the new id. |
+| `/log type <type>` | Filter the display to one type (e.g., `/log type onboarding-skip`). |
+| `/log delete <id>` | Remove a single entry by id (with confirmation). Useful for re-enabling onboarding by deleting the `onboarding-skip` entry. |
+| `/log clear` | Remove all entries (with confirmation). |
+
+**File location:** `user-context/audit-log.jsonl` (created lazily on first write; gitignored). Each line is a JSON object: `{"timestamp": "...", "id": "...", "type": "...", "description": "..."}`. The `.example` template at `user-context/audit-log.jsonl.example` documents the format.
+
 ---
 
 ## 3. Skills
