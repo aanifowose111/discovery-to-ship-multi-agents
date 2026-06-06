@@ -226,70 +226,155 @@ def check_at_references(issues: list[Issue]) -> None:
 
 
 def check_slug_uniqueness(issues: list[Issue]) -> None:
-    """A slug must be unique across ideas/<run-id>/, ideas/killed/<run-id>/, web-apps/, mobile-apps/."""
-    locations: dict[str, list[str]] = {}
+    """Slugs are category-scoped, not globally unique.
 
-    def record(slug: str, path: str) -> None:
-        locations.setdefault(slug, []).append(path)
+    Categories per CLAUDE.md § Slug uniqueness — workspace rule:
+      - active        ideas/<run-id>/<slug>.md   (not under killed/)
+      - killed        ideas/killed/<run-id>/<slug>.md
+      - app           web-apps/<slug>/ OR mobile-apps/<slug>/ OR desktop-apps/<slug>/
+
+    Expected post-/scope-mvp state: one active card + one app folder coexist.
+    That is NOT a collision — the card is the canonical idea record, the
+    app folder is the build artifact.
+
+    Errors (`slug.collision`):
+      - 2+ active cards with same slug (across run folders)
+      - 2+ killed cards with same slug
+      - Active card AND killed card with the same slug at the same time
+      - 2+ app folders with same slug across different stack categories
+
+    Warnings:
+      - `slug.orphaned-app-after-kill` — killed card + app folder, no active
+      - `slug.app-without-card`        — app folder with no card at all
+    """
+    by_slug: dict[str, dict[str, list[str]]] = {}
+
+    def record(slug: str, category: str, path: str) -> None:
+        by_slug.setdefault(slug, {}).setdefault(category, []).append(path)
 
     ideas_dir = REPO_ROOT / "ideas"
     if ideas_dir.exists():
-        # Walk all .md files nested under run-folders (skip README.md)
         for md in ideas_dir.rglob("*.md"):
             if md.name == "README.md":
                 continue
-            record(md.stem, str(md.relative_to(REPO_ROOT)))
+            rel_parts = md.relative_to(ideas_dir).parts
+            cat = "killed" if "killed" in rel_parts else "active"
+            record(md.stem, cat, str(md.relative_to(REPO_ROOT)))
 
-    for top in ("web-apps", "mobile-apps"):
+    for top in ("web-apps", "mobile-apps", "desktop-apps"):
         d = REPO_ROOT / top
         if not d.exists():
             continue
         for sub in d.iterdir():
             if sub.is_dir() and sub.name != ".gitkeep":
-                record(sub.name, str(sub.relative_to(REPO_ROOT)))
+                record(sub.name, "app", str(sub.relative_to(REPO_ROOT)))
 
-    for slug, paths in locations.items():
-        if len(paths) > 1:
+    for slug, cats in by_slug.items():
+        active = cats.get("active", [])
+        killed = cats.get("killed", [])
+        apps = cats.get("app", [])
+
+        if len(active) > 1:
             issues.append(Issue(
-                severity="error",
-                file=paths[0],
-                line=0,
-                rule="slug.collision",
-                message=f"Slug `{slug}` is used in {len(paths)} places: {', '.join(paths)}",
-                suggestion="Slugs must be unique across ideas/, ideas/killed/, web-apps/, mobile-apps/. Rename one of the conflicting artifacts.",
+                severity="error", file=active[0], line=0, rule="slug.collision",
+                message=f"Slug `{slug}` appears as an active card in {len(active)} run-folders: {', '.join(active)}",
+                suggestion="A slug can only have ONE active card. Pick a different slug for the duplicate, or kill one.",
+            ))
+        if len(killed) > 1:
+            issues.append(Issue(
+                severity="error", file=killed[0], line=0, rule="slug.collision",
+                message=f"Slug `{slug}` appears as a killed card in {len(killed)} run-folders: {', '.join(killed)}",
+                suggestion="A slug can't be killed twice. Investigate the duplicate and remove the redundant entry.",
+            ))
+        if active and killed:
+            issues.append(Issue(
+                severity="error", file=active[0], line=0, rule="slug.collision",
+                message=(
+                    f"Slug `{slug}` is both active ({active[0]}) and killed ({killed[0]}) — "
+                    "a card can't be both at the same time"
+                ),
+                suggestion="Either restore the killed card (delete the killed entry) or kill the active card (move it to killed).",
+            ))
+        if len(apps) > 1:
+            issues.append(Issue(
+                severity="error", file=apps[0], line=0, rule="slug.collision",
+                message=(
+                    f"Slug `{slug}` is used by multiple app folders across stack categories: "
+                    f"{', '.join(apps)} — a product is ONE stack at MVP time"
+                ),
+                suggestion="Pick a single stack for this slug. Move or rename the duplicate(s).",
+            ))
+
+        if killed and apps and not active:
+            issues.append(Issue(
+                severity="warning", file=apps[0], line=0, rule="slug.orphaned-app-after-kill",
+                message=(
+                    f"Slug `{slug}` has an app folder ({apps[0]}) but the card is killed ({killed[0]}) "
+                    "— orphaned MVP after kill"
+                ),
+                suggestion="If the kill is correct, delete the app folder. If the app folder is correct, restore the card.",
+            ))
+        if apps and not active and not killed:
+            issues.append(Issue(
+                severity="warning", file=apps[0], line=0, rule="slug.app-without-card",
+                message=f"Slug `{slug}` has an app folder ({apps[0]}) but no parent idea card — orphaned",
+                suggestion="An app folder normally comes from /scope-mvp on a green-lit card. Investigate the missing card.",
             ))
 
 
 def check_required_sections_validation(issues: list[Issue]) -> None:
-    """Validation reports must have the locked verdict-format sections.
+    """Validation reports must have the locked sections from the methodology guide.
 
-    Two valid formats are accepted (per the methodology guide):
+    Two report shapes are valid (per `guides/product/idea-validation-methodology.md`):
 
-    1. **Heading style** — sections appear as H2/H3/H4 headings:
-       `## Verdict`, `## Confidence`, `## Findings`, etc.
+    A. **Per-reviewer verdict report (§5)** — a single reviewer's verdict, used
+       as the standalone output of an individual reviewer agent. Required:
+       Verdict, Confidence, Findings, What I could not verify, Sources.
+       Sections appear either as H2/H3/H4 headings (`## Verdict`) or as bold
+       labels (`**Verdict:**`).
 
-    2. **Bold-label style under a per-reviewer subheading** — when a report
-       integrates THREE reviewers, each reviewer's section uses bold field
-       labels: `**Verdict:**`, `**Confidence:**`, `**Findings:**`. Verifying
-       that each label appears at least once in the file is enough; the
-       sections per-reviewer-block are equivalent to the locked format.
+    B. **Integrated report (§7)** — produced by `/validate-card` when it
+       combines multiple reviewer verdicts into one report. Required:
+       Card snapshot, Reviewer verdicts, Integration summary, Decision,
+       Open questions for MVP scoping. In this shape, the per-reviewer
+       verdict info is embedded in per-reviewer subheadings inside the
+       `## Reviewer verdicts` block (e.g., `### Viability — APPROVE (Confidence: HIGH)`),
+       so we do NOT additionally require top-level Verdict / Confidence /
+       Sources headings.
+
+    Detection: a report is "integrated" if it has BOTH a `## Reviewer verdicts`
+    AND a `## Integration summary` heading; otherwise it's per-reviewer.
     """
     market_dir = REPO_ROOT / "market-research"
     if not market_dir.exists():
         return
-    required_sections = [
+
+    per_reviewer_sections = [
         "Verdict", "Confidence", "Findings",
         "What I could not verify", "Sources",
     ]
+    integrated_sections = [
+        "Card snapshot", "Reviewer verdicts", "Integration summary",
+        "Decision", "Open questions for MVP scoping",
+    ]
+
+    integrated_marker_a = re.compile(r"^#{2,4}\s+Reviewer verdicts\b", re.MULTILINE)
+    integrated_marker_b = re.compile(r"^#{2,4}\s+Integration summary\b", re.MULTILINE)
+
     for report_path in market_dir.rglob("validation-*.md"):
         try:
             text = report_path.read_text(encoding="utf-8")
         except (UnicodeDecodeError, OSError):
             continue
-        for section in required_sections:
+
+        is_integrated = bool(integrated_marker_a.search(text)) and bool(integrated_marker_b.search(text))
+        if is_integrated:
+            required, shape = integrated_sections, "integrated (§7)"
+        else:
+            required, shape = per_reviewer_sections, "per-reviewer verdict (§5)"
+
+        for section in required:
             heading_re = rf"^#{{2,4}}\s+{re.escape(section)}\b"
-            # Bold-label form: **Section:** OR **Section**:  (either order, possibly
-            # immediately followed by content)
             bold_label_re = rf"\*\*{re.escape(section)}\*\*\s*:|\*\*{re.escape(section)}:\*\*"
             has_heading = re.search(heading_re, text, re.MULTILINE)
             has_bold = re.search(bold_label_re, text)
@@ -299,8 +384,8 @@ def check_required_sections_validation(issues: list[Issue]) -> None:
                     file=str(report_path.relative_to(REPO_ROOT)),
                     line=0,
                     rule="report.missing-section",
-                    message=f"Validation report missing required section: {section}",
-                    suggestion="Add the section per guides/product/idea-validation-methodology.md §5 (as a heading like `## Verdict` or as a bold label like `**Verdict:**`).",
+                    message=f"Validation report missing required section: {section} (detected shape: {shape})",
+                    suggestion=f"Add the section per guides/product/idea-validation-methodology.md (shape: {shape}).",
                 ))
 
 

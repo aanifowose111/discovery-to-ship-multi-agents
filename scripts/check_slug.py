@@ -1,10 +1,15 @@
 #!/usr/bin/env python3
 """
-check_slug.py — verify that a product slug is available across the
-workspace's namespace (ideas/, ideas/killed/, web-apps/, mobile-apps/).
+check_slug.py — verify that a product slug is available for a NEW artifact.
 
-A slug must be unique because it's the product identifier — it shouldn't
-mean different things in different folders. This script enforces that.
+Walks ideas/, ideas/killed/, web-apps/, mobile-apps/, desktop-apps/ and
+returns the locations where the slug is already used. ANY current use
+blocks reuse — see CLAUDE.md § Slug uniqueness for the full category
+model and the post-/scope-mvp coexistence exception.
+
+Note: this script is the "can I claim this name?" check. The richer
+"is the workspace state consistent?" check (e.g., active+killed conflict,
+multi-stack app conflict) lives in lint_pipeline.py:check_slug_uniqueness.
 
 Used by:
   - new_idea_card.py (interactive card creator)
@@ -38,7 +43,7 @@ SLUG_PATTERN = re.compile(r"^[a-z][a-z0-9-]*$")
 
 @dataclass
 class SlugLocation:
-    kind: str   # "idea" | "killed-idea" | "web-app" | "mobile-app"
+    kind: str   # "idea" | "killed-idea" | "web-app" | "mobile-app" | "desktop-app"
     path: str
     detail: str
 
@@ -93,6 +98,17 @@ def existing_slugs() -> dict[str, list[SlugLocation]]:
                     detail="mobile app project folder",
                 ))
 
+    # desktop-apps/<slug>/
+    desktop_dir = REPO_ROOT / "desktop-apps"
+    if desktop_dir.exists():
+        for sub in desktop_dir.iterdir():
+            if sub.is_dir() and sub.name not in {".gitkeep"}:
+                add(sub.name, SlugLocation(
+                    kind="desktop-app",
+                    path=str(sub.relative_to(REPO_ROOT)),
+                    detail="desktop app project folder",
+                ))
+
     return found
 
 
@@ -110,7 +126,7 @@ def is_available(slug: str) -> tuple[bool, str, list[SlugLocation]]:
         locations = all_slugs[slug]
         reason = (
             f"slug `{slug}` is already used in {len(locations)} location(s) — "
-            "slugs must be unique across ideas/, ideas/killed/, web-apps/, and mobile-apps/"
+            "any current use blocks reuse (active card, killed card, or app folder in web/mobile/desktop)"
         )
         return False, reason, locations
 

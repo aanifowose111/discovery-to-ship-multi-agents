@@ -60,3 +60,7 @@ Plus the two project-local skills authored in this workspace: `doc-export`, `web
 - **Skills authored here should not duplicate** what is already in the cloned agent-skills repo — check there first; only add a local skill if there is a real gap.
 - **Until the user has verified a skill**, treat it as draft. The user signs off before it becomes load-bearing.
 - **Update the index in `CLAUDE.md`** whenever a skill is added, renamed, or removed.
+
+## Build-phase auto-invocation
+
+CLAUDE.md § Build-phase skill auto-invocation is the canonical reference — the proactive vs. situational lists + the Flask caveat for `frontend-ui-engineering` live there. The per-persona spec (in each `.claude/agents/senior-*.md`) wins on any disagreement.

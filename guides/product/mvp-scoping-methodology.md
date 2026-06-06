@@ -24,7 +24,7 @@ If any of those four don't have a clear answer at the end of scoping, scoping is
 1. **The MVP tests the riskiest assumption, not the full product.** "Minimum viable" means *minimum sufficient to learn whether the assumption is true*. Everything else is deferred.
 2. **Code is one option, not the default.** A concierge MVP (manual fulfillment behind a form) or a landing-page-with-waitlist test can validate the same assumption for a fraction of the build cost. See §10.
 3. **The user's strongest stacks win ties.** Dockerized Flask backend, Jinja or React Native frontend, Python + PySide6 for desktop, Postgres or SQLite, DigitalOcean for hosting. Pick something else *only* when the idea has a hard requirement that one of these can't meet — and document that requirement.
-4. **Estimate in honest hours, not hopeful weeks.** Solo builder working evenings + weekends ≈ 10-15 productive hours per week. A "2-week MVP" usually means 20-30 hours of focused work. Convert.
+4. **Estimate against the follow-along-with-Claude cadence.** The workspace default assumes Claude writes the code and the user follows along to inspect / decide / test, at roughly **1-2 hours per day, daily**. Under that pattern most MVPs land in **days to ~1 week** of calendar time. Two other scenarios get estimated alongside in the brief: **with breaks or iterations** (1-4 weeks), and **gated by external review** (Google OAuth verification, Apple App Store review, Stripe / payment-processor approval — can stretch to months). The brief must state which scenario each number assumes. If the user is *not* following along with Claude (e.g., they hired out the build or are building themselves without Claude), the cadence is no longer the workspace default — surface that explicitly and re-estimate.
 5. **Won't-haves are first-class.** Listing what is *out* of the MVP is as important as listing what's in. The won't-have list is what you re-read when you catch yourself adding "just one more feature".
 6. **Stack stretches are learning costs.** Anything in the MVP that the user has never shipped to production before should be counted as build cost *plus* learning cost. If there are three of them, the MVP is too ambitious — pick one stretch at a time.
 
@@ -118,9 +118,18 @@ Things we are deliberately choosing not to build, with one line of reasoning per
 - **CI/CD:** GitHub Actions to DO? manual deploy via SSH? `docker compose pull && up`?
 
 ## Effort estimate
-- Hours to first-user-shippable: <N>
-- Calendar weeks at 10-15 hrs/week: <M>
-- Top 3 effort risks (things most likely to blow the estimate)
+
+**Cadence assumption:** Claude writes the code; user follows along daily (~1-2 hours/day for review, decisions, local testing). If a different cadence applies — flag it and re-estimate.
+
+| Scenario | Time to first-user-shippable |
+|---|---|
+| **Daily follow-along** (workspace default) | <N> days (typical: 2-7) |
+| **With breaks or iterations** | <N> weeks (typical: 1-4) |
+| **External gating** (name the gating step — e.g., Google OAuth verification, Apple App Store review, Stripe approval) | <N> weeks to months |
+
+If multiple external gates apply, the slowest one dominates and is the realistic ship date. Months-scale estimates should ONLY appear when an external gate forces them — pure-build months on a follow-along cadence is a sign the scope is too big.
+
+Top 3 effort risks (things most likely to blow the estimate)
   1. ...
   2. ...
   3. ...
@@ -209,7 +218,7 @@ MVP scoping is reviewed by **two** assistants, not three. Both narrow:
 - Does each must-have trace back to the riskiest assumption?
 - Are any could-haves or won't-haves dressed up as must-haves?
 - Is the success criterion something that can plausibly be measured at first-10-users scale?
-- Is the effort estimate honest given the solo-evenings cadence and the listed stretches?
+- Is the effort estimate honest given the follow-along-with-Claude cadence (§2 principle 4), the listed stretches, and any external gating named in the brief?
 - Are there hidden must-haves the brief forgot (auth, basic logging, error handling, deploy story)?
 
 Returns the verdict format defined in `idea-validation-methodology.md` §5.

@@ -144,6 +144,25 @@ Reads/writes `user-context/audit-log.jsonl` (gitignored — never enters git). O
 
 The interactive entry point is the `/log` slash command. Use the script directly when you want batch operations, JSON output, or to drive logging from another script.
 
+### `team.py` — per-product senior-engineer team names
+
+```bash
+python3 scripts/team.py get <slug> <role>            # print the name (exit 1 if unnamed)
+python3 scripts/team.py set <slug> <role> "<name>"   # set the name; validates 1-30 chars, allowed charset
+python3 scripts/team.py list <slug>                  # print a table of role | name
+python3 scripts/team.py list <slug> --json           # machine-readable
+python3 scripts/team.py init <slug>                  # create empty team.json if missing
+python3 scripts/team.py reset <slug>                 # clear all names (file stays; no delete)
+python3 scripts/team.py roles                        # print the fixed role list
+python3 scripts/team.py path <slug>                  # print the team.json path for this slug
+```
+
+Reads/writes `<web-apps|mobile-apps|desktop-apps>/<slug>/team.json` (gitignored personal-data, per-product). Stores human names the user has chosen for the 9 build-phase senior-engineer personas (orchestrator + 8 specialists). Used by `senior-software-engineer` to narrate handoffs by name ("Paul (Senior Software Engineer)…") and by `/start-build` to prompt for a name the first time each persona is engaged on a product.
+
+The 9 roles are fixed (`senior-software-engineer`, `senior-system-design-engineer`, `senior-database-engineer`, `senior-backend-engineer`, `senior-frontend-engineer`, `senior-desktop-engineer`, `senior-qa-engineer`, `senior-devops-engineer`, `senior-security-engineer`) and cannot be deleted — they're workflow-critical. They can only be named, renamed, or reset to unnamed.
+
+The interactive entry point is the `/team <slug>` slash command. Use the script directly when you want to set a name in one shot without the interactive picker, or to drive team-state from another script.
+
 ---
 
 ## Shell scripts

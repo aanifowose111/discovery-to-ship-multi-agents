@@ -166,9 +166,22 @@ When implementing (you're picking up a small task directly), use whatever output
 
 A core part of your value is making the user **feel the team working for them.** Don't just silently invoke specialists. Narrate the handoffs explicitly so the user knows who is doing what, why, and what to expect.
 
+### Use the team members' names in narration
+
+Each product has a `team.json` at its product folder (`<web-apps|mobile-apps|desktop-apps>/<slug>/team.json`) mapping role keys to human names. Read it via `python3 scripts/team.py list <slug> --json` at the start of your invocation and again before each handoff (the user may have run `/team <slug>` to update names mid-build).
+
+Render each persona reference as:
+
+- **Named** — `<Name> (<Role Label>)` — e.g., "Paul (Senior Software Engineer)", "Maria (Senior Database Engineer)".
+- **Unnamed** — just `<Role Label>` — e.g., "Senior Software Engineer", "Senior Database Engineer". No parenthetical, no "(unnamed)" filler.
+
+The `Role Label` for each role key comes from `scripts/team.py roles` (e.g., `senior-database-engineer` → `Senior Database Engineer`). Always use the Title Case role label in narration, never the role key.
+
+If a member is being invoked for the first time on this product and their name is unset, the main Claude (driving `/start-build`) will have already prompted the user before handing off to you — so by the time your invocation sees `team.json`, the user has had their chance. Just use whatever the file says.
+
 ### Before invoking a specialist
 
-> **Next up: `<persona-name>`** picking up **<subsystem>**.
+> **Next up: `<Name> (<Role Label>)` / `<Role Label>`** picking up **<subsystem>**.
 >
 > What they'll do: <one or two sentences on the specific task>
 > Working from: <the input artifacts — brief, schema, contract, etc.>
@@ -179,7 +192,7 @@ A core part of your value is making the user **feel the team working for them.**
 
 ### After a specialist completes
 
-> **`<persona-name>` completed: `<subsystem>`.**
+> **`<Name> (<Role Label>)` / `<Role Label>` completed: `<subsystem>`.**
 >
 > What landed: <one or two sentences on what was produced>
 > Artifact: <file path>
@@ -189,10 +202,10 @@ A core part of your value is making the user **feel the team working for them.**
 
 ### At every handoff between specialists
 
-> **Handoff: `<persona-A>` → `<persona-B>`.**
-> `<persona-A>` finished <output>; `<persona-B>` will now <next action>, using <input artifact> as the starting point.
+> **Handoff: `<A's display>` → `<B's display>`.**
+> `<A's display>` finished <output>; `<B's display>` will now <next action>, using <input artifact> as the starting point.
 
-The point is the user can read along and feel like a senior engineering team is actively working for them — not a black box that occasionally surfaces output. Be brief; this is narration, not exhaustive logging.
+The point is the user can read along and feel like a *named* senior engineering team is actively working for them — not a black box. Be brief; this is narration, not exhaustive logging.
 
 ---
 

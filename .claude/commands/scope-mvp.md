@@ -92,8 +92,8 @@ Based on the user's reply:
 
 | Design pick | Next step to surface |
 |---|---|
-| (a) Generic-but-unique | "No further design command needed. I'll apply a lightweight palette + typography pick when the build starts. You can run `/research-design <slug>` later if you change your mind." |
-| (b) Engage designer | "Next step: run `/research-design <slug>` to produce the design-direction report. After you sign off, run `/draft-design-brief <slug>` to draft the brief for the designer." |
+| (a) Generic-but-unique | "No further design command needed at MVP time. I'll apply a lightweight palette + typography pick when the build starts. **Post-MVP, after first-10-users validation, `/scope-v1 <slug>` will revisit the design path** — at that point you can pick (a) continue generic, (b) engage a designer, or (c) do a hybrid light refresh (per `guides/product/v1-scoping-methodology.md` §4)." |
+| (b) Engage designer | "Next step: run `/research-design <slug>` to produce the design-direction report. After you sign off, run `/draft-design-brief <slug>` to draft the brief for the designer. (Engaging a designer at MVP time is the unusual pick — most MVPs ship with generic-but-unique design and only engage a designer at `/scope-v1` time. Make sure distinctiveness is load-bearing for validation itself before this pick.)" |
 
 | Build pick | Next step to surface |
 |---|---|

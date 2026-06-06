@@ -111,6 +111,13 @@ def test_repo_structure(checks: list[Check]) -> None:
         ".claude/commands/ship-app.md",
         ".claude/commands/documentation.md",
         ".claude/commands/log.md",
+        ".claude/commands/reprice.md",
+        ".claude/commands/revive-card.md",
+        ".claude/commands/scope-v1.md",
+        ".claude/commands/team.md",
+        ".claude/agents/product-pricing-reviewer.md",
+        "guides/product/v1-scoping-methodology.md",
+        "scripts/team.py",
         "DOCUMENTATION.md",
     ]
     for f in required:
@@ -228,6 +235,7 @@ def test_smoke(checks: list[Check]) -> None:
         (["python3", "scripts/gen_run_id.py"], "gen_run_id.py", "generates a run-id"),
         (["python3", "scripts/check_slug.py", "test-slug-that-should-not-exist-xyz"], "check_slug.py", "checks availability"),
         (["python3", "scripts/audit_log.py", "list"], "audit_log.py", "lists entries"),
+        (["python3", "scripts/team.py", "roles"], "team.py", "lists roles"),
     ]
     for cmd, name, desc in smokes:
         try:

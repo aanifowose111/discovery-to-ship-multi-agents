@@ -77,11 +77,12 @@ Failure modes to flag:
 
 ### 5. Stress-test the effort estimate
 
-The brief estimates hours and weeks at the user's 10-15 hrs/week cadence (per the scoping guide §2 principle 4). Run a sanity check:
+The brief estimates a three-scenario table under the **follow-along-with-Claude** default cadence (per the scoping guide §2 principle 4 and §5 template): *Daily follow-along*, *With breaks or iterations*, and *External gating*. Run a sanity check:
 
-- Sum the must-haves and estimate how long each would take a competent solo builder **in the brief's chosen stack** (per §6.0 of the scoping guide). Calibrate against the user's shipped experience: findvil and fijara if Flask + RN, or other prior projects if a different stack was chosen.
-- Count stretches. A stretch is anything in the brief that the user has *not* shipped to production before — this includes the *language* and the *framework* chosen, not just specific libraries. If the brief picks a stack the user has never shipped, that itself is a stretch and the effort estimate must reflect the learning curve.
-- Compare your bottom-up sum to the brief's top-down estimate. If they're more than ~40% apart, the estimate is wrong in one direction — note which way.
+- **Daily follow-along estimate** (the workspace default). Sum the must-haves and estimate the days each subsystem would take when Claude is writing the code and the user is reviewing/testing at 1-2 hrs/day. Most MVPs land in 2-7 days at this cadence; if the estimate is much higher, scope is probably too big.
+- **External-gating estimate.** If the brief lists external gates (Google OAuth verification ≈ 4-6 weeks, App Store review ≈ 1-2 weeks, Stripe / payment-processor approval ≈ 1-3 weeks), verify the dominating gate is the realistic ship date — not a hopeful "we'll start the verification later" footnote.
+- Count stretches. A stretch is anything in the brief that the user has *not* shipped to production before — this includes the *language* and the *framework* chosen, not just specific libraries. Stretches add learning cost on top of the follow-along time. If the brief picks a stack the user has never shipped, that itself is a stretch and the estimate must reflect it.
+- **Months-scale build estimate without an external gate is a finding.** Under the follow-along cadence, pure-build months means the scope is too big — call it out and recommend trimming must-haves.
 
 The scoping guide §2 says "aim for zero or one stretch per MVP." More than one stretch is a finding regardless of the estimate.
 

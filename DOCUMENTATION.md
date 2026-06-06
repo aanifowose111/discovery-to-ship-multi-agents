@@ -26,8 +26,8 @@ If you only have a few minutes, read sections 1, 2, and 5. If you've got an hour
    - 6.6 [When Fijara makes more sense](#66-when-fijara-makes-more-sense)
    - 6.7 [`BUILD_STATUS.md` as your dashboard](#67-build_statusmd-as-your-dashboard)
    - 6.8 [`/preview-product`](#68-preview-product)
-7. [Phase 3 — Optional design phase](#7-phase-3--optional-design-phase)
-8. [Phase 4 — Real v1 build (handoff-driven)](#8-phase-4--real-v1-build-handoff-driven)
+7. [Phase 3 — v1 scoping + (optional) design phase](#7-phase-3--v1-scoping--optional-design-phase)
+8. [Phase 4 — v1 build](#8-phase-4--v1-build)
 9. [Phase 5 — Shipping (`/ship-app`)](#9-phase-5--shipping-ship-app)
 10. [Parallel — Trend monitoring (`/trend-check`)](#10-parallel--trend-monitoring-trend-check)
 11. [The reviewer-decision model — why *you* decide, not the reviewers](#11-the-reviewer-decision-model--why-you-decide-not-the-reviewers)
@@ -315,9 +315,12 @@ Brainstorming without territory boundaries produces undifferentiated cards. Tria
 |---|---|
 | `product-viability-reviewer` | Does the problem exist badly enough, for enough people, based on citable external evidence? Severity, frequency, willingness-to-pay. |
 | `product-competition-reviewer` | Who's already in this space (including non-obvious substitutes), what do they charge and ship, would your differentiation story survive contact with the real market? |
-| `market-segment-reviewer` | Is the segment crisp and big enough, reachable through a credible first-100-users channel, willing to pay? |
+| `market-segment-reviewer` | Is the segment crisp and big enough, reachable through a credible first-100-users channel, broadly willing to pay? |
+| `product-pricing-reviewer` | Is the **specific** proposed price defensible against comparable products' real pricing, segment willingness-to-pay signals, and solo-builder unit economics? Returns 2-3 strategic pricing options ranked recommendation-first — you pick one (or type your own override) at decision time. |
 
-Each reviewer reads the card, the discovery methodology guide, and `CLAUDE.md`. Each fetches the web for current signals. Each returns a structured verdict (`APPROVE` / `APPROVE-WITH-NOTES` / `REJECT`) plus reasoning and citations.
+Each reviewer reads the card, the discovery methodology guide, and `CLAUDE.md`. Each fetches the web for current signals. Each returns a structured verdict (`APPROVE` / `APPROVE-WITH-NOTES` / `REJECT`) plus reasoning and citations. The pricing reviewer additionally returns comparable-pricing / unit-economics / suggested-options blocks.
+
+Note the overlap between market-segment and pricing: market-segment asks *whether* the segment will pay anything; pricing asks *what amount* they'll pay. The two work together — market-segment establishes the ballpark, pricing pins the number.
 
 **What you input**
 
@@ -514,6 +517,17 @@ The orchestrator routes to one of eight specialist personas based on the subsyst
 
 Each specialist composes with the others: the backend engineer produces an `API_CONTRACT.md` that the frontend engineer reads to know how to call it; the security engineer reviews the auth implementation the backend engineer wrote; the QA engineer audits both. The orchestrator decides who comes next.
 
+**Name your team.** Each product can have its own per-product team — the 9 personas above get human names you choose. Storage: `<web-apps|mobile-apps|desktop-apps>/<slug>/team.json` (gitignored). Two paths to naming:
+
+1. **Upfront via `/team <slug>`** — an interactive lister. Shows the team as a table, lets you pick rows to name or rename, loops until you're done.
+2. **Just-in-time** — `/start-build` prompts "name your `<Role>`?" the very first time each persona is engaged on this product. The prompt only fires for unnamed personas; once named, it doesn't ask again. You can decline ("No — use the role label") and the persona stays unnamed for that product.
+
+Why name them? Build narration becomes more concrete. "Paul (Senior Software Engineer) is invoking Maria (Senior Database Engineer) for the schema work" reads differently than "Senior Software Engineer is invoking Senior Database Engineer for the schema work." Same content; the named version feels like a team. Same change shows up in `BUILD_STATUS.md` History entries and in `build-milestone` audit-log descriptions, so you can search "Paul" or "Maria" later via `/log type build-milestone`.
+
+Naming is **per-product**, not workspace-wide. Each product gets its own team — useful when you have multiple products in flight and want different vibes per project, or just want different name sets to keep them straight in your head. Name validation: 1-30 chars, must start with a letter or digit, allowed characters are letters / digits / spaces / hyphens / apostrophes.
+
+Members **cannot be deleted** (the 9 roles are wired into the orchestration), but they can be renamed or reset to unnamed. Reset blanks out the name; the role is still there, narration just falls back to the role label.
+
 ### 6.5 Following along when you don't code
 
 If you're not a developer, here's a practical playbook for staying useful during the build without needing to read code.
@@ -605,33 +619,60 @@ The preview command is your fast feedback loop — instead of waiting for `/star
 
 ---
 
-## 7. Phase 3 — Optional design phase
+## 7. Phase 3 — v1 scoping + (optional) design phase
 
-The design phase is **optional** and **post-validation**. The workspace's philosophy is that the initial MVP build (Phase 2) uses a "generic-but-unique" design — clean, accessible, but not custom — and the real design investment happens only after your first 10 users confirm the riskiest assumption holds. This is intentional. Custom design before validation often means designing for a product that won't ship.
+Once your MVP has shipped and the riskiest assumption is validated, **`/scope-v1 <slug>` is the entry gate** to the polished v1 build. It's the second scoping pass in the pipeline — the first (`/scope-mvp`) was about the smallest thing that could validate the assumption; this is about the smallest thing that could be a real product now that the assumption has held.
 
-If you decide to go through the design phase (the pre-build picker in `/scope-mvp` asks you), the flow is:
+### 7.1 What `/scope-v1` does
+
+The command runs in five steps before drafting the brief:
+
+1. **Capture first-10-users feedback.** You summarize what the round taught — at least a one-line per-user summary. Claude pushes back once if your reply sounds like a gut feel rather than user signal. This is the most important step; v1 built without user signal is the strongest predictor of building the wrong thing.
+2. **Pick the design path.** Three options — covered in detail in §7.2 below.
+3. **Decide on pricing.** Surfaces the current MVP price. You either keep it or invoke `/reprice <slug>` before re-entering `/scope-v1`.
+4. **Pick the new must-haves.** Claude shows you the MVP's deferred could-haves and its read of what the user feedback implies. You decide which become v1 must-haves.
+5. **Draft `V1.md` + run reviewers.** Writes the v1 brief at `<web-apps|mobile-apps|desktop-apps>/<slug>/V1.md` next to the existing `MVP.md`. Same `product-scope-reviewer` + `code-reviewer` as `/scope-mvp`, but tested against the v1 brief.
+
+Output: `V1.md` at the product folder + `scoping-v1-<slug>.md` at `market-research/<run-id>/`. Stops at advance / revise / pause / retire decision.
+
+### 7.2 The design-path picker (the centerpiece)
+
+Most MVPs in this workspace ship with **generic-but-unique** design (handled in code via agent-skills' `frontend-ui-engineering` skill). That was the right call for MVP — the goal was validating the assumption, not the design. At v1, the question of engaging a professional UI/UX designer gets a real answer.
+
+| Path | What happens | When to pick |
+|---|---|---|
+| **(a) Continue generic design** | v1 keeps existing UI patterns. No designer engagement. Build adds new must-haves directly into the existing codebase. Tokens (palette, type) come from MVP code; v1 may refine them but doesn't re-architect. | Function-over-form segments (developer tools, internal SMB, prosumer utilities). Budget/timeline constraints make designer engagement non-viable this round. First-10-users feedback had no visual / interaction comments that generic-design can't address. |
+| **(b) Engage a professional UI/UX designer** | v1 routes through the full design sub-flow: `/research-design <slug>` → user picks a visual direction → `/draft-design-brief <slug>` → human designer produces Figma → handoff capture (`tokens.json`, `screenshots/`, `assets/`) → v1 build proceeds **driven by the handoff**. | Polish-differentiated segments (consumer apps, design-led tools, category-leader incumbents). First-10-users feedback included visual / interaction comments the generic pass can't easily address. You want the v1 to look like a real product, not a prototype. |
+| **(c) Hybrid — light refresh** | Keep generic-design, but add a polish pass — refined palette, refined typography, 2-3 distinctive UI patterns (signature auth screen, memorable empty state, etc.). No formal designer engagement. `/research-design --light` produces a lightweight design-direction reference without the full brief and handoff. | Segments that care about polish but don't justify designer overhead. You have visual taste you want to express directly. Most workspace-default pick when MVP generic-design proved sufficient for validation but v1 wants modest visual investment. |
+
+**Important sequencing for path (b):** the v1 build does NOT start until the handoff lands. Skipping the design phase to "start building now" after picking (b) defeats the purpose.
+
+### 7.3 The full Phase 3 design sub-flow (only fires on path b)
 
 | Command | What it does |
 |---|---|
 | `/research-design <slug>` | Invokes `ui-ux-researcher` (a subagent). Produces a design-direction report at `<web-apps\|mobile-apps\|desktop-apps>/<slug>/design/DESIGN_RESEARCH.md` with reference landscape, ≥3 visual directions, ≥3 color/type pairings, brand positioning, portfolio-continuity question. |
 | `/draft-design-brief <slug>` | Collects your picks (visual direction, palette, typography, voice, portfolio-continuity decision, answers to the research's open questions, timeline). Drafts the consolidated brief at `design/DESIGN_BRIEF.md`. Runs `design-brief-reviewer`. Stops at sign-off. After sign-off, the brief's status becomes `sent` and you transmit it to your designer. |
 
-The human designer works asynchronously against the brief. When they finish, you capture the handoff per `guides/ui-ux/design-handoff-methodology.md` — `design/handoff/tokens.json`, `design/handoff/assets/`, `design/handoff/screenshots/`. The handoff becomes the contract for Phase 4 (the real v1 build).
+The human designer works asynchronously against the brief. When they finish, you capture the handoff per `guides/ui-ux/design-handoff-methodology.md` — `design/handoff/tokens.json`, `design/handoff/assets/`, `design/handoff/screenshots/`. The handoff becomes the contract for Phase 4 (the v1 build).
+
+You can also **skip the v1 phase entirely** and iterate the Phase 2 MVP directly if the first 10 users are happy and the product doesn't feel ready for a polished build. Many products never get a formal v1. The workspace doesn't push you into Phase 3 unless you choose it.
 
 ---
 
-## 8. Phase 4 — Real v1 build (handoff-driven)
+## 8. Phase 4 — v1 build
 
-Phase 4 looks like Phase 2 — same `/start-build`, same senior-engineer personas — but it's **driven by the design handoff** instead of generic defaults. Key differences:
+`/start-build <slug>` is reused for v1. It auto-detects which brief is current: if `MVP.md` is `shipped` AND `V1.md` is `green-lit-to-build`, the orchestrator picks `V1.md` and treats the MVP code as the starting point to extend.
 
-- `design/handoff/tokens.json` becomes the **token contract** — CSS custom properties for web (in `static/css/tokens.css`), `src/theme/tokens.ts` for mobile.
-- `design/handoff/screenshots/` inform per-screen implementation. Claude reads these via the Read tool.
-- Components match the Figma library's "02 Components" page.
-- **Order of authority** when sources conflict: token contract → screenshot → brief §6 → agent-skills' `frontend-ui-engineering` craft.
+How the v1 build proceeds depends on the design path picked in `/scope-v1`:
 
-The Phase 4 build typically takes longer than Phase 2 because the implementation needs to be pixel-faithful to the handoff. But the riskiest assumption is already validated, so you're shipping with confidence — not gambling.
+| Path | How v1 build proceeds |
+|---|---|
+| **(a) generic-continued** | Direct from V1.md. New features get added on top of the MVP codebase, applying the same `frontend-ui-engineering` principles. No handoff contract; tokens come from existing MVP code. |
+| **(c) hybrid-light-refresh** | V1.md + the lightweight design-direction reference from `/research-design --light` inform the build. Selected UI patterns get re-implemented with the new palette/typography; the rest carries forward unchanged. |
+| **(b) pro-designer-engaged** | Build is **driven by the handoff**: `design/handoff/tokens.json` becomes the token contract (CSS custom properties for web in `static/css/tokens.css`; `src/theme/tokens.ts` for mobile). `design/handoff/screenshots/` inform per-screen implementation. Components match the Figma library's "02 Components" page. **Order of authority** when sources conflict: token contract → screenshot → V1.md §6 → `frontend-ui-engineering` craft. |
 
-You can also **skip Phase 3 and Phase 4** and iterate the Phase 2 MVP directly if the first 10 users are happy. Many products never need a formal design phase. The workspace doesn't push you into Phases 3-4 unless you choose them.
+The v1 build typically takes longer than the MVP build because the scope is wider and the implementation is more polished. For path (b), the designer turnaround (typically 2-6 weeks) is usually the dominating gating step in the effort estimate. But the riskiest assumption is already validated, so you're shipping with confidence — not gambling.
 
 ---
 
@@ -699,7 +740,7 @@ Output goes to `market-research/<run-id>/trends.md` with `status: draft`. After 
 
 This is the most important conceptual model in the workspace, and it's worth understanding deeply.
 
-**The setup:** at every phase that involves multiple narrow-lens reviewers (`/validate-card` with 3 product reviewers; `/scope-mvp` with 2 scope + code reviewers; `/draft-design-brief` with the design-brief reviewer), each reviewer returns a structured verdict — `APPROVE`, `APPROVE-WITH-NOTES`, or `REJECT`. The reviewers' job is to assess **their own narrow dimension** and tell you what they found.
+**The setup:** at every phase that involves multiple narrow-lens reviewers (`/validate-card` with 4 product reviewers; `/scope-mvp` with 2 scope + code reviewers; `/draft-design-brief` with the design-brief reviewer), each reviewer returns a structured verdict — `APPROVE`, `APPROVE-WITH-NOTES`, or `REJECT`. The reviewers' job is to assess **their own narrow dimension** and tell you what they found.
 
 **The decision is yours.** The reviewers do not move artifacts forward; they do not auto-kill cards; they do not advance status. They write reports. You read the reports and make the call: advance, revise, kill.
 
@@ -738,7 +779,7 @@ This same advise-vs-decide pattern repeats at `/scope-mvp` (build / revise / kil
 
 ## 12. Workspace conventions you should know
 
-**Slug uniqueness.** A **product slug** (e.g., `bench-watch`, `form-to-api`) is the canonical identifier for a product across the workspace. It must be unique across `ideas/`, `ideas/killed/`, `web-apps/`, `mobile-apps/`, `desktop-apps/`. The lint rule `slug.collision` catches violations. Before creating a new slug-keyed artifact, run `python3 scripts/check_slug.py <proposed-slug>` to verify availability. If a slug was previously killed, **pick a different name** — recycling confuses the kill-reason audit trail.
+**Slug uniqueness — category-scoped.** A **product slug** (e.g., `bench-watch`, `form-to-api`) lives in up to three category slots: active card (`ideas/<run-id>/<slug>.md`), killed card (`ideas/killed/<run-id>/<slug>.md`), and exactly one app folder (`web-apps/<slug>/`, `mobile-apps/<slug>/`, OR `desktop-apps/<slug>/`). **One active card + one app folder is the expected post-`/scope-mvp` state** — not a collision. The lint rule `slug.collision` fires only on true conflicts: 2+ active cards with the same slug, 2+ killed cards with the same slug, active AND killed at once, or app folders across 2+ stack categories. Orphan states (`slug.orphaned-app-after-kill`, `slug.app-without-card`) surface as warnings. Before creating a new slug-keyed artifact, run `python3 scripts/check_slug.py <proposed-slug>` — any current use blocks reuse, including a previously-killed slug; recycling confuses the kill-reason audit trail.
 
 **Run-id grouping.** Every `/discover` cycle generates an 8-character run-id (e.g., `ervtqqa6-053126`). All cards from that cycle live in `ideas/<run-id>/`. All downstream artifacts (validations, scoping reports) live in `market-research/<run-id>/` with the same run-id. This makes it trivially easy to see which cards came from which cycle and to delete a whole cycle's work via `/projects`.
 
@@ -785,6 +826,9 @@ These are the commands that don't fit a pipeline phase but are essential for dai
 | `/run-tests` | Repo health / smoke test suite. 7 categories — required tools, repo structure, frontmatter, cross-references, pipeline lint, script smoke tests, documentation consistency. | After cloning, before opening a PR, or when something seems off. |
 | `/projects` | List every discovery-cycle project (keyed by run-id) and offer actions on a chosen one — primarily delete. Two-step confirmation gate. | Cleaning up abandoned discovery cycles, verification tests, or whole projects you no longer need. |
 | `/log` | View, add, or delete entries in your personal-space audit log at `user-context/audit-log.jsonl`. The log records important user-driven decisions (skipping onboarding, deleting a project, killing/reviving a card), build-stage milestones (project initialized, subsystem completed, ready-to-deploy reached, shipped), and any free-text notes you add. Gitignored — never enters git. Subcommands: `/log` (display), `/log <text>` (add note), `/log type <type>` (filter — e.g., `/log type build-milestone` gives a per-product build journal), `/log delete <id>` (remove one), `/log clear` (wipe). | When you want to see the audit trail, review a product's build history, add a personal note, or re-enable onboarding by deleting an `onboarding-skip` entry. |
+| `/reprice` | Rework the pricing on an existing artifact (idea card, MVP brief, V1 brief) by invoking only the `product-pricing-reviewer`. Idempotent — surfaces any prior pricing and asks "revise?" before re-researching. The reviewer returns 2-3 strategic pricing options; you pick one or type your own. Writes the chosen price to all relevant artifacts (card / brief frontmatter, brief `## Pricing` block) and appends a `## Reprice — <date>` block to the validation report. | When a price feels off (too high, too low, set by analogy with stale comparables) and you want a fresh pricing pass without re-running full `/validate-card`. |
+| `/revive-card <slug>` | Restore a killed idea card back to active state. Moves the file from `ideas/killed/<run-id>/<slug>.md` to `ideas/<run-id>/<slug>.md`, resets the frontmatter (`status: triaged`, clears kill-specific fields), and appends a `card-revive` audit-log entry. If an orphaned MVP/V1 brief exists at `<stack>-apps/<slug>/`, optionally revives those too (flips their `status: killed` back to a pre-kill state you pick). Refuses if reviving would create a slug-collision. The canonical undo for any kill made via `/validate-card`, `/scope-mvp`, `/scope-v1`, or `/discover`'s auto-triage. | When a kill was premature, signal has shifted (competitor exited, regulation opened, pivot makes original reject stale), or a `/scope-v1` retire is being reversed. Pair with `/log type card-revive` to see the audit trail. |
+| `/team <slug>` | List / name / edit the 9 senior-engineer team members for a product (per-product `team.json` at the product folder, gitignored). Interactive table-driven UI: name an unnamed member, edit an existing name, or reset all to unnamed. **Members cannot be deleted** (the 9 roles are workflow-critical). Names show up in build narration ("Paul (Senior Software Engineer) is invoking..."), `BUILD_STATUS.md` History, and `build-milestone` audit-log descriptions. | When you want to name your build team upfront, or when you want to rename someone mid-build. Just-in-time naming also happens automatically the first time `/start-build` engages each persona on a product. |
 | `/acknowledge-contributing` | One-time confirmation that you've read `CONTRIBUTING.md` before editing tracked files. Required for non-owner users (forkers). Creates a gitignored `.claude-acknowledged` marker. | Forkers, first time you want to edit a tracked file. |
 
 ---

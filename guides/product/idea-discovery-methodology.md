@@ -106,7 +106,7 @@ Does this fit dockerized Flask + React Native cleanly, or does it require a stac
 The 2-3 things that would most likely kill this idea. Write them as questions validation can answer.
 
 ## Rough effort estimate
-Solo-build, working evenings + weekends, to MVP that is shippable to first 10 users. Express in weeks.
+**Cadence assumption:** Claude writes the code; user follows along daily (~1-2 hours/day) — the workspace default. Express as: *daily follow-along* (days), *with breaks* (weeks), plus any *external gating* (Google OAuth verification, App Store review, Stripe approval). MVP-scoping refines this to a full three-scenario table per `guides/product/mvp-scoping-methodology.md` §5.
 ```
 
 Cards live in `ideas/` and never move once captured. Status field is updated in place.

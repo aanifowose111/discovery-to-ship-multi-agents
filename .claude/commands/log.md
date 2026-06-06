@@ -60,7 +60,7 @@ Claude writes entries on these events without being asked:
 | User picks "Prefer to update later" at first-launch onboarding | `onboarding-skip` | `CLAUDE.md` § Session continuity → Rule A |
 | User confirms a destructive `/projects delete` | `project-delete` | `.claude/commands/projects.md` |
 | User explicitly kills a card after validation/scoping | `card-kill` | `.claude/commands/validate-card.md`, `scope-mvp.md` |
-| User restores a killed card | `card-revive` | (no command yet — manual via `mv ideas/killed/<run>/<slug>.md ideas/<run>/`) |
+| User restores a killed card | `card-revive` | `.claude/commands/revive-card.md` (`/revive-card <slug>`) |
 | Project initialized via `/start-build`, `BUILD_STATUS.md` subsystem flips to `[x]`, ready-to-deploy state reached, or app shipped via `/ship-app` | `build-milestone` | `.claude/commands/start-build.md`, `.claude/commands/ship-app.md`, `.claude/agents/senior-software-engineer.md` |
 
 `/log` itself is the only entry point for `user-note`.

@@ -46,7 +46,7 @@ If that matches what you're trying to do, this repo is a head start. If you want
 
 | | What | Where |
 |---|---|---|
-| **Pipeline slash commands** | `/scan`, `/discover`, `/validate-card`, `/scope-mvp`, `/research-design`, `/draft-design-brief`, `/start-build`, `/ship-app`, `/preview-product`, `/trend-check`, `/menu`, `/documentation`, `/setup`, `/status`, `/run-tests`, `/system-check`, `/projects`, `/log`, `/acknowledge-contributing` | `.claude/commands/` |
+| **Pipeline slash commands** | `/scan`, `/discover`, `/validate-card`, `/scope-mvp`, `/scope-v1`, `/research-design`, `/draft-design-brief`, `/start-build`, `/ship-app`, `/preview-product`, `/trend-check`, `/reprice`, `/revive-card`, `/team`, `/menu`, `/documentation`, `/setup`, `/status`, `/run-tests`, `/system-check`, `/projects`, `/log`, `/acknowledge-contributing` | `.claude/commands/` |
 | **Reviewer assistants** | Product viability / competition / market-segment / scope reviewers, design-brief and design-fidelity reviewers, UI/UX researcher | `.claude/agents/` |
 | **Senior-engineer personas** | `senior-software-engineer` (orchestrator) + 8 specialists: system-design, database, backend, frontend, **desktop**, QA, devops, security. Each plays a senior-IC role during the build phase. | `.claude/agents/senior-*.md` |
 | **Agent-skills personas** | `code-reviewer`, `security-auditor`, `test-engineer` — file copies from [`aanifowose111/agent-skills`](https://github.com/aanifowose111/agent-skills) (fork), originally authored by **Addy Osmani** at [`addyosmani/agent-skills`](https://github.com/addyosmani/agent-skills), MIT-licensed. | Vendored into `.claude/agents/`; re-sync via `scripts/update-agent-skills.sh`. |
@@ -252,8 +252,11 @@ Pipeline phase commands (each stops at a user-checkpoint):
 |---|---|
 | `/scan [broad\|focused <topic>]` | Market scan → produces candidate territories for the next discovery cycle. |
 | `/discover [optional territory names]` | Brainstorms idea cards from territories (or from founder fit + trends if no scan exists) and triages them. Single-command bootstrap when run with no args. |
-| `/validate-card <slug>` | Runs the three product reviewers (viability, competition, market-segment) in parallel on a card. |
+| `/validate-card <slug>` | Runs the four product reviewers (viability, competition, market-segment, pricing) in parallel on a card. The pricing reviewer additionally proposes 2-3 strategic pricing options; the user picks one or types an override. |
+| `/reprice <slug>` | Reworks the pricing on an existing artifact (idea card / MVP brief / V1 brief) by invoking only the `product-pricing-reviewer`. Idempotent — surfaces any prior pricing and prompts to revise. Use when a price feels off without re-running full validation. |
+| `/revive-card <slug>` | Restores a previously-killed idea card back to active state. Moves the file from `ideas/killed/<run-id>/<slug>.md` to `ideas/<run-id>/<slug>.md`, resets the frontmatter to `status: triaged`, clears the kill-specific fields, and appends a `card-revive` audit-log entry. If an orphaned MVP/V1 brief exists at `<stack>-apps/<slug>/`, optionally revives those too. The canonical undo for kills made during `/validate-card`, `/scope-mvp`, `/scope-v1`, or `/discover`'s auto-triage. |
 | `/scope-mvp <slug>` | Drafts the MVP brief — asks you to confirm the stack first — and runs the scope + code reviewers. |
+| `/scope-v1 <slug>` | Drafts the **v1 brief** (`V1.md`) for a shipped MVP. Captures first-10-users feedback, asks you to pick the design path — `(a) generic-continued`, `(b) pro-designer-engaged` (kicks off Phase 3), or `(c) hybrid-light-refresh` — and runs the same two reviewers as `/scope-mvp` against the v1 brief. The chosen design path determines whether the next command is `/start-build`, `/research-design`, or `/research-design --light`. |
 | `/research-design <slug>` | Runs the UI/UX researcher to produce a design-direction report (3+ visual directions, color/typography options, brand positioning). |
 | `/draft-design-brief <slug>` | Drafts the consolidated design brief (PRD+FRD) for the human designer, with the design-brief-reviewer. |
 | `/start-build <slug>` | Kicks off the build phase for a green-lit-to-build product. Invokes the senior-software-engineer to ask orientation questions (web/mobile/desktop/hybrid order, MVP vs. full, first subsystem) and route to the right specialist. Brings the product to ready-to-deploy state. |
@@ -277,6 +280,7 @@ Utility commands (always safe to run; not part of the pipeline cycle):
 | `/system-check` | Compare your machine against the workspace's hardware + tooling requirements. Shows a row-by-row comparison table (OS, CPU arch, cores, RAM, disk, internet, required CLI tools) with required/recommended/your-value/status columns. Pure read-only — no permissions or installs needed. Wraps `scripts/check_system.py`. Run this on a new machine, or any time you want to know "will the workspace work on this computer?". |
 | `/projects` | List every discovery-cycle project in your workspace (keyed by run-id) with a one-line summary of each, then offer actions on a chosen one — primarily **delete**. Deletion is **irreversible** (files bypass the Trash) and gated by a two-step user confirmation flow. Wraps `scripts/projects.py`. Use to clean up abandoned discovery cycles, verification tests, or any project you no longer need. |
 | `/log` | View, add, or delete entries in your personal-space audit log at `user-context/audit-log.jsonl` (gitignored — never enters git). Records important user-driven actions and key build moments: `onboarding-skip` (gates the first-launch re-prompt), `project-delete`, `card-kill`, `card-revive`, `build-milestone` (project initialized, subsystem completed, ready-to-deploy reached, shipped), and free-text `user-note` entries you add. Subcommands: `/log` (display), `/log <text>` (add note), `/log delete <id>` (remove one), `/log clear` (wipe), `/log type <type>` (filter — e.g., `/log type build-milestone` gives a per-product build journal). |
+| `/team <slug>` | List, name, or edit the 9 senior-engineer team members for a product. Per-product team names live at `<web-apps\|mobile-apps\|desktop-apps>/<slug>/team.json` (gitignored personal-data) and are used by the build orchestrator in narration (e.g., "Paul (Senior Software Engineer) is invoking Maria (Senior Database Engineer)..."). You can name members upfront via this command, OR name them just-in-time when `/start-build` first invokes each persona. Members cannot be deleted (the 9 roles are workflow-critical) but can be renamed or reset to unnamed. Name validation: 1-30 chars, letters/digits/spaces/hyphens/apostrophes only. |
 | `/acknowledge-contributing` | One-time confirmation that you've read `CONTRIBUTING.md` before editing tracked files (required for non-owners). Personal-data folders are exempt; this is a Claude-side convention, not a technical lock. |
 
 Helper skills (Claude invokes these implicitly when relevant phrasing appears):
@@ -313,9 +317,12 @@ Each specialist leverages relevant agent-skills (TDD, code-review-and-quality, s
 
 The workflow is **conversational and visible**:
 
-- **Narrated handoffs** — at every specialist handoff, the senior-software-engineer announces *who* is doing *what* next, with the input artifacts, the expected output, and a rough time estimate. You feel the team working for you.
+- **Narrated handoffs with named team members** — at every handoff, the senior-software-engineer announces *who* is doing *what* next, with the input artifacts, the expected output, and a rough time estimate. You feel the team working for you. **Name your team** via `/team <slug>` (or just-in-time when each persona is first engaged) and the narration uses those names: "Paul (Senior Software Engineer) is invoking Maria (Senior Database Engineer)..." Members can be renamed or reset to unnamed; they cannot be deleted (the 9 roles are workflow-critical).
 - **`BUILD_STATUS.md` per product** — a living checklist (dynamic, generated from this product's specific must-haves + stack + build-order) showing what's done, in progress, pending, and what was decided. Updated on every subsystem start, completion, or decision. Run `/status` to see the latest.
 - **Visual preview with `/preview-product <slug> [page]`** — auto-detects whether real preview is possible (running app + wired dependencies) or falls back to dummy preview (Jinja + fixture data). Closes the "what does it actually look like right now" gap during the build.
+- **Honest time estimates against the follow-along cadence.** Every effort estimate in `MVP.md` and `V1.md` is a three-row table: *Daily follow-along* (the workspace default — Claude writes the code, you review and decide ~1-2 hrs/day, MVPs typically land in days to ~1 week), *with breaks or iterations* (1-4 weeks), and *external gating* (Google OAuth verification, Apple App Store review, Stripe approval — these add real weeks-to-months and dominate the realistic ship date when they apply). Pure-build months on a follow-along cadence is treated as a sign that scope is too big.
+- **Post-MVP polish via `/scope-v1 <slug>`.** After your MVP ships and the riskiest assumption holds, `/scope-v1` is the gate to the polished v1. It captures first-10-users feedback, lets you pick the design path — (a) continue generic, (b) engage a professional UI/UX designer (kicks off the full design phase), or (c) hybrid light refresh — and drafts `V1.md` next to `MVP.md` with the same two-reviewer pass as `/scope-mvp`.
+- **Pricing has its own reviewer + revision command.** `/validate-card` runs the **four** product reviewers in parallel (viability, competition, market-segment, pricing). The pricing reviewer researches comparable products' real prices + segment willingness-to-pay signals + solo-builder unit economics, and proposes 2-3 strategic options ranked recommendation-first. You pick one or type your own. `/reprice <slug>` re-runs only the pricing reviewer on an existing artifact when comparables shift or the price feels off.
 
 You're never lost about "what now" or "where am I" during the build.
 
@@ -538,6 +545,34 @@ By contributing, you agree that your contributions are licensed under the same M
 MIT — see [LICENSE](LICENSE).
 
 The agent-skills fork in `external/agent-skills/`, plus the file-level copies in `.claude/agents/` and `.claude/skills/` that derive from it, are originally MIT-licensed by **Addy Osmani** ([`addyosmani/agent-skills`](https://github.com/addyosmani/agent-skills), Copyright 2025). The full upstream LICENSE accompanies the source at `external/agent-skills/LICENSE`.
+
+---
+
+## Help this grow — share the repo
+
+If you've found this workspace useful — even just **reading** it without cloning or forking — please **share it**.
+
+I (Abiodun) improve this pipeline every week: methodology guides get sharper, reviewers get better at catching the right failures, new commands land as real-world friction surfaces. The faster more people see it, the faster it grows — every new builder bringing a new product type puts useful pressure on the workflow, and contributors propose improvements I wouldn't think of alone.
+
+**Why your share matters:**
+
+- **More builders → better methodology.** Every new product type stress-tests the guides. A solopreneur trying to ship a hardware app, a researcher prototyping an eval tool, a designer scoping a SaaS — each surfaces gaps the existing pipeline doesn't cover yet. I incorporate the lessons.
+- **More visibility → more contributors.** Someone you know might be the right person to fix a bug, write a new reviewer, or critique a methodology. They can't help if they don't know the repo exists.
+- **You don't have to be a "user" to share.** If the workflow concept resonates — even if you haven't tried it — your post still reaches people who *will* try it. The pipeline is novel enough that explaining it is itself useful.
+
+**Where to share — and what works:**
+
+| Platform | What works |
+|---|---|
+| **LinkedIn** | A short post on what caught your attention (the multi-agent reviewer model, the discovery → validation → MVP → v1 pipeline, the `/scope-v1` design-path picker, the named team) + the repo link. Even one screenshot of `/menu` or `BUILD_STATUS.md` lands the curiosity. |
+| **Facebook groups** | Indie hacker groups, solopreneur groups, no-code-but-curious groups, founder-circle groups. The pitch: "you can run `/discover` to brainstorm 10+ ideas, then `/validate-card` to run 4 reviewers against each, then `/scope-mvp` to draft the brief — without writing any of it yourself." |
+| **X / Twitter, Threads, Bluesky, Mastodon** | Same shape — short post, the repo link, a 1-2 sentence pitch. If you're blogging about a build journey, link this repo as the tooling. |
+| **Discord / Slack communities** | Builder, product, dev-tools communities where the workflow concept fits the room's focus. Don't spam — just one well-placed post in #showcase / #share-what-you-built channels. |
+| **Word of mouth** | Forward the repo URL to one person you think would like it. There is no minimum bar — that's a real contribution. |
+
+Tagging me (@aanifowose) is optional but I'll see the share and may amplify yours back. Bug reports + improvement ideas are equally welcome at the email in [§Feedback](#feedback).
+
+**The repo is MIT-licensed.** You can fork it, build on top of it, sell software built with it — no permission needed. The only thing I ask is that you help others discover it. Thank you.
 
 ---
 

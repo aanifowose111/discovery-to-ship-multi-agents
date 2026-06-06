@@ -77,18 +77,15 @@ This table grows as new folders or domains open. Keep it current.
 
 ## Slug uniqueness — workspace rule
 
-A **product slug** is the canonical identifier for a product across the workspace. It must be unique across:
+A **product slug** is the canonical product identifier across the workspace. It can occupy up to three category slots: an **active card** (`ideas/<run-id>/<slug>.md`), a **killed card** (`ideas/killed/<run-id>/<slug>.md`), and exactly one **app folder** (`web-apps/<slug>/`, `mobile-apps/<slug>/`, OR `desktop-apps/<slug>/`).
 
-- `ideas/<slug>.md` (active idea cards)
-- `ideas/killed/<slug>.md` (killed cards — still occupy the namespace)
-- `web-apps/<slug>/` (web app project folders)
-- `mobile-apps/<slug>/` (mobile app project folders)
+**Expected post-`/scope-mvp` coexistence:** one active card + one app folder share a slug — the card is the canonical idea record, the app folder is the build artifact. This is normal, not a collision.
 
-A slug appearing in two of those locations is a workspace-integrity problem; `scripts/lint_pipeline.py` catches it via its `slug.collision` rule.
+**True collisions (`slug.collision` error in `lint_pipeline.py`):** same slug as active card in 2+ run folders; same slug as killed card in 2+ run folders; same slug active AND killed at the same time; same slug across 2+ stack-category app folders.
 
-**Before creating any new slug-keyed artifact**, verify availability with `python3 scripts/check_slug.py <proposed-slug>` (exit 0 = available, exit 1 = taken with conflict details). The interactive `/discover` and `/scope-mvp` flows must call this before writing files; programmatic callers can use the script's `is_available()` function.
+**Warnings (orphan states):** `slug.orphaned-app-after-kill` (killed card + app folder, no active); `slug.app-without-card` (app folder, no card at all).
 
-If a slug is taken because it was previously killed, **pick a different slug** — recycling confuses the kill-reason audit trail. To undo a kill, restore the killed card to `ideas/` rather than creating a new artifact at the same slug.
+**Before creating any new slug-keyed artifact**, verify availability with `python3 scripts/check_slug.py <proposed-slug>` (exit 0 = available; exit 1 = taken). Any current use blocks reuse, including a previously-killed slug — pick a different name; recycling confuses the kill-reason audit trail. To undo a kill, restore the killed card to `ideas/` rather than re-creating.
 
 ---
 
@@ -124,19 +121,13 @@ The rule does NOT block changes; it makes them deliberate.
 
 ## CHANGELOG editing rules
 
-`CHANGELOG.md` records **workspace-wide** changes that affect contributors and forkers. Claude must follow these rules for any edit to it:
+`CHANGELOG.md` records **workspace-wide** changes that affect contributors and forkers. The full convention (Keep-a-Changelog format, version-cut rules, same-day-patch bump, `[Unreleased]` flow) lives in `CHANGELOG.md`'s preamble. Claude's rules for editing it:
 
-1. **Always ask the user before adding a CHANGELOG entry** — regardless of who the user is. The owner has final say on what gets recorded; the ask gives them a chance to say "that's not changelog-worthy."
-
-2. **Do NOT add entries for personal-data changes.** File moves / status updates / migrations within any of the user's personal folders (`ideas/`, `market-research/`, `web-apps/<slug>/`, `mobile-apps/<slug>/`, `generated/`, `user-context/`) are personal state, not workspace improvements. They get reflected in those folders' own contents, not in CHANGELOG.
-
-3. **Do NOT add entries when the current user is not the repo owner.** Identify the owner by `git config user.email` matching the owner email in this file (currently `aanifowose111@gmail.com`). Forkers should not be updating the original repo's CHANGELOG via PRs unless explicitly invited; they're free to fork and maintain their own.
-
-4. **Workspace-improvement changes** (new methodology guides, new slash commands, new reviewer personas, new helper skills, behavioral rule changes, fixes to existing tooling, dependency-shape changes) ARE changelog-worthy if the owner agrees. When asking, propose a draft entry so the owner can approve, edit, or skip.
-
-5. The ask should be brief — name what the change is, ask "add to CHANGELOG?" — not a long preamble.
-
-6. **Same-day cuts → patch bump.** If today already has a cut version (e.g., `## [0.4.0] - 2026-05-31`), new same-day changes go as a patch (`v0.4.0 → v0.4.1`), not as a duplicate-dated `[Unreleased]` entry. Full convention in `CHANGELOG.md`'s preamble.
+1. **Always ask the user first** — regardless of who they are. Owner has final say; the ask gives them a "not changelog-worthy" out. Brief ask, not long preamble.
+2. **Do NOT add entries for personal-data changes** in gitignored folders (`ideas/`, `market-research/`, `web-apps/<slug>/`, `mobile-apps/<slug>/`, `desktop-apps/<slug>/`, `generated/`, `user-context/`). Those reflect in the folder contents, not in CHANGELOG.
+3. **Do NOT add entries when the current user is not the repo owner.** Identify owner via `git config user.email` matching the email at the top of this file. Forkers maintain their own CHANGELOG in their fork.
+4. **Workspace-improvement changes are changelog-worthy** (new guides, commands, reviewer personas, helper skills, behavioral rules, tooling fixes, dependency-shape changes) — propose a draft entry so the owner can approve, edit, or skip.
+5. **Same-day cuts → patch bump** per `CHANGELOG.md`'s preamble (e.g., second cut on `2026-05-31` after `[0.4.0] - 2026-05-31` becomes `[0.4.1] - 2026-05-31`, NOT a duplicate-dated `[Unreleased]` entry).
 
 ---
 
@@ -170,7 +161,7 @@ Important user-driven decisions are recorded in `user-context/audit-log.jsonl` (
 | `onboarding-skip` | User picks "Prefer to update later" at Rule A | Gates the Rule A re-prompt |
 | `project-delete` | User confirms a destructive `/projects delete` | Audit trail of destructive ops |
 | `card-kill` | User kills a card during `/validate-card` or `/scope-mvp` | Mirrors frontmatter, queryable |
-| `card-revive` | User restores a killed card | Audit trail |
+| `card-revive` | User restores a killed card via `/revive-card <slug>` | Audit trail; documents the undo |
 | `build-milestone` | A build-stage key moment lands: project initialized via `/start-build`, a `BUILD_STATUS.md` subsystem flips to `[x]`, ready-to-deploy state reached, app shipped via `/ship-app` | Timeline of build achievements |
 | `user-note` | Only via `/log <text>` (no auto path) | Free-text personal note |
 
@@ -228,47 +219,43 @@ For recursive walks or conditional logic on contents, use Python (`Path("market-
 
 ## Pipeline orchestration & checkpoints
 
-The product pipeline runs in phases. Each phase has a slash command (or a set of hand-built work for build phases) that does the work and **stops at a defined user-checkpoint**. The user signs off at each checkpoint before the next phase starts. Slash commands never auto-advance an artifact's status or auto-invoke the next phase's command.
+The product pipeline runs in phases. Each phase **stops at a defined user-checkpoint**; the user signs off before the next phase starts. Slash commands never auto-advance status or auto-invoke the next phase's command.
 
 ### Phase 1 — Discovery & Validation
 
 ```
 /scan           → market scan         → checkpoint: sign off; scan status → active
 /discover       → brainstorm + triage → checkpoint: sign off on top 3 cards
-/validate-card  → 3 product reviewers → checkpoint: decision (advance / revise / kill)
+/validate-card  → 4 product reviewers → checkpoint: decision (advance / revise / kill) + price pick
 /scope-mvp      → brief + 2 reviewers → checkpoint: decision (build / revise / kill)
 ```
 
 ### Phase 2 — Initial MVP Build (founder-designed, scrappy)
 
-No designer engaged yet. The initial MVP is built by the user (with Claude) using:
+No designer engaged yet. The MVP is built by the user (with Claude) using the scaffold + deploy guides under `guides/web/`, `guides/mobile/`, or `guides/desktop/` per the brief's stack, plus agent-skills' build workflow (`/spec`, `/plan`, `/build`, `/test`, `/review`, `/ship`).
 
-- `guides/web/flask-mvp-scaffold.md` or `guides/mobile/react-native-mvp-scaffold.md` for the project skeleton.
-- agent-skills' `/spec`, `/plan`, `/build`, `/test`, `/review`, `/ship` for the build workflow.
-- `guides/web/flask-deploy-runbook.md` + `guides/web/do-spaces-integration.md` for deploy and storage when relevant.
+Ship to the first 10 users named in the MVP brief's success criterion. **Observe whether the riskiest assumption holds.** If it does not, the card is either killed or sent back to discovery; do *not* proceed to v1.
 
-Ship to the first 10 users named in the MVP brief's success criterion. **Observe whether the riskiest assumption holds.** If it does not, the card is either killed or sent back to discovery; do *not* proceed to design or to v1 build.
+### Phase 3 — v1 scoping + (optional) design phase
 
-### Phase 3 — Optional Design Phase (post-validation only)
-
-Engage a human UI/UX designer **only after the riskiest assumption is validated**, per `guides/product/mvp-scoping-methodology.md` §2 and `guides/ui-ux/design-research-methodology.md` §1. Purpose: produce a distinctive (non-generic) design for the real v1.
+Once the MVP has shipped and the riskiest assumption is validated, **`/scope-v1 <slug>` is the entry gate** to the polished v1 build. It captures first-10-users feedback, lets the user pick a design path (a/b/c), drafts `V1.md` next to `MVP.md`, and runs the same two reviewers as `/scope-mvp`. Per `guides/product/v1-scoping-methodology.md`.
 
 ```
-/research-design     → ui-ux-researcher              → checkpoint: sign off on direction
-/draft-design-brief  → brief + design-brief-reviewer → checkpoint: sign off; brief status → sent
-                     (Designer produces Figma out-of-band against the brief)
-Handoff capture per guides/ui-ux/design-handoff-methodology.md
-                     → checkpoint: user accepts handoff (tokens.json + assets/ + screenshots/ land in design/handoff/)
+/scope-v1 → brief + 2 reviewers → checkpoint: advance / revise / pause / retire + design-path pick
+   ├── (a) generic-continued     → next: /start-build <slug> (reads V1.md, extends MVP code)
+   ├── (c) hybrid-light-refresh  → next: /research-design <slug> --light, then /start-build
+   └── (b) pro-designer-engaged  → next: /research-design → /draft-design-brief → designer → handoff → /start-build
 ```
 
-### Phase 4 — Real v1 Build (handoff-driven)
+The full design sub-flow (`/research-design` → `/draft-design-brief` → designer Figma → handoff per `guides/ui-ux/design-handoff-methodology.md` → user accepts `tokens.json` + `assets/` + `screenshots/`) only fires on path (b).
 
-Same agent-skills commands as Phase 2, but driven by the handoff:
+### Phase 4 — v1 build
 
-- `design/handoff/tokens.json` becomes the token contract (CSS custom properties for web in `static/css/tokens.css`; `src/theme/tokens.ts` for mobile).
-- `design/handoff/screenshots/` inform per-screen implementation — Claude reads them via the Read tool.
-- Components match the Figma library's 02 Components page.
-- **Order of authority** when sources conflict: token contract → screenshot → brief §6 → agent-skills' `frontend-ui-engineering` craft.
+`/start-build <slug>` is reused for v1 and auto-detects which brief is current. If `MVP.md` is `shipped` AND `V1.md` is `green-lit-to-build`, it picks `V1.md` and treats the MVP code as the starting point.
+
+- **Path (a)** — direct from V1.md.
+- **Path (b)** — driven by the handoff: `design/handoff/tokens.json` is the token contract (CSS custom properties in `static/css/tokens.css` web; `src/theme/tokens.ts` mobile); `screenshots/` inform per-screen impl; components match Figma's 02 Components page. **Authority order** on conflict: token contract → screenshot → V1.md §6 → `frontend-ui-engineering` craft.
+- **Path (c)** — uses the lightweight design-direction reference from `/research-design --light`; no full handoff contract.
 
 ### BUILD_STATUS.md + build orchestration
 
@@ -276,9 +263,9 @@ Each product in the build phase has a **`BUILD_STATUS.md`** at its project root 
 
 Both Phase 2 (initial MVP) and Phase 4 (v1) are orchestrated by `senior-software-engineer` via `/start-build <slug>`. It asks orientation questions (web/mobile/desktop/hybrid order, MVP vs. fully-featured, first subsystem), then routes work to the right specialist persona in the right order. Defaults: **API + web first if hybrid; MVP scope first; database design first subsystem** (for desktop-only briefs, project tree + core models first).
 
-**Specialist personas** (`.claude/agents/senior-*.md`): `senior-software-engineer` (orchestrator) + 8 specialists — system-design, database, backend, frontend, desktop, qa, devops, security.
+**Specialist personas** (`.claude/agents/senior-*.md`): `senior-software-engineer` (orchestrator) + 8 specialists — system-design, database, backend, frontend, desktop, qa, devops, security. The user can name them per product via `/team <slug>` (or just-in-time at first-invoke); build narration uses names if set ("Paul (Senior Software Engineer) is invoking...") else falls back to the role label. Storage: `<product-folder>/team.json` via `scripts/team.py`.
 
-**Standard build order:** database → project tree → core models → API contract → API impl → auth → background jobs (if scoped) → frontend skeleton → integration tests → ready-to-deploy state. Each persona leverages the 23 agent-skills skills as workflows. **Deploy / release is a separate gated phase via `/ship-app`** — release-readiness pass (QA + security) → deploy → post-deploy verification.
+**Standard build order:** database → project tree → core models → API contract → API impl → auth → background jobs (if scoped) → frontend skeleton → integration tests → ready-to-deploy. **Deploy is a separate gated phase via `/ship-app`** (release-readiness → deploy → post-deploy verification).
 
 ### Parallel — Trend Monitoring
 
@@ -288,7 +275,7 @@ Runs across all phases, on a separate cadence:
 /trend-check  → weekly sweep + triggered emergencies → checkpoint: which downstream commands to run
 ```
 
-Material trend findings recommend handing off to `/scan`, `/validate-card`, or `/scope-mvp`; the trend monitor never auto-invokes them.
+Material findings recommend handoffs (`/scan`, `/validate-card`, `/scope-mvp`); trend monitor never auto-invokes.
 
 ### Automatic vs. asks-first
 
@@ -320,11 +307,11 @@ This works reliably and produces output equivalent to direct subagent invocation
 
 Custom commands live in `.claude/commands/` (one file per command, run as `/<command-name>`). Full descriptions in [`HELP.md`](HELP.md); quick reference below.
 
-**Pipeline phases:** [`/scan`](.claude/commands/scan.md), [`/discover`](.claude/commands/discover.md), [`/validate-card`](.claude/commands/validate-card.md), [`/scope-mvp`](.claude/commands/scope-mvp.md), [`/research-design`](.claude/commands/research-design.md), [`/draft-design-brief`](.claude/commands/draft-design-brief.md), [`/start-build`](.claude/commands/start-build.md), [`/ship-app`](.claude/commands/ship-app.md).
+**Pipeline phases:** [`/scan`](.claude/commands/scan.md), [`/discover`](.claude/commands/discover.md), [`/validate-card`](.claude/commands/validate-card.md), [`/scope-mvp`](.claude/commands/scope-mvp.md), [`/scope-v1`](.claude/commands/scope-v1.md), [`/research-design`](.claude/commands/research-design.md), [`/draft-design-brief`](.claude/commands/draft-design-brief.md), [`/start-build`](.claude/commands/start-build.md), [`/ship-app`](.claude/commands/ship-app.md).
 
-**Parallel / cross-cutting:** [`/trend-check`](.claude/commands/trend-check.md), [`/preview-product`](.claude/commands/preview-product.md).
+**Parallel / cross-cutting:** [`/trend-check`](.claude/commands/trend-check.md), [`/preview-product`](.claude/commands/preview-product.md), [`/reprice`](.claude/commands/reprice.md) (revise pricing on any artifact), [`/revive-card`](.claude/commands/revive-card.md) (undo a kill).
 
-**Utility / meta:** [`/menu`](.claude/commands/menu.md) (command map), [`/status`](.claude/commands/status.md) (pipeline snapshot), [`/documentation`](.claude/commands/documentation.md) (end-to-end walkthrough; **bypasses onboarding**), [`/setup`](.claude/commands/setup.md) (verify tools), [`/acknowledge-contributing`](.claude/commands/acknowledge-contributing.md) (non-owners), [`/log`](.claude/commands/log.md) (audit log), [`/run-tests`](.claude/commands/run-tests.md) (repo health), [`/system-check`](.claude/commands/system-check.md) (host vs. workspace), [`/projects`](.claude/commands/projects.md) (list + delete projects).
+**Utility / meta:** [`/menu`](.claude/commands/menu.md) (command map), [`/status`](.claude/commands/status.md) (pipeline snapshot), [`/documentation`](.claude/commands/documentation.md) (end-to-end walkthrough; **bypasses onboarding**), [`/setup`](.claude/commands/setup.md) (verify tools), [`/acknowledge-contributing`](.claude/commands/acknowledge-contributing.md) (non-owners), [`/log`](.claude/commands/log.md) (audit log), [`/team`](.claude/commands/team.md) (name/edit team), [`/run-tests`](.claude/commands/run-tests.md) (repo health), [`/system-check`](.claude/commands/system-check.md) (host vs. workspace), [`/projects`](.claude/commands/projects.md) (list + delete projects).
 
 Most commands take `<slug>` as argument and follow a `read → work → checkpoint → stop` pattern. Never auto-advance an artifact's status; never auto-chain into the next phase.
 
@@ -341,15 +328,13 @@ Project-local skills in `.claude/skills/`. Claude Code auto-discovers and invoke
 
 ## Build-phase skill auto-invocation
 
-During any **build phase** (after `/scope-mvp` returns `green-lit-to-build`, through deploy/release), Claude **proactively invokes** the following skills without being asked — they apply as a matter of course:
+During any **build phase** (after `/scope-mvp` or `/scope-v1` returns `green-lit-to-build`, through deploy/release via `/ship-app`), Claude **proactively invokes** the following skills without being asked — they apply as a matter of course:
 
 `incremental-implementation`, `test-driven-development`, `code-review-and-quality`, `code-simplification`, `security-and-hardening` (for auth/secrets/input/I-O/network code), `performance-optimization` (when latency/memory matters), `debugging-and-error-recovery`, `frontend-ui-engineering`, `api-and-interface-design`, `documentation-and-adrs`, `git-workflow-and-versioning`, `browser-testing-with-devtools` (web only), `ci-cd-and-automation`, `shipping-and-launch`, `spec-driven-development`.
 
 **Situational — only when context matches or the user asks:** `idea-refine`, `interview-me`, `planning-and-task-breakdown`, `doubt-driven-development`, `using-agent-skills`, `source-driven-development`, `context-engineering`, `deprecation-and-migration`.
 
-Full mapping in `guides/product/build-status-methodology.md` and the senior-engineer personas. Claude doesn't announce invocations — they apply silently; ask "are you applying X?" to confirm.
-
-**Flask caveat for `frontend-ui-engineering`:** examples are React/TSX; on Flask the *principles* apply but implement in Jinja + vanilla JS, not React.
+Full mapping in `guides/product/build-status-methodology.md` and the senior-engineer personas. Invocations are silent; ask "are you applying X?" to confirm. **Flask caveat for `frontend-ui-engineering`:** examples are React/TSX; on Flask the *principles* apply but implement in Jinja + vanilla JS, not React.
 
 ---
 

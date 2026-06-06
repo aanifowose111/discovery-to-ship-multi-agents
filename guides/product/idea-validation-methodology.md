@@ -6,9 +6,12 @@ This guide is the contract those reviewers will be built against. The reviewers 
 
 - **`product-viability-reviewer`** — does the problem exist, badly enough, for enough people?
 - **`product-competition-reviewer`** — is there real differentiation against the actual incumbents and substitutes?
-- **`market-segment-reviewer`** — is the segment big enough, reachable enough, and willing-to-pay enough to support a product?
+- **`market-segment-reviewer`** — is the segment big enough, reachable enough, and (broadly) willing-to-pay enough to support a product?
+- **`product-pricing-reviewer`** — is the *specific* proposed price defensible against comparable products, the segment's willingness-to-pay signals, and the unit-economics math? (Standalone-invokable via `/reprice` for already-validated artifacts.)
 
 When these reviewers are created in `.claude/agents/`, their instructions should reference this guide for shared vocabulary and the verdict format.
+
+Note the overlap between `market-segment-reviewer` and `product-pricing-reviewer`: market-segment looks at *whether* the segment will pay *anything*; pricing looks at *what amount* the segment will pay against comparable-product evidence. The market-segment reviewer establishes the ballpark; the pricing reviewer pins the number.
 
 ---
 
@@ -52,7 +55,7 @@ Reviewers do their own web research from there. They are not given hand-picked s
 
 ---
 
-## 4. The three reviewers and their scopes
+## 4. The four reviewers and their scopes
 
 ### 4.1 `product-viability-reviewer`
 
@@ -80,15 +83,28 @@ Reviewers do their own web research from there. They are not given hand-picked s
 
 ### 4.3 `market-segment-reviewer`
 
-**Lens:** Is the segment big enough, reachable enough, and willing-to-pay enough?
+**Lens:** Is the segment big enough, reachable enough, and (broadly) willing-to-pay enough?
 
 **Specifically tests:**
 - Rough segment sizing — order of magnitude is fine, false precision is worse than no number. Cite the data source.
 - Is the *Distribution hypothesis* on the card plausible at the first-100-users scale? Inspect the proposed channel (subreddit activity, directory traffic, conference attendance) and judge whether 100 users could plausibly be reached there in 60-90 days.
-- Willingness-to-pay signals: do incumbents charge? what tier? do segment members talk publicly about budget for this category?
+- Broad willingness-to-pay signals: do incumbents charge? what tier? do segment members talk publicly about budget for this category? (The *specific* proposed price is the pricing reviewer's job, §4.4 below.)
 - Is the segment growing, flat, or contracting? Contracting segments are not automatically disqualifying, but they should be flagged.
 
 **Returns:** Verdict + findings.
+
+### 4.4 `product-pricing-reviewer`
+
+**Lens:** Is the *specific* proposed price defensible against comparable products, segment willingness-to-pay signals, and solo-builder unit economics?
+
+**Specifically tests:**
+- What does the artifact actually propose as a price, and how was it set (by analogy / by value-based math / unstated)?
+- Comparable products' real pricing — pull a small table of 3-7 rows, each row a vendor / tier / price / unit / interval / source URL.
+- Segment-specific willingness-to-pay: public complaints about price ("X is too expensive at $Y"), public budget benchmarks, substitution-up and substitution-down patterns, procurement-gate friction.
+- Solo-builder unit economics: variable cost per user, gross margin at proposed price, break-even user count at proposed price + fixed infra, headroom for churn. The price has to support a one-person operation paying their own infrastructure.
+- Auto-REJECT cases: price below variable cost; price >3x cheapest comparable with no value-based math; enterprise-WTP assumption applied to an SMB segment (or vice versa).
+
+**Returns:** Verdict + findings, **plus** a required `## Suggested pricing options` block with 2-3 strategic options ranked recommendation-first, each with price/model, strategy framing, trade-off, and one-line evidence chain. The user picks one (or types their own override) at validation decision time.
 
 ---
 
@@ -127,16 +143,16 @@ Verdicts mean:
 
 ## 6. Integration: how the main Claude assembles a decision
 
-After all three reviewers return:
+After all four reviewers return:
 
 | Combination | Action |
 |---|---|
-| 3 × APPROVE | Advance card status to `green-lit` once user signs off. Hand off to MVP scoping (separate guide). |
-| Any mix of APPROVE and APPROVE-WITH-NOTES | Summarize the notes into a single list. Present to the user for sign-off. On approval, advance to `green-lit` with the notes carried forward to MVP scoping. |
-| Any REJECT | Do **not** advance. Present the rejection reason to the user. The user decides whether to (a) kill the card, (b) send it back to discovery with a specific question for re-research, or (c) override the rejection (rare, and should be recorded as an override on the card). |
+| 4 × APPROVE | Advance card status to `green-lit` once user signs off **and picks a price** from the pricing reviewer's suggested options (or types an override). Hand off to MVP scoping. |
+| Any mix of APPROVE and APPROVE-WITH-NOTES | Summarize the notes into a single list. Present to the user for sign-off. On approval, advance to `green-lit` with the notes carried forward to MVP scoping. **The pricing reviewer's suggested options are still surfaced for the user's pick** even when its verdict is APPROVE-WITH-NOTES. |
+| Any REJECT | Do **not** advance. Present the rejection reason to the user. The user decides whether to (a) kill the card, (b) send it back to discovery with a specific question for re-research, or (c) override the rejection (rare, and should be recorded as an override on the card). A pricing-only REJECT is often a "revise pricing and re-validate" case rather than a kill — surface the options. |
 | Conflicting verdicts on the same evidence | Surface the conflict explicitly to the user with the evidence chain. Do not silently average. |
 
-**The user always signs off on the final decision**, per the working style in `CLAUDE.md`. Reviewers do not advance cards on their own.
+**The user always signs off on the final decision**, per the working style in `CLAUDE.md`. Reviewers do not advance cards on their own. The user's chosen price is recorded as `priced-at: $<amount> <unit> <interval>` in the card's frontmatter, with `pricing-strategy: "<chosen-option-name>"` or `pricing-strategy: "user-override"`.
 
 ---
 
@@ -147,10 +163,11 @@ Each validation run produces one file: `market-research/<run-id>/validation-<car
 It contains, in order:
 
 1. **Card snapshot** — the idea card's content at the moment validation ran (so the report stays meaningful even if the card is later edited).
-2. **Reviewer verdicts** — all three, full.
+2. **Reviewer verdicts** — all four, full. The pricing reviewer's *Comparable pricing*, *Proposed price*, *Unit-economics sanity check*, and *Suggested pricing options* blocks are included verbatim.
 3. **Integration summary** — the main Claude's synthesis: combined verdict, combined notes, conflicts surfaced.
 4. **Decision** — populated by the user (kill / advance / override / re-research) with a one-paragraph reason.
-5. **Open questions for MVP scoping** — extracted from the "What I could not verify" sections of the three reviewers, so they don't get lost.
+5. **Chosen price** — populated by the user (picked option name or user-override) with the final `priced-at:` value written here. Used by `/scope-mvp` and `/reprice` as the canonical price for the artifact.
+6. **Open questions for MVP scoping** — extracted from the "What I could not verify" sections of the four reviewers, so they don't get lost.
 
 A killed card moves from `ideas/<run-id>/<slug>.md` to `ideas/killed/<run-id>/<slug>.md` (preserving the `<run-id>` link back to the cycle), with `status: killed` and a `killed-reason` field linking the validation report. An advanced card's status updates to `green-lit` with the link, and the card stays in its `ideas/<run-id>/` folder.
 

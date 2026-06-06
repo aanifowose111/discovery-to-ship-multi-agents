@@ -60,11 +60,12 @@ For more rigorous discovery, run `/scan` first to map territories deliberately.
 /validate-card <slug>
 ```
 
-The card must already exist at `ideas/<slug>.md`. The command runs the three product reviewers in parallel:
+The card must already exist at `ideas/<slug>.md`. The command runs the four product reviewers in parallel:
 
 - `product-viability-reviewer` — does the problem exist with external evidence?
 - `product-competition-reviewer` — real differentiation vs. actual competitors?
-- `market-segment-reviewer` — segment crisp, sized, reachable, willing-to-pay?
+- `market-segment-reviewer` — segment crisp, sized, reachable, broadly willing-to-pay?
+- `product-pricing-reviewer` — is the *specific* proposed price defensible against comparable products, segment WTP, and solo-builder unit economics? Returns 2-3 strategic pricing options; you pick one or type your own.
 
 Each returns a verdict with cited sources. You see the integration summary, then decide: advance to `green-lit`, revise, send back to discovery, or kill.
 
@@ -153,7 +154,31 @@ Discovery cycle per `guides/product/idea-discovery-methodology.md`. Works as a o
 
 ### `/validate-card <slug>`
 
-Validation per `guides/product/idea-validation-methodology.md`. Invokes the three product reviewers in parallel. Output: `market-research/validation-<slug>-<YYYY-MM-DD>.md`. **Stops at:** decision (advance / revise / kill). **Next:** `/scope-mvp <slug>` if advanced.
+Validation per `guides/product/idea-validation-methodology.md`. Invokes the four product reviewers in parallel (viability, competition, market-segment, pricing). Output: `market-research/<run-id>/validation-<slug>.md`. **Stops at:** decision (advance / revise / kill) and price pick (pick from the pricing reviewer's options or type your own). **Next:** `/scope-mvp <slug>` if advanced.
+
+### `/scope-v1 <slug>`
+
+Drafts the **v1 brief** at `<web-apps|mobile-apps|desktop-apps>/<slug>/V1.md` — the polished build that lives past the MVP's first-10-users validation. Per `guides/product/v1-scoping-methodology.md`.
+
+**Preconditions:** `MVP.md` exists with `status: shipped`, and the riskiest assumption was validated by the first-10-users round. If either fails, the command stops and surfaces what's missing.
+
+**The flow** (5 steps before the brief is drafted):
+
+1. **Capture first-10-users feedback.** You summarize what the round taught (at least a one-line per-user summary). Claude pushes back once if the reply sounds like a gut feel rather than user signal.
+2. **Design-path picker.** Three options:
+   - **(a) Continue generic design** — handle v1 UI in code, same patterns as MVP. Fastest. Right for dev tools / internal SMB / function-over-form segments.
+   - **(b) Engage a professional UI/UX designer** — kicks off the full Phase 3 (`/research-design` → `/draft-design-brief` → designer → handoff) before v1 build starts. Right for consumer / design-led products and category-leaders with polish-as-moat.
+   - **(c) Hybrid — light refresh** — keep generic-design but apply a polish pass (refined palette/typography, 2-3 distinctive UI patterns). Middle path; no formal designer engagement.
+3. **Pricing decision.** Surfaces the current MVP price. You either keep it or invoke `/reprice <slug>` first (recommended if first-10-users showed price friction or comparables shifted).
+4. **Surface new must-haves.** Shows you the MVP's deferred could-haves + Claude's read of what the user feedback implies. You pick which become v1 must-haves.
+5. **Draft V1.md + run reviewers.** Same `product-scope-reviewer` + `code-reviewer` as `/scope-mvp`, but tested against the v1 brief.
+
+**Output:** `V1.md` brief at the product folder + `scoping-v1-<slug>.md` report in the run's `market-research/` folder. **Stops at:** advance / revise / pause / retire decision. **Next:** depends on the design path picked:
+- `(a) generic-continued` → `/start-build <slug>` (reads V1.md, extends MVP code).
+- `(c) hybrid-light-refresh` → `/research-design <slug> --light` first, then `/start-build`.
+- `(b) pro-designer-engaged` → `/research-design <slug>` (full) → `/draft-design-brief <slug>` → designer → handoff → `/start-build`.
+
+**`/start-build` auto-detects which brief to build.** If both `MVP.md` (status `shipped`) and `V1.md` (status `green-lit-to-build`) exist, the orchestrator picks `V1.md` and treats the MVP code as the starting point to extend.
 
 ### `/scope-mvp <slug>`
 
@@ -170,6 +195,54 @@ Brief per `guides/ui-ux/design-brief-methodology.md`. **Asks you for picks first
 ### `/trend-check [optional triggered <reason>]`
 
 Trend sweep per `guides/market/trend-monitoring.md`. Output: `market-research/trends-<YYYY-MM-DD>.md`. **Stops at:** which downstream commands (if any) to run. **Next:** whichever the user picks.
+
+### `/revive-card <slug>`
+
+Restore a previously-killed idea card back to active state. The canonical inverse of a kill — replaces the older "manual `mv`" workaround.
+
+**What it does:**
+
+1. **Locates the killed card** via `find ideas/killed -name "<slug>.md"`. Extracts the `<run-id>` from the path.
+2. **Pre-flights the slug** via `python3 scripts/check_slug.py <slug>`. Refuses if there's an active card with the same slug in any run-folder (would create a `slug.collision` error per `CLAUDE.md § Slug uniqueness`). If only a killed entry + an orphaned app folder are flagged, it's safe to proceed — the kill is what we're undoing.
+3. **Shows you the snapshot** — kill date, kill reason (from frontmatter), linked validation report, linked audit-log id (from `card-kill` entry), and any orphaned MVP/V1 brief at `<web-apps|mobile-apps|desktop-apps>/<slug>/` with their current status.
+4. **Asks what to revive:**
+   - **Restore card only** — moves the file back, resets frontmatter to `status: triaged`, clears `killed-date` / `killed-reason` / `audit-log-id`. Leaves any orphaned brief as-is (the `slug.orphaned-app-after-kill` lint warning will keep flagging it until you address it separately).
+   - **Restore card AND revive MVP/V1 briefs** — same as above, plus flips brief `status: killed` → a pre-kill state you pick (`green-lit-to-build`, `building`, or `shipped` depending on context).
+   - **Cancel** — stop, no changes.
+5. **If reviving briefs, asks for the target status** when there's ambiguity (e.g., was the MVP shipped before the retire? if not, only `green-lit-to-build` makes sense).
+6. **Executes atomically:** moves the file, edits frontmatter via Edit (preserves `slug`, `run-id`, `date-captured`, `source`, `territory`, `validation-report`), flips brief statuses if requested, appends a `card-revive` audit-log entry summarizing the revive (with the original kill reason truncated for searchability), then runs `lint_pipeline.py` to verify no new errors.
+7. **Stops at a checkpoint**, suggests 2-3 plausible next steps (`/validate-card <slug>` to re-validate against fresh signal, `/scope-mvp <slug>` to re-scope, `/scope-v1 <slug>` if it was a shipped MVP, or `/log type card-revive` to view the audit entry).
+
+**Use when:**
+- A card was killed prematurely or based on signal that has since shifted (e.g., a competitor's pricing changed, a regulatory shift opened the segment, your own pivot makes the original kill stale).
+- A `/scope-v1` "retire the product" decision is being reversed after fresh user interest emerges.
+- You want to bring back a card whose validation was a `REJECT` and you've since done additional research that addresses the reject reason.
+
+**Don't use for:**
+- "Recycling a slug" — if you want a new product with the same name, pick a different slug. `/revive-card` brings back the SAME card with its history intact; it doesn't repurpose the slug.
+- Reviving an MVP brief whose card was never killed. The brief status flips happen as a SIDE EFFECT of card revive when an orphan exists; if you just want to flip a brief's status, edit the frontmatter directly.
+
+**Audit trail:** the `card-revive` entry includes the new audit-log id (returned by the script), the revived run-id, and the original kill reason. Together with the original `card-kill` entry (linked via `audit-log-id` in the card frontmatter before revive, captured in the revive entry's description), you get a complete kill-and-revive history queryable via `/log type card-revive` and `/log type card-kill`.
+
+### `/reprice <slug>`
+
+Reworks the pricing on an existing artifact (idea card, MVP brief, or V1 brief) using only the `product-pricing-reviewer`. **Idempotent** — when a prior price exists (via `priced-at:` frontmatter or a `## Pricing` block in the brief), the command surfaces it and asks "do you want to revise?" before invoking the reviewer.
+
+**The flow:**
+
+1. Resolve the artifacts for this slug (card / MVP / V1 / validation report / scoping report) and locate the current price.
+2. If a prior price exists, confirm with the user before re-researching.
+3. Invoke `product-pricing-reviewer` — it does fresh comparable-pricing research, segment WTP signal-mining, and unit-economics math, then returns 2-3 strategic pricing options ranked recommendation-first.
+4. User picks one option or types their own price (validated to parse as `$<amount>/<unit>/<interval>` or `$<amount> one-time`).
+5. Claude writes the chosen price to every relevant artifact's frontmatter (`priced-at:`, `pricing-strategy:`) and the brief's `## Pricing` block. Appends a `## Reprice — <date>` block to the validation report; the original validation reviewer output is NOT overwritten.
+
+**Use when:**
+
+- A scan or discovery surfaced a price that "doesn't feel right" putting yourself in the customer's shoes.
+- Comparable products have repriced (entry tier went up or down) and your price now looks off.
+- You shipped an MVP at $X and the first 10 users mostly complained about price.
+
+**Don't use for:** full re-validation of the card. `/reprice` runs only the pricing reviewer — the other three reviewers (viability, competition, market-segment) are not re-invoked. For a full re-validation, run `/validate-card <slug>` again.
 
 ### `/preview-product <slug> [page-name]`
 
@@ -296,6 +369,33 @@ The two-step gate is intentional. The script also refuses (`exit 2`) if you try 
 
 **Don't use for:** killing a single idea card (`/discover` puts killed cards in `ideas/killed/<run-id>/` automatically; that's the auditable kill path). `/projects` is for nuking whole projects, not individual cards.
 
+### `/team <slug>`
+
+List, name, or edit the **9 senior-engineer team members** for a product. The team is a fixed roster of long-running build-phase collaborators — the orchestrator (`senior-software-engineer`) + 8 specialists (`senior-system-design-engineer`, `senior-database-engineer`, `senior-backend-engineer`, `senior-frontend-engineer`, `senior-desktop-engineer`, `senior-qa-engineer`, `senior-devops-engineer`, `senior-security-engineer`). Backed by `scripts/team.py`.
+
+**Per-product storage:** `<web-apps|mobile-apps|desktop-apps>/<slug>/team.json` — gitignored personal-data, never enters git. Each product gets its own team — useful when you have multiple products in flight and want different names per project to keep them straight in your head.
+
+**Used by the build orchestrator** for narration. Named: "Paul (Senior Software Engineer) is invoking Maria (Senior Database Engineer) for the schema work." Unnamed: "Senior Software Engineer is invoking Senior Database Engineer for the schema work." Same narration shows up in `BUILD_STATUS.md` History entries and `build-milestone` audit-log descriptions.
+
+**Two paths to naming:**
+
+1. **Upfront via `/team <slug>`** — interactive: lists the team, lets you pick a row to name/edit, loops until you say done.
+2. **Just-in-time** — `/start-build` prompts "name your `<Role>`?" the first time each persona is engaged on a product. The prompt only fires for personas whose name is still unset in `team.json`.
+
+**`/team` UI loop:**
+
+1. **Display the team** as a numbered table (1-9) with Role | Name (or "(unnamed)").
+2. **Pick an action:**
+   - **Name an unnamed member** — pick a row with no current name, set one.
+   - **Edit an existing name** — pick a named row, replace the name.
+   - **Reset all to unnamed** — clears every name in one shot (file stays; values blank out). Requires confirmation.
+   - **Done — exit** — stops the command.
+3. **For name/edit:** you reply with the row number (1-9) or the role key, then the new name. Validation: 1-30 chars, must start with letter/digit, allowed chars are letters / digits / spaces / hyphens / apostrophes. The check rejects empty strings, names over 30 chars, and special characters (which would break YAML/JSON escaping).
+
+**No delete option.** The 9 roles are wired into the build orchestration; deleting one would break the workflow. You can reset names to unnamed (the role label is used in narration instead), but the role itself stays.
+
+**`/team` requires the product folder to exist** — i.e., `/scope-mvp <slug>` must have run already. If you want to name your team before starting a build, that's fine — just make sure the brief has been drafted first.
+
 ### `/log [<text> | delete <id> | clear | type <type>]`
 
 View, add, or delete entries in your personal-space audit log at `user-context/audit-log.jsonl`. The log is gitignored — it never leaves your machine. Wraps `scripts/audit_log.py`.
@@ -359,7 +459,8 @@ These live at `.claude/agents/<name>.md`. Most are invoked indirectly through sl
 |---|---|---|
 | `product-viability-reviewer` | Does the problem exist with external evidence? | `/validate-card` |
 | `product-competition-reviewer` | Real differentiation vs. actual incumbents (incl. non-obvious substitutes)? | `/validate-card` |
-| `market-segment-reviewer` | Segment crisp / sized / reachable / willing-to-pay? | `/validate-card` |
+| `market-segment-reviewer` | Segment crisp / sized / reachable / broadly willing-to-pay? | `/validate-card` |
+| `product-pricing-reviewer` | Is the specific proposed price defensible against comparable products, WTP signals, and solo-builder unit economics? Returns 2-3 strategic pricing options. | `/validate-card`, `/reprice` |
 | `product-scope-reviewer` | Is the MVP scope honest (must-haves tied to riskiest assumption, no hidden scope creep)? | `/scope-mvp` |
 
 ### UI/UX domain (workspace-authored)
