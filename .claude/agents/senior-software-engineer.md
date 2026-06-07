@@ -282,6 +282,17 @@ When invoked from `/rework <slug> <changes>` Step 2.5 (pre-draft feasibility con
 
 ...
 
+**Subsystem impact** (REQUIRED when BUILD_STATUS.md shows in-progress build state — i.e., any `[>]` or `[x]` subsystems):
+
+| Subsystem | Current | Expected post-rework | Reason |
+|---|---|---|---|
+| <subsystem from BUILD_STATUS.md> | `[x]` | `[>]` | <one-line: what the rework changes that invalidates the prior work> |
+| <subsystem> | `[x]` | `[x]` (no change) | <one-line: why this subsystem is unaffected> |
+| <subsystem> | `[>]` | `[>]` (no change, adjust scope) | <one-line: in-progress work continues but at adjusted scope> |
+| <subsystem> | `[ ]` | `[ ]` (no change) | <one-line: not yet started; rework absorbed into eventual implementation> |
+
+Only include subsystems present in BUILD_STATUS.md. The `Reason` column must be specific to the proposed change — not generic. Omit this table entirely if BUILD_STATUS.md doesn't exist or all subsystems are `[ ]`.
+
 **What the user should decide before drafting the rework temp:**
 - <decision 1>
 - <decision 2>

@@ -1,6 +1,6 @@
 ---
-description: View, add, or delete entries in your personal-space audit log (`user-context/audit-log.jsonl`). The audit log records important user-driven decisions and actions — onboarding-skip choices (which gate the first-launch re-prompt), discovery-project deletions, card kills/revives, and any free-text notes you add. The log is gitignored — it never leaves your machine.
-argument-hint: [<free-text note> | delete <id> | clear | type <onboarding-skip|project-delete|card-kill|card-revive|build-milestone|user-note>]
+description: View, add, or delete entries in your personal-space audit log (`user-context/audit-log.jsonl`). The audit log records important user-driven decisions and actions — onboarding-skip choices (which gate the first-launch re-prompt), discovery-project deletions, card kills/revives, build milestones, rework + consolidation events, and any free-text notes you add. The log is gitignored — it never leaves your machine. Rendered as a tree (newest first) with JSONL line-number badges.
+argument-hint: [<free-text note> | delete <id> | clear | type <onboarding-skip|project-delete|card-kill|card-revive|build-milestone|rework-applied|consolidation-applied|user-note>]
 ---
 
 You are about to interact with the audit log at `user-context/audit-log.jsonl`. The log is **personal-space (gitignored)** — it never enters git. The helper script is `scripts/audit_log.py`.
@@ -43,7 +43,7 @@ After the display, briefly remind the user of the available subcommands (add not
 
 **4. `type <type>`:**
 
-Validate that `<type>` is one of: `onboarding-skip`, `project-delete`, `card-kill`, `card-revive`, `build-milestone`, `user-note`. If not, tell the user the valid types and stop. Otherwise run `python3 scripts/audit_log.py list --type <type>` and show output in a code block.
+Validate that `<type>` is one of: `onboarding-skip`, `project-delete`, `card-kill`, `card-revive`, `build-milestone`, `rework-applied`, `consolidation-applied`, `user-note`. If not, tell the user the valid types and stop. Otherwise run `python3 scripts/audit_log.py list --type <type>` and show output in a code block.
 
 **5. Anything else (add user-note):**
 
@@ -62,10 +62,12 @@ Claude writes entries on these events without being asked:
 | User explicitly kills a card after validation/scoping | `card-kill` | `.claude/commands/validate-card.md`, `scope-mvp.md` |
 | User restores a killed card | `card-revive` | `.claude/commands/revive-card.md` (`/revive-card <slug>`) |
 | Project initialized via `/start-build`, `BUILD_STATUS.md` subsystem flips to `[x]`, ready-to-deploy state reached, or app shipped via `/ship-app` | `build-milestone` | `.claude/commands/start-build.md`, `.claude/commands/ship-app.md`, `.claude/agents/senior-software-engineer.md` |
+| User commits a rework via `/rework <slug> <changes>` (with override list + justifications if any REJECTs were overridden) | `rework-applied` | `.claude/commands/rework.md` |
+| User commits a consolidation via `/consolidate <slug>` (after re-review of the consolidated artifacts) | `consolidation-applied` | `.claude/commands/consolidate.md` |
 
 `/log` itself is the only entry point for `user-note`.
 
-**For `type` filtering** (`/log type build-milestone`): valid types are `onboarding-skip`, `project-delete`, `card-kill`, `card-revive`, `build-milestone`, `user-note`.
+**For `type` filtering** (`/log type build-milestone`): valid types are `onboarding-skip`, `project-delete`, `card-kill`, `card-revive`, `build-milestone`, `rework-applied`, `consolidation-applied`, `user-note`.
 
 ### Stop here
 

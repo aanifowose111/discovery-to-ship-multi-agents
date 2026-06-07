@@ -30,18 +30,43 @@ This command exists because reworking an idea by hand-editing files and re-invok
 
 5. **Read every artifact found** — you need the full picture to apply the rework correctly. Always check existing content before deciding targeted edit vs full overwrite.
 
+6. **Parse `BUILD_STATUS.md` if present** to determine the build state:
+   - Walk the file's checklist sections and count subsystems by status marker (`[ ]` not-started, `[>]` in-progress, `[x]` completed).
+   - Record the mapping `{subsystem_name → current_state}` as `<BUILD_STATE>` (used by Steps 2.5, 8, and 9).
+   - Determine the **build-state label**: `not-started` (no BUILD_STATUS.md or all `[ ]`), `in-progress` (at least one `[>]` or `[x]`), `shipped` (per MVP.md frontmatter `status: shipped`), or `v1-in-flight` (V1.md exists + status not `shipped`).
+
 ### Do
 
 #### Step 1 — Confirm scope of rework
 
-Surface what was found + the user's change description. Use `AskUserQuestion`:
+Surface what was found + the user's change description. **If `<BUILD_STATE>` is `in-progress` or `shipped`, surface a build-state banner BEFORE the scope picker** — the user needs to know the rework will impact already-written code or already-shipped artifacts:
+
+If `<BUILD_STATE>` is `in-progress`:
+
+> ⚠ **Build in progress for `<slug>`.** `BUILD_STATUS.md` shows the following completed/in-progress subsystems:
+>
+> - `<subsystem>` — `[x]` (owner: `<persona>`, completed `<date>`)
+> - `<subsystem>` — `[>]` (owner: `<persona>`, started `<date>`)
+> - ...
+>
+> The rework's change description may affect some of these. After commit (Step 9), you'll have the option to flip affected `[x]` subsystems back to `[>]` so the next `/start-build` re-engages the relevant specialists. **Code is NOT automatically modified** — `/rework` is markdown-only; flipping a subsystem is the signal that revisit work is owed. Proceed?
+
+If `<BUILD_STATE>` is `shipped`:
+
+> ⚠ **MVP is shipped for `<slug>`.** Reworking the MVP brief retroactively is *rewriting history* — the brief was the contract for what users actually saw. Consider running **`/scope-v1 <slug>`** instead, which is the canonical path for capturing post-MVP changes as the V1 brief without invalidating the historical MVP record.
+>
+> If you still want to rework the MVP (rare — e.g., correcting a documentation error), proceed below. The rework will be logged with this warning preserved in the `rework-applied` audit-log entry for future visibility.
+
+Use `AskUserQuestion` to confirm before proceeding (Proceed / Switch to `/scope-v1` / Cancel).
+
+Then surface the scope picker (use `AskUserQuestion`):
 
 > Rework scope for `<slug>` (run-id: `<run-id>`):
 >
 > - Idea card: `ideas/<run-id>/<slug>.md` (status: `<status>`)
 > - MVP brief: `<path>` (status: `<status>`) — [show this row only if MVP exists]
 > - V1 brief: `<path>` (status: `<status>`) — [show this row only if V1 exists]
-> - BUILD_STATUS.md: `<path>` (`<build-status>`) — [show only if exists; informational]
+> - BUILD_STATUS.md: `<path>` (build state: `<BUILD_STATE>`) — [show only if exists; informational]
 >
 > Your requested changes (verbatim):
 > > <CHANGES_TEXT>
@@ -96,13 +121,13 @@ Use `AskUserQuestion`:
 > - **(b) Skip — go straight to temp creation**
 >   - Use when the change is small, well-understood, or you've already done the design thinking offline.
 
-On (a): invoke `senior-software-engineer` in consulting mode via the custom-subagent invocation pattern in `CLAUDE.md`:
+On (a): invoke `senior-software-engineer` in consulting mode via the custom-subagent invocation pattern in `CLAUDE.md`. **If `<BUILD_STATE>` is `in-progress`, the prompt MUST instruct the orchestrator to additionally produce a Subsystem-impact map** as part of the consultation output:
 
 ```
 Agent({
   subagent_type: "general-purpose",
   description: "Rework feasibility consultation for <slug>",
-  prompt: "You are about to act as the senior-software-engineer in CONSULTING MODE (per .claude/agents/senior-software-engineer.md § Consulting mode — read this section in full first). Step 1: read .claude/agents/senior-software-engineer.md in full and treat its body as your role. Step 2: read the user's proposed change: '<verbatim change description>'. Step 3: read the existing artifacts at <list of paths> to ground the consultation. Step 4: decide which specialists to bring in (each specialist persona file has its own '## Consulting mode' section describing their advisory behavior; invoke them via the same custom-subagent pattern with a consulting-mode prompt). Step 5: assemble their notes into the consultation output shape defined in your § Consulting mode."
+  prompt: "You are about to act as the senior-software-engineer in CONSULTING MODE (per .claude/agents/senior-software-engineer.md § Consulting mode — read this section in full first). Step 1: read .claude/agents/senior-software-engineer.md in full and treat its body as your role. Step 2: read the user's proposed change: '<verbatim change description>'. Step 3: read the existing artifacts at <list of paths> to ground the consultation. Step 4: decide which specialists to bring in (each specialist persona file has its own '## Consulting mode' section describing their advisory behavior; invoke them via the same custom-subagent pattern with a consulting-mode prompt). Step 5: if BUILD_STATUS.md shows in-progress build state (build-state-label: <BUILD_STATE>, current subsystems: <BUILD_STATE map serialized>), ALSO produce the 'Subsystem impact' map per your § Consulting mode (output shape) — a table with columns Subsystem / Current state / Expected post-rework state / Reason. Step 6: assemble all notes into the consultation output shape defined in your § Consulting mode."
 })
 ```
 
@@ -245,9 +270,30 @@ Show the consolidated diff summary:
 > - Card: `triaged` (back to pre-validation — the reworked claims need re-validation via `/validate-card`)
 > - MVP: `in-scoping` (back to pre-review — needs re-scoping via `/scope-mvp`)
 > - V1: `in-v1-scoping` (back to pre-review — needs re-v1-scoping via `/scope-v1`)
+
+##### Step 8a — Subsystem-impact decision (only if `<BUILD_STATE>` is `in-progress`)
+
+If the build is in progress AND the Step 2.5 consultation produced a Subsystem-impact map (or if the user skipped consultation but the build is in progress — in which case main Claude produces a best-effort map from the change description + `<BUILD_STATE>`), surface it now:
+
+> **Subsystem impact summary** (from `BUILD_STATUS.md`):
 >
+> | Subsystem | Current | Expected post-rework | Reason |
+> |---|---|---|---|
+> | <subsystem> | `[x]` | `[>]` | <one-line from consultation> |
+> | <subsystem> | `[x]` | `[x]` (no change) | <one-line> |
+> | <subsystem> | `[>]` | `[>]` (no change, adjust scope) | <one-line> |
+> | <subsystem> | `[ ]` | `[ ]` (no change) | <one-line> |
+>
+> **What to do with affected subsystems on commit?**
+> - **(a) Flip affected `[x]` subsystems back to `[>]`** (Recommended for changes that touch already-completed code) — `BUILD_STATUS.md` History gets an entry per flip noting that the rework triggered the revert. Next `/start-build <slug>` re-engages the relevant specialists against the reworked brief.
+> - **(b) Leave subsystem states alone** — User takes responsibility for manually flipping or re-running. Useful when the change is brief-only and doesn't actually need code revisits (e.g., a pricing rework, a distribution-hypothesis revision).
+
+Record the user's pick as `<SUBSYSTEM_FLIP_DECISION>` (one of: `flip` / `leave-alone`). If the user skipped Step 2.5 consultation AND the change description is plainly brief-only (e.g., pricing, distribution channel only), default the recommendation to `leave-alone` and explain why.
+
+##### Step 8b — Final commit confirmation
+
 > Confirm via `AskUserQuestion`:
-> - **(a) Commit the rework** — overwrite originals with temps, delete temps, append rework blocks to existing validation/scoping reports, append audit-log entry
+> - **(a) Commit the rework** — overwrite originals with temps, delete temps, append rework blocks to existing validation/scoping reports, apply subsystem flips per `<SUBSYSTEM_FLIP_DECISION>` (if applicable), append audit-log entry
 > - **(b) Revise more before commit** — return to step 6
 > - **(c) Cancel** — delete all temps, no changes made
 
@@ -272,12 +318,20 @@ Show the consolidated diff summary:
    - In `market-research/<run-id>/scoping-<slug>.md`: same
    - Same convention as `/reprice`'s `## Reprice — <date>` block
 
+3a. **Apply subsystem flips to `BUILD_STATUS.md`** if `<SUBSYSTEM_FLIP_DECISION>` is `flip`:
+   - For each subsystem in the impact map whose Expected-post-rework column is `[>]` (was `[x]`): edit the BUILD_STATUS.md checklist line to change `- [x]` → `- [>]`. Preserve all other content on the line (owner, artifact path).
+   - Append a History entry for each flip: `- <YYYY-MM-DD>: \`[x]\` → \`[>]\` for **<subsystem>** triggered by /rework (audit: <to-be-filled-after-step-4>). Reason: <one-line from impact map>. Requires re-invocation of <persona> against the reworked brief.`
+   - Update BUILD_STATUS.md frontmatter `build-status` from whatever it was to `rework-in-progress` so subsequent `/start-build` can detect the state.
+   - **Per `guides/product/build-status-methodology.md` § 'Special exception: rework-triggered flips'** — this is the one documented case where main Claude edits BUILD_STATUS.md directly (vs. via the orchestrator persona). The clear History annotation makes the rework trigger auditable.
+
 4. **Append audit-log entry:**
    ```bash
-   python3 scripts/audit_log.py add rework-applied "Reworked <slug> (run-id: <run-id>). Affected: <card|MVP|V1, list>. Override(s): <reviewer> ('<justification>'); <reviewer> ('<justification>'). Summary: <one-line summary of the change>."
+   python3 scripts/audit_log.py add rework-applied "Reworked <slug> (run-id: <run-id>). Affected artifacts: <card|MVP|V1>. Build state at rework: <BUILD_STATE>. Subsystem flips applied: <list of subsystems flipped, or 'none'>. Override(s): <reviewer> ('<justification>'); <reviewer> ('<justification>'). Summary: <one-line summary of the change>."
    ```
 
-5. **Print the new audit-log id and a brief result summary.**
+5. **If subsystem flips were applied in Step 3a**, edit the BUILD_STATUS.md History entries to substitute the actual audit-log id (returned from Step 4) into the `(audit: <id>)` placeholder.
+
+6. **Print the new audit-log id and a brief result summary.**
 
 **On (c) Cancel:**
 
@@ -291,11 +345,14 @@ Show the consolidated diff summary:
 > - Card status: `triaged` (was `<previous>`)
 > - MVP status: `in-scoping` (was `<previous>`)
 > - V1 status: `in-v1-scoping` (was `<previous>`)
+> - Subsystems flipped: `<list, or 'none'>` — [show only when flips were applied]
+> - Build state: `rework-in-progress` — [show only when flips were applied]
 >
 > Next steps:
 > - **`/validate-card <slug>`** — re-validate the reworked card. The four product reviewers will run again on the **committed (now-original)** card. Overrides applied during this rework do NOT carry forward — a fresh validation is independent.
 > - **`/scope-mvp <slug>`** — refresh the scoping report against the new MVP content (if MVP was reworked).
 > - **`/scope-v1 <slug>`** — refresh v1 scoping (if V1 was reworked).
+> - **`/start-build <slug>`** — re-engage the team against the reworked brief. The orchestrator will see the flipped `[>]` subsystems in `BUILD_STATUS.md` and re-invoke the relevant specialists to revisit their work. [show only when flips were applied]
 > - **`/consolidate <slug>`** — check alignment across all artifacts (recommended after a structural rework, e.g., a stack or segment change).
 > - **`/log type rework-applied`** — view this rework + any past ones in the audit log.
 

@@ -170,8 +170,25 @@ Who updates the file and when:
 | Build pauses | `senior-software-engineer` | `build-status: paused`; History note |
 | Build releases | `senior-software-engineer` | `build-status: released`; final History entry; file becomes frozen |
 | Build is killed | `senior-software-engineer` | `build-status: killed`; History note with reason |
+| User commits `/rework` with `flip` subsystem decision | **Main Claude** (special exception — see below) | Affected `[x]` subsystems flip back to `[>]`; per-flip History entries with rework-trigger annotation; `build-status: rework-in-progress` |
 
 Specialists do NOT edit `BUILD_STATUS.md` directly. They report completion (per their persona's output format), and `senior-software-engineer` makes the update. This keeps the file's voice consistent and prevents merge conflicts.
+
+### Special exception: rework-triggered flips
+
+The one documented case where **main Claude edits `BUILD_STATUS.md` directly** (vs. via the orchestrator persona) is when `/rework <slug> <changes>` Step 9 applies subsystem flips. The mechanism:
+
+1. The user's rework affects already-completed subsystems (per the Subsystem-impact map produced in `/rework` Step 2.5 consulting consultation, or per main Claude's best-effort map at Step 8a if consultation was skipped).
+2. The user opts at Step 8a to flip affected `[x]` subsystems back to `[>]`.
+3. Step 9.3a applies the flips: each affected checklist line changes `- [x]` → `- [>]` (other content on the line preserved), and a History entry is appended per flip with the exact format:
+   ```
+   - <YYYY-MM-DD>: `[x]` → `[>]` for **<subsystem>** triggered by /rework (audit: <audit-log-id>). Reason: <one-line from impact map>. Requires re-invocation of <persona> against the reworked brief.
+   ```
+4. The frontmatter `build-status` is set to `rework-in-progress`, signalling to `/start-build` that completed work needs revisiting.
+
+**Why main Claude and not the orchestrator?** The rework is a markdown-only command; the orchestrator's normal job is to coordinate builds in progress. A rework-triggered flip is essentially a rollback signal — main Claude applies it with the audit annotation, and `/start-build` later re-engages the orchestrator (and through them, the affected specialists) to do the actual revisit work. The `(audit: <id>)` annotation makes the trigger traceable to the rework event.
+
+**The exception is narrow.** Main Claude does NOT edit `BUILD_STATUS.md` outside of `/rework` Step 9. All other state changes still flow through the orchestrator.
 
 ---
 

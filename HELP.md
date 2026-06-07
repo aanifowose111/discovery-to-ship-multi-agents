@@ -215,6 +215,8 @@ The canonical command for substantively changing an idea, scope, MVP brief, or V
 
 **Why this matters:** the rework command captures override decisions permanently. The audit-log entry says exactly which REJECT was overridden, by whom, and the justification. Future you and any forker see the record — there's no silent override.
 
+**Mid-build awareness:** `/rework` reads `BUILD_STATUS.md` at the start. If a build is in progress (any subsystem at `[>]` or `[x]`), the command surfaces a build-state banner before the scope picker. The Step 2.5 consultation produces a **Subsystem impact** map naming which `[x]` subsystems the rework affects. At Step 8a, the user picks: **(a) flip affected `[x]` subsystems back to `[>]` on commit** (next `/start-build` re-engages the relevant specialists to revisit their work against the reworked brief; per-flip History entries with `(audit: <id>)` annotation make the trigger auditable per `guides/product/build-status-methodology.md` § Special exception), or **(b) leave subsystem states alone** (user reconciles manually — appropriate for brief-only changes like pricing). If MVP is `shipped`, `/rework` warns and suggests `/scope-v1` instead — reworking a shipped brief is rewriting history.
+
 **Use when:**
 - You want to address a specific reviewer concern by reworking the artifact (not just overriding silently).
 - You want to switch the segment / stack / pricing strategy mid-cycle.

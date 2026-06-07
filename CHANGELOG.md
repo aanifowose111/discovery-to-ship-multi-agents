@@ -16,6 +16,31 @@ This project does not yet follow strict semantic versioning. Pre-1.0, breaking c
 
 _No entries yet — next batch lands here under a `### YYYY-MM-DD` subheader (or, if today already has a cut version, as a patch bump per the convention above)._
 
+## [0.10.1] - 2026-06-07
+
+Same-day patch bump per the `CHANGELOG.md` preamble convention. Two changes:
+
+### Added
+
+- **Mid-build awareness for `/rework`.** The command now reads `BUILD_STATUS.md` at the start and tracks a `<BUILD_STATE>` label (`not-started` / `in-progress` / `shipped` / `v1-in-flight`).
+  - **Build-state banner at Step 1** when state is `in-progress` (lists completed/in-progress subsystems and warns that rework may flip them back) or `shipped` (warns rework rewrites shipped-MVP history and suggests `/scope-v1` instead).
+  - **Step 2.5 consultation produces a Subsystem-impact map** (table of subsystem / current state / expected post-rework state / one-line reason specific to the change) when the build is in-progress. The orchestrator's consulting-mode output shape (in `senior-software-engineer.md` § Consulting mode) now requires this block.
+  - **New Step 8a** surfaces the impact map and asks the user to pick: **(a) flip affected `[x]` subsystems back to `[>]` on commit** — next `/start-build` re-engages the relevant specialists against the reworked brief; per-flip History entries carry `(audit: <id>)` annotations making the rework trigger auditable — or **(b) leave subsystem states alone** for brief-only changes (pricing, distribution-hypothesis revisions, etc.).
+  - **Step 9.3a** applies the flips: `[x]` → `[>]` on affected checklist lines (other content preserved), History entries per flip, frontmatter `build-status: rework-in-progress`.
+  - **Step 10 next-steps** now suggests `/start-build <slug>` when flips were applied.
+  - **`/start-build` brief-detection table** has a new row for `build-status: rework-in-progress` — orchestrator re-engages specialists to revisit flipped subsystems, then clears state back to `building` when all affected subsystems are `[x]` again.
+- **New documented exception in `guides/product/build-status-methodology.md` § 5** — "Special exception: rework-triggered flips." This is the one case where main Claude edits `BUILD_STATUS.md` directly (rather than via the orchestrator persona). The clear `(audit: <id>)` History annotation makes the trigger traceable. All other state changes still flow through the orchestrator.
+- **`HELP.md` `/rework` section** has a new "Mid-build awareness" paragraph documenting the banner, impact map, Step 8a flip decision, and shipped-MVP `/scope-v1` redirect.
+
+### Fixed
+
+- **`.claude/commands/log.md`** out-of-date validation list. The runbook's `type <type>` filter previously listed 6 valid types (the v0.7.0 set). Updated to include the v0.9.0/v0.10.0 additions — `rework-applied`, `consolidation-applied`. Frontmatter `argument-hint` also updated. New auto-append-table rows for the two events. The script accepted these types correctly all along (no functional bug); this is a doc fix so users browsing the runbook see the full set.
+
+### Notes
+
+- **`/rework` remains markdown-only.** Mid-build awareness flips subsystem states in `BUILD_STATUS.md` to signal "this needs revisiting" — but code is NOT automatically modified. The subsequent `/start-build` invocation re-engages the right specialists, who then redo the affected work against the reworked brief.
+- **Shipped-MVP path: `/scope-v1` remains canonical.** `/rework` on a shipped MVP is allowed (e.g., for a documentation-only correction) but warned heavily. The brief was the contract for what users actually saw; rewriting it retroactively is rewriting history. `/scope-v1` is the proper path for capturing post-MVP changes.
+
 ## [0.10.0] - 2026-06-07
 
 First post-2026-06-06 cut. Two changes that materially improve the iteration experience:
@@ -318,7 +343,8 @@ This is a **minor version bump** (0.4.x → 0.5.0), not a patch — it adds a pe
 - Stack-flexibility framing: workspace defaults are dockerized Flask + RN, but the methodologies are stack-agnostic and `/scope-mvp` asks the user to confirm the stack before drafting.
 - Internet access policy: `WebFetch` and `WebSearch` pre-approved in `.claude/settings.json`; permission only requested for non-HTTPS, suspicious, paid, or user-private URLs.
 
-[Unreleased]: https://github.com/aanifowose111/discovery-to-ship-multi-agents/compare/v0.10.0...HEAD
+[Unreleased]: https://github.com/aanifowose111/discovery-to-ship-multi-agents/compare/v0.10.1...HEAD
+[0.10.1]: https://github.com/aanifowose111/discovery-to-ship-multi-agents/compare/v0.10.0...v0.10.1
 [0.10.0]: https://github.com/aanifowose111/discovery-to-ship-multi-agents/compare/v0.9.0...v0.10.0
 [0.9.0]: https://github.com/aanifowose111/discovery-to-ship-multi-agents/compare/v0.8.0...v0.9.0
 [0.8.0]: https://github.com/aanifowose111/discovery-to-ship-multi-agents/compare/v0.7.0...v0.8.0
