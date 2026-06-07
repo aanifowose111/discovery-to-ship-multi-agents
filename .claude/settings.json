@@ -3,7 +3,18 @@
   "permissions": {
     "allow": [
       "WebFetch",
-      "WebSearch"
+      "WebSearch",
+      "Bash(python3 scripts/team.py:*)",
+      "Bash(python3 scripts/audit_log.py:*)",
+      "Bash(python3 scripts/check_slug.py:*)",
+      "Bash(python3 scripts/gen_run_id.py:*)",
+      "Bash(python3 scripts/lint_pipeline.py:*)",
+      "Bash(python3 scripts/check_links.py:*)",
+      "Bash(python3 scripts/check_system.py:*)",
+      "Bash(python3 scripts/report_summarizer.py:*)",
+      "Bash(python3 scripts/run_tests.py:*)",
+      "Bash(python3 scripts/projects.py list:*)",
+      "Bash(python3 scripts/projects.py show:*)"
     ]
   },
   "companyAnnouncements": [
