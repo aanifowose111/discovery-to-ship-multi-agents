@@ -1,0 +1,74 @@
+name: Auto-create release on tag push
+
+# Fires whenever a tag matching `vX.Y.Z` (or `vX.Y.Z.patch`) is pushed to origin.
+# Extracts the matching `## [X.Y.Z] - YYYY-MM-DD` section from CHANGELOG.md and
+# creates a GitHub Release attached to that tag, with the section as the body.
+#
+# Manual fallback (if the workflow fails or you want to re-create a release):
+#   ver=0.10.1
+#   awk -v ver="$ver" '/^## \[/{if(p==1)exit; p=0} $0 ~ "^## \\[" ver "\\]" {p=1} p' \
+#     CHANGELOG.md > /tmp/release-notes.md
+#   gh release create "v$ver" --title "v$ver" --notes-file /tmp/release-notes.md --verify-tag
+
+on:
+  push:
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+'
+      - 'v[0-9]+.[0-9]+.[0-9]+.[0-9]+'
+
+jobs:
+  create-release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Check out the tagged commit
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Extract CHANGELOG section for this tag
+        id: extract
+        run: |
+          set -euo pipefail
+          VERSION="${GITHUB_REF#refs/tags/v}"
+          NOTES_FILE="${RUNNER_TEMP}/release-notes.md"
+
+          awk -v ver="$VERSION" '
+            /^## \[/{ if (p==1) exit; p=0 }
+            $0 ~ "^## \\[" ver "\\]" { p=1 }
+            p
+          ' CHANGELOG.md > "$NOTES_FILE"
+
+          if [ ! -s "$NOTES_FILE" ]; then
+            echo "::error::No CHANGELOG section found for v$VERSION."
+            echo "::error::Add a '## [$VERSION] - YYYY-MM-DD' section to CHANGELOG.md and re-tag."
+            exit 1
+          fi
+
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "notes_file=$NOTES_FILE" >> "$GITHUB_OUTPUT"
+
+          echo "=== Extracted release notes for v$VERSION ==="
+          cat "$NOTES_FILE"
+          echo "============================================="
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          VERSION="${{ steps.extract.outputs.version }}"
+          NOTES_FILE="${{ steps.extract.outputs.notes_file }}"
+
+          # If a release already exists for this tag, update its body instead of
+          # erroring. Useful when re-pushing a tag or re-running the workflow.
+          if gh release view "v$VERSION" >/dev/null 2>&1; then
+            echo "Release v$VERSION already exists — updating notes."
+            gh release edit "v$VERSION" --notes-file "$NOTES_FILE"
+          else
+            gh release create "v$VERSION" \
+              --title "v$VERSION" \
+              --notes-file "$NOTES_FILE" \
+              --verify-tag
+          fi

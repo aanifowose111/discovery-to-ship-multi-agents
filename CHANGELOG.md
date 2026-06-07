@@ -16,6 +16,20 @@ This project does not yet follow strict semantic versioning. Pre-1.0, breaking c
 
 _No entries yet — next batch lands here under a `### YYYY-MM-DD` subheader (or, if today already has a cut version, as a patch bump per the convention above)._
 
+## [0.10.2] - 2026-06-07
+
+Same-day patch on top of v0.10.1.
+
+### Added
+
+- **`.github/workflows/release.yml`** — auto-create a GitHub Release whenever a `vX.Y.Z` tag is pushed to origin. The workflow extracts the matching `## [X.Y.Z] - YYYY-MM-DD` section from `CHANGELOG.md` and uses it verbatim as the release body. Idempotent: if a release for that tag already exists, the workflow updates its notes instead of erroring (handy when re-pushing a tag after fixing CHANGELOG content). Manual fallback recipe is documented inline in the workflow file. Triggers on tags matching `vX.Y.Z` or `vX.Y.Z.N` (the latter covers patch-of-patch edge cases the same-day-patch rule could produce).
+- **Backfilled GitHub Releases for v0.7.0 → v0.10.1.** Each one carries the corresponding CHANGELOG section as the release body. Combined with the v0.10.2 workflow, the repo's Releases sidebar now shows the active release cadence; the latest-release badge displays on the homepage.
+
+### Notes
+
+- **Why bother with Releases for a non-binary repo?** This isn't a typical software product — there's no pip package or binary download. But Releases add three discoverability surfaces beyond plain tags: the "Latest release" badge on the repo homepage, a per-version share URL (more concise than CHANGELOG anchors), and an Atom/RSS feed for followers. All three help with the share-the-repo CTA added in v0.8.0's README work.
+- **Workflow self-test.** The workflow won't fire when this commit lands on `main` — it triggers only on tag pushes (`refs/tags/v*.*.*`). The first proof of correctness will be the next tag (`v0.10.2` after this commit + `git tag v0.10.2 && git push --tags`); the Release for v0.10.2 will be auto-created and will contain this entry as the body.
+
 ## [0.10.1] - 2026-06-07
 
 Same-day patch bump per the `CHANGELOG.md` preamble convention. Two changes:
@@ -343,7 +357,8 @@ This is a **minor version bump** (0.4.x → 0.5.0), not a patch — it adds a pe
 - Stack-flexibility framing: workspace defaults are dockerized Flask + RN, but the methodologies are stack-agnostic and `/scope-mvp` asks the user to confirm the stack before drafting.
 - Internet access policy: `WebFetch` and `WebSearch` pre-approved in `.claude/settings.json`; permission only requested for non-HTTPS, suspicious, paid, or user-private URLs.
 
-[Unreleased]: https://github.com/aanifowose111/discovery-to-ship-multi-agents/compare/v0.10.1...HEAD
+[Unreleased]: https://github.com/aanifowose111/discovery-to-ship-multi-agents/compare/v0.10.2...HEAD
+[0.10.2]: https://github.com/aanifowose111/discovery-to-ship-multi-agents/compare/v0.10.1...v0.10.2
 [0.10.1]: https://github.com/aanifowose111/discovery-to-ship-multi-agents/compare/v0.10.0...v0.10.1
 [0.10.0]: https://github.com/aanifowose111/discovery-to-ship-multi-agents/compare/v0.9.0...v0.10.0
 [0.9.0]: https://github.com/aanifowose111/discovery-to-ship-multi-agents/compare/v0.8.0...v0.9.0
