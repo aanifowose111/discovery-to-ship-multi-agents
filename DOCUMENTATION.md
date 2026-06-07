@@ -842,15 +842,17 @@ These are auxiliary tools that complement (don't replace) the slash commands. Us
 | Script | Purpose |
 |---|---|
 | `run_tests.py` | Repo health / smoke test suite. Backs the `/run-tests` slash command. |
-| `lint_pipeline.py` | Validates pipeline state consistency — frontmatter, status alignment, `@path` cross-references, required sections in validation reports. |
+| `lint_pipeline.py` | Validates pipeline state consistency — frontmatter, status alignment, `@path` cross-references, validation-report required sections (recognizes both per-reviewer §5 and integrated §7 shapes), and category-scoped slug-collision rule (active card + one app folder is the expected post-`/scope-mvp` state, not a collision). |
 | `check_links.py` | Scans tracked markdown for broken relative links and `@path` references. Optional external-URL HEAD check. |
 | `check_slug.py` | Verifies a product slug is available across `ideas/`, `ideas/killed/`, `web-apps/`, `mobile-apps/`, `desktop-apps/`. |
 | `gen_run_id.py` | Generates a pipeline run-id (`<8-lowercase-alphanumeric>-<MMDDYY>`). Importable + CLI. |
 | `new_idea_card.py` | Interactive idea-card creator for one-off captures outside `/discover`. |
 | `changelog_helper.py` | Auto-extracts commits since the last tag and formats as a CHANGELOG entry stub. |
 | `report_summarizer.py` | Pretty-prints summaries of all scan / validation / scoping / trend reports. |
+| `audit_log.py` | Read/write the personal-space audit log at `user-context/audit-log.jsonl` (gitignored). Subcommands: `add`, `list`, `delete`, `clear`, `has`. Supports 6 entry types (`onboarding-skip`, `project-delete`, `card-kill`, `card-revive`, `build-milestone`, `user-note`). Backs the `/log` slash command. The `has` subcommand also gates CLAUDE.md's Rule A onboarding re-prompt. |
+| `team.py` | Manage per-product senior-engineer team-member names at `<web-apps\|mobile-apps\|desktop-apps>/<slug>/team.json` (gitignored). Subcommands: `get`, `set`, `list`, `init`, `reset`, `roles`, `path`. Names validated 1-30 chars (letters / digits / spaces / hyphens / apostrophes). The 9 build-phase roles (orchestrator + 8 specialists) are fixed; no `delete` subcommand. Backs the `/team` slash command. Used by `/start-build` for just-in-time naming prompts. |
 | `check_system.py` | System spec checker. Backs the `/system-check` slash command. |
-| `projects.py` | Manages discovery-cycle projects (list, show, delete with `--force`). Backs the `/projects` slash command. |
+| `projects.py` | Manages discovery-cycle projects (list, show, delete with `--force`). Walks all three stack categories (`web-apps/`, `mobile-apps/`, `desktop-apps/`) plus `ideas/`, `ideas/killed/`, `market-research/`, `generated/` when computing what to delete. Backs the `/projects` slash command. |
 
 ### Shell scripts (`scripts/*.sh`)
 
