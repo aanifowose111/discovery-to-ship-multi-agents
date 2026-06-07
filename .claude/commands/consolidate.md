@@ -91,6 +91,24 @@ Use `AskUserQuestion` with these options:
 - **Consolidate a subset** — user picks which row numbers to apply (free-text reply)
 - **Cancel** — surface the misalignments for the user's reference but don't change anything
 
+#### Step 3.5 — Feasibility consultation (optional; recommended for structural misalignments)
+
+If the misalignment set includes structural items (segment mismatch between card and MVP, stack change implied by validation findings, must-haves that span multiple subsystems), the orchestrator's advisory panel can shape the consolidation before edits are applied. For purely mechanical misalignments (a price typo, a missing carried-note, a frontmatter field drift), skip this step.
+
+Use `AskUserQuestion`:
+
+> Some of the misalignments above are structural:
+> - <list of structural rows from Step 2>
+>
+> Want a feasibility consultation from the senior engineers before consolidating?
+>
+> - **(a) Yes — consult** (Recommended for structural misalignments)
+>   - The orchestrator (`senior-software-engineer`) brings in the right specialists in **consulting mode** per `senior-software-engineer.md` § Consulting mode. Output is a structured advisory note covering feasibility of the proposed resolutions, simpler alternatives, and hidden risks. The user can revise their consolidation picks after seeing the advice.
+> - **(b) Skip — apply the consolidation as-is**
+>   - Use when misalignments are purely mechanical.
+
+On (a): invoke `senior-software-engineer` in consulting mode (same Agent-tool pattern as `/rework` Step 2.5). Surface the consultation output, then offer the user a chance to revise their consolidation picks before proceeding to Step 4.
+
 #### Step 4 — Apply the consolidation
 
 For each accepted resolution, apply targeted edits to the affected artifact. Use Edit (or rewrite if structural). Always preserve frontmatter invariants (slug, run-id, date-captured, source, territory).

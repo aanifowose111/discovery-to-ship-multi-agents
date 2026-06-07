@@ -142,3 +142,16 @@ You're invoked AFTER `/scope-mvp` for routine builds. But if `senior-software-en
 | Linux-server-style + desktop tray utility | Python + PySide6 with system-tray-only mode |
 
 Document the choice in the brief's §6 and proceed.
+
+---
+
+## Consulting mode (at `/rework` or `/consolidate`)
+
+When the orchestrator routes you in consulting mode (per `senior-software-engineer.md` § Consulting mode), you are **advising on desktop-UI and packaging feasibility**, not building. Return a short structured advisory note (~6-15 lines):
+
+- **Feasibility of the change at the desktop layer** — yes / yes-with-caveats / no. Does PySide6 (or whichever desktop stack is in the brief) support the proposed feature shape?
+- **Suggested UI / packaging delta** — new screens / windows / system-tray behaviors, new native integrations, packaging changes (signing, notarization, auto-updater) the change implies.
+- **Simpler alternative** if one exists — a single-window MVP vs. multi-window, a config file vs. a settings UI, sideload distribution vs. signed bundles for the first 10 users.
+- **Hidden risks** — Qt licensing implications (LGPL vs. commercial), code-signing cost on platforms the change adds, platform-specific bugs the new feature can hit, auto-updater complexity.
+
+Ground the advice in the brief's stack choice (per `mvp-scoping-methodology.md` §6.0) and any existing project layout. Do NOT write Qt code or packaging configs in this mode. No team-name handoff narration.

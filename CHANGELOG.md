@@ -16,6 +16,27 @@ This project does not yet follow strict semantic versioning. Pre-1.0, breaking c
 
 _No entries yet — next batch lands here under a `### YYYY-MM-DD` subheader (or, if today already has a cut version, as a patch bump per the convention above)._
 
+## [0.10.0] - 2026-06-07
+
+First post-2026-06-06 cut. Two changes that materially improve the iteration experience:
+
+### Added
+
+- **Consulting mode for senior-engineer personas at `/rework` and `/consolidate`.** When the user reworks an idea / scope / MVP, or consolidates structural misalignments, they can now invite an **advisory panel** of the senior engineers BEFORE any temp file is drafted. The orchestrator (`senior-software-engineer`) brings in the right specialists (system-design always for structural changes; database / backend / frontend / desktop / qa / devops / security as the change implies) in a behavior-shifted "consulting mode" — they advise on feasibility, suggest approaches, surface simpler alternatives, and flag hidden risks WITHOUT writing files, code, `BUILD_STATUS.md` updates, or any committed artifact. Each specialist returns a structured advisory note (~6-15 lines); the orchestrator assembles them into one consultation surfaced to the user, who then proceeds with the original change, switches to the synthesis recommendation, revises the change description, or cancels.
+  - **Why this matters:** the prior behavior took the user's rework description straight to reviewers (verdict mode). Reviewers can REJECT, but they don't have a sounding-board role; they don't proactively name simpler paths. Consulting mode is where the user gets to test feasibility cheaply, before the proposal is committed to. This is the biggest qualitative change to the rework loop since `/rework` was introduced in v0.9.0.
+  - **Rules that mark "consulting mode" as distinct from "build mode":** advisory only (no files, no code, no `BUILD_STATUS.md`), no team-name handoff narration (advisory notes don't need that overhead), surface simpler alternatives proactively (the user's proposed change is often the second-best option), ground recommendations in existing brief / codebase, return uncertainty honestly when a specialist can't answer.
+  - **Files updated:** `senior-software-engineer.md` (authoritative `## Consulting mode (at /rework or /consolidate)` section — full rules, specialist-routing logic, output shape) + each of the 8 specialist persona files (`senior-system-design-engineer`, `senior-database-engineer`, `senior-backend-engineer`, `senior-frontend-engineer`, `senior-desktop-engineer`, `senior-qa-engineer`, `senior-devops-engineer`, `senior-security-engineer`) gets a domain-specific consulting clause that names the simpler alternatives and hidden risks unique to their lens. New Step 2.5 in `.claude/commands/rework.md`; new Step 3.5 in `.claude/commands/consolidate.md`. One-line pointer in `CLAUDE.md`'s specialist-personas paragraph.
+
+### Changed
+
+- **`scripts/audit_log.py list` now renders entries as a tree** instead of paragraph-style one-line-per-entry. Each entry's id is the branch label with a JSONL line-number badge `(L<n>)`; sub-branches show `type`, `time`, and `desc`; descriptions are wrapped to terminal width. Output is colored per-type (e.g., `card-kill` red, `card-revive` green, `rework-applied` magenta) when stdout is a TTY; auto-disabled when piped or when `NO_COLOR` is set in the environment. New `--no-color` flag for explicit opt-out. The `(L<n>)` badge lets the user jump directly to the entry in their editor — line `L<n>` is the JSONL file's 1-based source line, distinct from the display order (which is newest-first). `--json` output unchanged; `add`/`delete`/`clear`/`has` unchanged. `scripts/README.md` updated for the new rendering + new flag.
+  - **Why this matters:** with the audit log now carrying 6 entry types (the v0.8.0 + v0.9.0 additions), many of them with multi-clause descriptions (override justifications, misalignment counts, build-milestone subsystems), the previous paragraph format made the log hard to scan. The tree format gives each entry breathing room and makes the structure visually parseable. `/log` shows the rendered tree in the slash-command response now.
+
+### Notes
+
+- **Consulting mode does NOT replace reviewers.** Reviewers still run downstream (after the user commits to a proposal). Consulting mode is the pre-draft sounding board; reviewers are the post-draft verdict. Both layers are valuable and they do different jobs.
+- **The audit-log tree rendering is purely a display change.** No data format change in the JSONL file; existing audit logs read correctly. `--json` output is byte-identical to before (the internal `_line` key used for the tree display is sanitized from JSON output).
+
 ## [0.9.0] - 2026-06-06
 
 This is a **minor bump on the same calendar day as v0.7.0 and v0.8.0** — the same-day-patch convention is overridden again because the bundle introduces 3 new top-level slash commands + 2 new audit-log types. The owner explicitly waived the convention for this cut.
@@ -297,7 +318,8 @@ This is a **minor version bump** (0.4.x → 0.5.0), not a patch — it adds a pe
 - Stack-flexibility framing: workspace defaults are dockerized Flask + RN, but the methodologies are stack-agnostic and `/scope-mvp` asks the user to confirm the stack before drafting.
 - Internet access policy: `WebFetch` and `WebSearch` pre-approved in `.claude/settings.json`; permission only requested for non-HTTPS, suspicious, paid, or user-private URLs.
 
-[Unreleased]: https://github.com/aanifowose111/discovery-to-ship-multi-agents/compare/v0.9.0...HEAD
+[Unreleased]: https://github.com/aanifowose111/discovery-to-ship-multi-agents/compare/v0.10.0...HEAD
+[0.10.0]: https://github.com/aanifowose111/discovery-to-ship-multi-agents/compare/v0.9.0...v0.10.0
 [0.9.0]: https://github.com/aanifowose111/discovery-to-ship-multi-agents/compare/v0.8.0...v0.9.0
 [0.8.0]: https://github.com/aanifowose111/discovery-to-ship-multi-agents/compare/v0.7.0...v0.8.0
 [0.7.0]: https://github.com/aanifowose111/discovery-to-ship-multi-agents/compare/v0.6.0...v0.7.0

@@ -77,6 +77,42 @@ Report your decisions to the user before proceeding:
 >
 > Proceed? — Yes / Revise plan / Cancel
 
+#### Step 2.5 — Feasibility consultation (optional; recommended for structural changes)
+
+For substantive changes (segment shift, stack change, new must-have spanning multiple subsystems, riskiest-assumption shift, addition of real-time / background-job / external-API capability), invite the orchestrator's advisory panel BEFORE drafting any temp file. The goal is to make the proposal sharper, surface simpler alternatives, and flag hidden risks early — when changing the proposal is cheap.
+
+For minor changes (rewording a section, revising a pricing strategy, swapping a distribution channel), this step is overkill — skip it.
+
+Use `AskUserQuestion`:
+
+> Your proposed change for `<slug>` is:
+>
+> > `<one-line summary of the change>`
+>
+> Want a feasibility consultation from the senior engineers before drafting the rework temps?
+>
+> - **(a) Yes — consult** (Recommended for structural changes)
+>   - The orchestrator (`senior-software-engineer`) brings in the right specialists (system-design always; plus database / backend / frontend / desktop / qa / devops / security as the change implies) in **consulting mode** per `senior-software-engineer.md` § Consulting mode. Output is a structured advisory note covering feasibility, suggested approach, simpler alternatives, and hidden risks. The user can revise the change description after seeing the advice; nothing is committed.
+> - **(b) Skip — go straight to temp creation**
+>   - Use when the change is small, well-understood, or you've already done the design thinking offline.
+
+On (a): invoke `senior-software-engineer` in consulting mode via the custom-subagent invocation pattern in `CLAUDE.md`:
+
+```
+Agent({
+  subagent_type: "general-purpose",
+  description: "Rework feasibility consultation for <slug>",
+  prompt: "You are about to act as the senior-software-engineer in CONSULTING MODE (per .claude/agents/senior-software-engineer.md § Consulting mode — read this section in full first). Step 1: read .claude/agents/senior-software-engineer.md in full and treat its body as your role. Step 2: read the user's proposed change: '<verbatim change description>'. Step 3: read the existing artifacts at <list of paths> to ground the consultation. Step 4: decide which specialists to bring in (each specialist persona file has its own '## Consulting mode' section describing their advisory behavior; invoke them via the same custom-subagent pattern with a consulting-mode prompt). Step 5: assemble their notes into the consultation output shape defined in your § Consulting mode."
+})
+```
+
+Surface the consultation output to the user. Then offer via `AskUserQuestion`:
+
+- **Proceed with the original change description** — go to Step 3 with the user's original change.
+- **Proceed with the synthesis recommendation** — go to Step 3 using the orchestrator's recommended path instead of the user's original.
+- **Revise the change description** — user types a refined description; Step 2.5 can re-run if they want another consultation.
+- **Cancel the rework** — no temps created.
+
 #### Step 3 — Create temp files with proposed changes
 
 For each chosen artifact, create a temp next to the original:

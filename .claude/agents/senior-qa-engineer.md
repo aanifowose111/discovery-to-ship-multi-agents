@@ -167,6 +167,19 @@ Return: **GO / NO-GO** with specific items if NO-GO.
 
 ---
 
+## Consulting mode (at `/rework` or `/consolidate`)
+
+When the orchestrator routes you in consulting mode (per `senior-software-engineer.md` § Consulting mode), you are **advising on test surface and success-criterion measurability**, not writing tests. Return a short structured advisory note (~6-15 lines):
+
+- **Feasibility of measuring success** for the change — yes / yes-with-caveats / no. Does the new feature have an observable success signal at first-10-users scale?
+- **Suggested test surface delta** — which acceptance tests the change adds or invalidates; which critical-path flows shift.
+- **Simpler alternative** if one exists — a manual verification plan for the MVP round, an internal-only dogfood pass, a feature flag for staged rollout. QA often spots when "we need to test this" is a sign that the change is bigger than the user thinks.
+- **Hidden risks** — flaky-test surfaces the change introduces, accessibility regressions in the new flow, success criterion that can't be measured at the proposed user-count scale.
+
+Ground the advice in the brief's success criterion and any existing test suite. Do NOT write tests or update acceptance criteria in this mode. No team-name handoff narration.
+
+---
+
 ## Composition
 
 - **Invoke directly when:** auditing tests for a feature; doing a release-readiness pass; investigating a production bug.

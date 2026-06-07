@@ -47,8 +47,11 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import secrets
+import shutil
 import sys
+import textwrap
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -64,6 +67,31 @@ VALID_TYPES = {
     "rework-applied",
     "consolidation-applied",
     "user-note",
+}
+
+# ANSI color codes (used by the tree renderer; opt out with --no-color).
+class _C:
+    RESET = "\033[0m"
+    BOLD = "\033[1m"
+    DIM = "\033[2m"
+    GRAY = "\033[90m"
+    RED = "\033[31m"
+    GREEN = "\033[32m"
+    YELLOW = "\033[33m"
+    CYAN = "\033[36m"
+    MAGENTA = "\033[35m"
+
+
+# Per-type color (None = default terminal color).
+_TYPE_COLOR = {
+    "onboarding-skip": _C.YELLOW,
+    "project-delete": _C.RED,
+    "card-kill": _C.RED,
+    "card-revive": _C.GREEN,
+    "build-milestone": _C.CYAN,
+    "rework-applied": _C.MAGENTA,
+    "consolidation-applied": _C.MAGENTA,
+    "user-note": None,
 }
 
 
@@ -119,21 +147,161 @@ def cmd_add(args: argparse.Namespace) -> None:
     print(entry["id"])
 
 
+def _supports_color(force_no_color: bool) -> bool:
+    """Return True if ANSI colors should be emitted."""
+    if force_no_color or os.environ.get("NO_COLOR"):
+        return False
+    return sys.stdout.isatty()
+
+
+def _paint(text: str, color: str | None, use_color: bool) -> str:
+    """Wrap `text` in ANSI color codes when color output is enabled."""
+    if not use_color or not color:
+        return text
+    return f"{color}{text}{_C.RESET}"
+
+
+def _format_timestamp(ts: str) -> str:
+    """`2026-06-06T18:33:09Z` → `2026-06-06 18:33:09 UTC`."""
+    if not ts:
+        return "?"
+    cleaned = ts.replace("T", " ").rstrip("Z").rstrip()
+    return f"{cleaned} UTC"
+
+
+def _read_entries_with_lines() -> list[dict]:
+    """Read entries from the JSONL file and attach each entry's source line number
+    under the `_line` key. The line number is the 1-based position in the file —
+    useful for jumping to the entry in an editor.
+    """
+    if not LOG_PATH.exists():
+        return []
+    entries: list[dict] = []
+    for line_num, line in enumerate(LOG_PATH.read_text().splitlines(), start=1):
+        line = line.strip()
+        if not line:
+            continue
+        try:
+            entry = json.loads(line)
+            entry["_line"] = line_num
+            entries.append(entry)
+        except json.JSONDecodeError:
+            print(
+                f"warning: skipping malformed line {line_num} in {LOG_PATH}: {line[:80]}",
+                file=sys.stderr,
+            )
+    return entries
+
+
 def cmd_list(args: argparse.Namespace) -> None:
-    entries = read_entries()
+    raw_entries = _read_entries_with_lines()
+
+    # Filter by type
     if args.type:
-        entries = [e for e in entries if e.get("type") == args.type]
-    entries = sorted(entries, key=lambda e: e.get("timestamp", ""), reverse=True)
+        raw_entries = [e for e in raw_entries if e.get("type") == args.type]
+
+    # Sort newest first
+    raw_entries.sort(key=lambda e: e.get("timestamp", ""), reverse=True)
+
+    # JSON output drops the internal `_line` field
     if args.json:
-        print(json.dumps(entries, ensure_ascii=False, indent=2))
+        sanitized = [{k: v for k, v in e.items() if k != "_line"} for e in raw_entries]
+        print(json.dumps(sanitized, indent=2, ensure_ascii=False))
         return
-    if not entries:
-        print("(no entries)")
+
+    # Empty state
+    if not raw_entries:
+        if args.type:
+            print(f"(no entries of type `{args.type}`)")
+        else:
+            print("(no entries)")
         return
-    for e in entries:
+
+    # Tree rendering
+    use_color = _supports_color(force_no_color=getattr(args, "no_color", False))
+    term_width = shutil.get_terminal_size((100, 24)).columns
+    # Description column starts at col 16 ("│   └── desc   "); wrap to fit.
+    desc_indent = "│   " + " " * 11
+    desc_wrap_width = max(40, term_width - len(desc_indent) - 1)
+
+    try:
+        rel_path = LOG_PATH.relative_to(REPO_ROOT)
+    except ValueError:
+        rel_path = LOG_PATH
+
+    # Header
+    count_str = f"{len(raw_entries)} {'entry' if len(raw_entries) == 1 else 'entries'}"
+    header_bits = [
+        _paint("audit-log", _C.BOLD, use_color),
+        _paint(str(rel_path), _C.DIM, use_color),
+        count_str,
+        "newest first",
+    ]
+    if args.type:
+        header_bits.append(_paint(f"filter: type={args.type}", _C.CYAN, use_color))
+    print("  ·  ".join(header_bits))
+    print(_paint("│", _C.GRAY, use_color))
+
+    # Entries
+    for i, e in enumerate(raw_entries):
+        is_last = i == len(raw_entries) - 1
+        branch = "└──" if is_last else "├──"
+        continuation = "    " if is_last else "│   "
+
+        line_num = e.get("_line", "?")
+        entry_id = e.get("id", "?")
+        entry_type = e.get("type", "?")
+        timestamp = _format_timestamp(e.get("timestamp", ""))
+        description = e.get("description") or "(no description)"
+
+        # Entry parent line: branch + id + line-number badge
+        id_part = _paint(entry_id, _C.BOLD, use_color)
+        line_part = _paint(f"(L{line_num})", _C.GRAY, use_color)
         print(
-            f"{e.get('id', '?')}  {e.get('timestamp', '?')}  {e.get('type', '?'):<16}  {e.get('description', '')}"
+            f"{_paint(branch, _C.GRAY, use_color)} {id_part}  {line_part}"
         )
+
+        # Sub-branch: type
+        type_color = _TYPE_COLOR.get(entry_type)
+        sub_branch_type = "├──"
+        print(
+            f"{_paint(continuation, _C.GRAY, use_color)}"
+            f"{_paint(sub_branch_type, _C.GRAY, use_color)} "
+            f"{_paint('type', _C.DIM, use_color)}  "
+            f"{_paint(entry_type, type_color, use_color)}"
+        )
+
+        # Sub-branch: time
+        sub_branch_time = "├──"
+        print(
+            f"{_paint(continuation, _C.GRAY, use_color)}"
+            f"{_paint(sub_branch_time, _C.GRAY, use_color)} "
+            f"{_paint('time', _C.DIM, use_color)}  "
+            f"{_paint(timestamp, _C.DIM, use_color)}"
+        )
+
+        # Sub-branch: desc (last sub-branch; wrapped to terminal width)
+        wrapped = textwrap.wrap(description, width=desc_wrap_width) or [""]
+        sub_branch_desc = "└──"
+        for j, wline in enumerate(wrapped):
+            if j == 0:
+                print(
+                    f"{_paint(continuation, _C.GRAY, use_color)}"
+                    f"{_paint(sub_branch_desc, _C.GRAY, use_color)} "
+                    f"{_paint('desc', _C.DIM, use_color)}  {wline}"
+                )
+            else:
+                # Continuation lines align under the description text.
+                # Parent indent: continuation (4) + "└── " (4) + "desc  " (6) = 14.
+                # Continuation indent must match: continuation (4) + 10 spaces.
+                print(
+                    f"{_paint(continuation, _C.GRAY, use_color)}"
+                    f"{' ' * 10}{wline}"
+                )
+
+        # Blank gutter between entries
+        if not is_last:
+            print(_paint("│", _C.GRAY, use_color))
 
 
 def cmd_delete(args: argparse.Namespace) -> None:
@@ -172,9 +340,14 @@ def main() -> None:
     p_add.add_argument("description", help="free-text description")
     p_add.set_defaults(func=cmd_add)
 
-    p_list = sub.add_parser("list", help="list entries (newest first)")
+    p_list = sub.add_parser("list", help="list entries (newest first) as a tree")
     p_list.add_argument("--type", help="filter by entry type")
     p_list.add_argument("--json", action="store_true", help="machine-readable output")
+    p_list.add_argument(
+        "--no-color",
+        action="store_true",
+        help="disable ANSI colors (auto-disabled when stdout isn't a TTY or NO_COLOR is set)",
+    )
     p_list.set_defaults(func=cmd_list)
 
     p_del = sub.add_parser("delete", help="delete an entry by id")

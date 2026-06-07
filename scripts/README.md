@@ -132,15 +132,18 @@ The intended interactive path is the `/projects` slash command, which wraps this
 
 ```bash
 python3 scripts/audit_log.py add <type> "<description>"   # append entry; print id
-python3 scripts/audit_log.py list                          # all entries, newest first
+python3 scripts/audit_log.py list                          # tree-rendered, newest first
 python3 scripts/audit_log.py list --type <type>            # filter by type
 python3 scripts/audit_log.py list --json                   # machine-readable
+python3 scripts/audit_log.py list --no-color               # disable ANSI colors
 python3 scripts/audit_log.py delete <id>                   # remove entry by id
 python3 scripts/audit_log.py clear                         # remove all entries (no confirm — caller asks)
 python3 scripts/audit_log.py has <type>                    # exit 0 if any entry of that type exists, else 1
 ```
 
-Reads/writes `user-context/audit-log.jsonl` (gitignored — never enters git). One JSON object per line: `{"timestamp": "...", "id": "...", "type": "...", "description": "..."}`. Valid types: `onboarding-skip`, `project-delete`, `card-kill`, `card-revive`, `user-note`. The `has` subcommand backs `CLAUDE.md`'s Rule A onboarding gate (exit 0 = skip recorded; exit 1 = no skip → onboarding fires).
+Reads/writes `user-context/audit-log.jsonl` (gitignored — never enters git). One JSON object per line: `{"timestamp": "...", "id": "...", "type": "...", "description": "..."}`. Valid types: `onboarding-skip`, `project-delete`, `card-kill`, `card-revive`, `build-milestone`, `rework-applied`, `consolidation-applied`, `user-note`. The `has` subcommand backs `CLAUDE.md`'s Rule A onboarding gate (exit 0 = skip recorded; exit 1 = no skip → onboarding fires).
+
+**The `list` subcommand renders entries as a tree** instead of one-line-per-entry paragraphs. Each entry's id sits on the parent branch with the JSONL line number as a badge `(L<n>)`; sub-branches show `type`, `time`, and `desc` (description wrapped to terminal width). Output is colored per-type (e.g., `card-kill` red, `card-revive` green, `rework-applied` magenta) when stdout is a TTY; auto-disabled when piped or when `NO_COLOR` is set. The `(L<n>)` badge lets you jump directly to the entry in your editor — line `L<n>` is the JSONL file's 1-based source line, distinct from the display order (which is newest-first).
 
 The interactive entry point is the `/log` slash command. Use the script directly when you want batch operations, JSON output, or to drive logging from another script.
 

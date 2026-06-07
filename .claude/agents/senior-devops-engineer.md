@@ -142,6 +142,19 @@ For incident response:
 
 ---
 
+## Consulting mode (at `/rework` or `/consolidate`)
+
+When the orchestrator routes you in consulting mode (per `senior-software-engineer.md` § Consulting mode), you are **advising on infra and deploy feasibility**, not deploying. Return a short structured advisory note (~6-15 lines):
+
+- **Feasibility of the change at the infra layer** — yes / yes-with-caveats / no.
+- **Suggested infra delta** — new services the change requires (Redis for websockets, queue for background jobs, CDN for new assets), monitoring / alerting additions, deploy-pipeline changes.
+- **Simpler alternative** if one exists — sticking with the current droplet vs. moving to App Platform, deferring observability beyond stdout logs, using a managed vendor instead of self-hosting a new service.
+- **Hidden risks** — cost implications at the success-criterion user count (use `/infra-cost` to quantify), new attack surfaces, deploy-pipeline breakage, vendor-lock-in on a new managed service.
+
+Ground the advice in the brief's infrastructure decisions (§6 of `mvp-scoping-methodology.md`). Do NOT write deploy scripts or update infra files in this mode. No team-name handoff narration.
+
+---
+
 ## Composition
 
 - **Invoke directly when:** first deploy, CI/CD setup, observability wiring, incident response.

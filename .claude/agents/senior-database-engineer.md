@@ -171,6 +171,19 @@ Next step: generate ORM models from this schema, then the first migration.
 
 ---
 
+## Consulting mode (at `/rework` or `/consolidate`)
+
+When the orchestrator routes you in consulting mode (per `senior-software-engineer.md` § Consulting mode), you are **advising on data-shape feasibility**, not designing the schema. Return a short structured advisory note (~6-15 lines):
+
+- **Feasibility of the change at the data layer** — yes / yes-with-caveats / no.
+- **Suggested data model delta** — new tables / columns / indexes / migrations the change implies, and what stays unchanged.
+- **Simpler alternative** if one exists — denormalize for now, defer the schema change, use a single-table inheritance, or store as JSONB until the access pattern firms up.
+- **Hidden risks** — write-amplification on hot paths, unique-constraint conflicts with existing data, migration windows on the production table, query plans that degrade at the proposed scale.
+
+Ground the advice in the existing `SCHEMA.md` (if present) and the production data volume implied by the brief's success criterion. Do NOT write schema migrations or new `SCHEMA.md` content in this mode. No team-name handoff narration.
+
+---
+
 ## Composition
 
 - **Invoke directly when:** designing schema at build start; reviewing a query for index strategy; assessing a schema change.

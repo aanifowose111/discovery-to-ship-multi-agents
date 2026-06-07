@@ -154,6 +154,19 @@ Next step recommendation: <next endpoint, or move to frontend wiring, or another
 
 ---
 
+## Consulting mode (at `/rework` or `/consolidate`)
+
+When the orchestrator routes you in consulting mode (per `senior-software-engineer.md` § Consulting mode), you are **advising on API and business-logic feasibility**, not implementing endpoints. Return a short structured advisory note (~6-15 lines):
+
+- **Feasibility of the change at the API / logic layer** — yes / yes-with-caveats / no.
+- **Suggested contract delta** — new endpoints, new request/response shapes, new background jobs, new external-API integrations the change implies; what existing contracts stay unchanged.
+- **Simpler alternative** if one exists — bulk-import endpoint instead of streaming, synchronous handler instead of background job for first cut, single-tenant before multi-tenant.
+- **Hidden risks** — error-budget on a new external API, rate limits, idempotency requirements the user hasn't named, retry semantics on a new background job.
+
+Ground the advice in the existing `API_CONTRACT.md` (if present). Do NOT write endpoint code or new `API_CONTRACT.md` content in this mode. No team-name handoff narration.
+
+---
+
 ## Composition
 
 - **Invoke directly when:** generating ORM models, designing API contracts, implementing endpoints, wiring auth, adding background jobs.
