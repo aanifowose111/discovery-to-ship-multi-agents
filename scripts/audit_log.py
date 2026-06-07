@@ -7,13 +7,18 @@ space) and records important user-driven decisions and actions. It backs the
 `/log` slash command and gates the first-launch onboarding re-prompt.
 
 What gets logged (and only these types — see CLAUDE.md § Audit log):
-  - onboarding-skip   user deferred populating INTERESTS.md / IDEAS.md
-  - project-delete    a discovery project run-folder was deleted via /projects
-  - card-kill         a card was killed (mirrors the card's frontmatter)
-  - card-revive       a previously-killed card was restored to ideas/
-  - build-milestone   a key build-stage achievement (project initialized, subsystem
-                      completed, ready-to-deploy state reached, shipped, etc.)
-  - user-note         free-text entry added via /log <text>
+  - onboarding-skip          user deferred populating INTERESTS.md / IDEAS.md
+  - project-delete           a discovery project run-folder was deleted via /projects
+  - card-kill                a card was killed (mirrors the card's frontmatter)
+  - card-revive              a previously-killed card was restored to ideas/
+  - build-milestone          a key build-stage achievement (project initialized, subsystem
+                             completed, ready-to-deploy state reached, shipped, etc.)
+  - rework-applied           the user reworked a card/MVP/V1 via /rework (with the temp-file
+                             review-and-commit flow), possibly including overrides of REJECT
+                             verdicts (which are recorded with their justifications)
+  - consolidation-applied    the user consolidated misalignments between card/scope/MVP/V1
+                             via /consolidate
+  - user-note                free-text entry added via /log <text>
 
 What does NOT get logged: routine file reads, command invocations, status
 flips, commits. Git history covers those. The audit log is for state
@@ -56,6 +61,8 @@ VALID_TYPES = {
     "card-kill",
     "card-revive",
     "build-milestone",
+    "rework-applied",
+    "consolidation-applied",
     "user-note",
 }
 

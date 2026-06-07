@@ -196,6 +196,91 @@ Brief per `guides/ui-ux/design-brief-methodology.md`. **Asks you for picks first
 
 Trend sweep per `guides/market/trend-monitoring.md`. Output: `market-research/trends-<YYYY-MM-DD>.md`. **Stops at:** which downstream commands (if any) to run. **Next:** whichever the user picks.
 
+### `/rework <slug> <description of changes>`
+
+The canonical command for substantively changing an idea, scope, MVP brief, or V1 brief **after** reviewers have already run on the originals. Designed to solve the failure mode where Claude edits the original file directly, runs reviewers, gets a REJECT, and the user is stuck explaining how to override + how to undo — every time. `/rework` separates **proposal** from **commit** so the user can iterate safely.
+
+**The flow:**
+
+1. **Locate and read** the card + any downstream artifacts (MVP, V1, validation report, scoping report, BUILD_STATUS).
+2. **Confirm scope** — card only, card + MVP, or card + MVP + V1.
+3. **Decide strategy per artifact** — targeted edit (one or two sections) or full rewrite (structural).
+4. **Create temp files** next to each original — `<slug>-temp.md`, `MVP-temp.md`, `V1-temp.md`. Apply the user's change description to the temps. **Originals are NOT touched.**
+5. **Run reviewers against the temps** (4 product reviewers for card, 2 scope/code for MVP, 2 scope/code for V1).
+6. **For each REJECT, surface a suggested approach** to get passing — derived from the reviewer's specific findings. User picks: implement recommendations + re-review, make custom changes + re-review, override the REJECT (see below), or cancel.
+7. **For each override, surface a consequences explainer** specific to the reviewer's lens (e.g., overriding a competition REJECT → "differentiation story may not survive contact with the market at first-10-users time"). The user must provide a one-sentence justification — recorded permanently in the audit log.
+8. **Final user confirm** before any merge. Show the diff summary, status targets, override list, and ask: Commit / Revise more / Cancel.
+9. **On Commit**: `mv` each temp over the original, set frontmatter statuses back to pre-review baselines (card → `triaged`, MVP → `in-scoping`, V1 → `in-v1-scoping`), append `## Rework — <date>` blocks to existing validation/scoping reports (don't overwrite), append `rework-applied` audit-log entry.
+10. **On Cancel**: delete all temps; no changes were made.
+
+**Why this matters:** the rework command captures override decisions permanently. The audit-log entry says exactly which REJECT was overridden, by whom, and the justification. Future you and any forker see the record — there's no silent override.
+
+**Use when:**
+- You want to address a specific reviewer concern by reworking the artifact (not just overriding silently).
+- You want to switch the segment / stack / pricing strategy mid-cycle.
+- You realize after scoping that the MVP must-haves don't actually test the riskiest assumption — rework them.
+- You want a safe "edit + review + commit" loop instead of edit-and-pray.
+
+**Don't use for:**
+- Pure pricing revisions — use `/reprice` (lighter, only runs pricing reviewer).
+- Reviving a killed card — use `/revive-card` (different flow).
+- Renaming the slug — slugs are immutable; kill the card and create a new one.
+
+### `/consolidate <slug>`
+
+Check alignment across all artifacts for one slug — idea card, validation report, scoping report, MVP brief, and (if present) V1 brief — and consolidate any misalignments. The goal: **MVP faithful to scope, scope faithful to idea.**
+
+**Why drift happens:** the pipeline produces multiple linked documents over time. The MVP brief might add a must-have that doesn't trace to any card claim. The validation chosen-price might be $99 but the MVP frontmatter `priced-at:` says $49. The V1 might list a "carried must-have" that the MVP didn't actually ship. Each artifact was correct in isolation when it was written, but they've diverged.
+
+**The flow:**
+
+1. **Read every existing artifact** for the slug. Always check the current file state — never assume.
+2. **Run alignment checks** across artifact pairs (card ↔ MVP, validation ↔ MVP, scoping ↔ MVP, card ↔ V1, MVP ↔ V1). Specific checks include: must-have traceability, success criterion testing the riskiest assumption, stack consistency, pricing match, validation gaps carried into MVP, design-path picked for V1, etc.
+3. **Surface every misalignment in one numbered table** with source artifact, target artifact, specific misalignment, and a suggested resolution.
+4. **Ask the user which to consolidate** — all-at-once, per-row, a subset, or cancel.
+5. **Apply targeted edits** to the affected artifacts. Preserve frontmatter invariants (slug, run-id, date-captured, source, territory).
+6. **Re-run reviewers** against the consolidated artifacts — same reviewer set that originally produced the artifact. Surface the new verdicts.
+7. **If any REJECT after consolidation:** offer to run `/rework`, override in place (with consequences + justification), or revert the consolidation.
+8. **Append `consolidation-applied` audit-log entry** with the misalignment count, resolutions applied, and re-review verdicts.
+
+**Typical sequence:** run `/consolidate` first to clean mechanical drift, then `/rework` if substantive changes are still needed. `/consolidate` is purely about pulling artifacts back into agreement — it doesn't change the underlying claims.
+
+**Use when:**
+- You suspect drift between the card and the brief.
+- You hand-edited an artifact and want to verify nothing else needs adjusting.
+- After a reviewer override or a long break, before committing more time to the product.
+
+**Don't use for:**
+- Changing claims (use `/rework`).
+- Changing pricing (use `/reprice`).
+- Reviving a killed card (use `/revive-card`).
+
+### `/infra-cost <slug> [--save | --users=A,B,C | --include-v1]`
+
+Estimate the infrastructure cost of running a product's MVP (and optionally V1) — minimum / medium / max scenarios, broken down by user base, with each cost item flagged as recurring vs. one-time and user-dependent vs. fixed.
+
+**Why this matters:** the pipeline already produces an effort estimate (per `mvp-scoping-methodology.md` §5); this command produces the **money** estimate. Helps you answer "can I afford to ship this MVP and keep it running at the user counts in my success criterion?"
+
+**The flow:**
+
+1. **Read MVP.md** (and V1.md if `--include-v1` was passed). Extract stack, infrastructure decisions, must-haves that imply cost-bearing dependencies, success criterion (for user-count baseline).
+2. **Confirm tiers** with the user (default `10 / 100 / 1000`, override with `--users=A,B,C`).
+3. **Fetch current pricing** for each cost item via web fetch (per `CLAUDE.md § Internet access policy` — no permission prompts). Cite each URL and the fetch date.
+4. **Build the cost table** — one row per cost item, with columns: vendor, type, min/med/max amounts, recurring?, user-dependent?, source.
+5. **Compute summary stats** — total monthly burn per tier, fixed vs. variable burn, recurring admin cost the maintainer pays regardless of users, one-time / setup costs in year 1.
+6. **List every assumption** so the user can adjust if their actual usage differs (LLM tokens per user, conversion rate, ARPU, etc.).
+7. **Optionally save** the report to `<stack>-apps/<slug>/INFRA_COST.md` with `--save`.
+
+**Cost categories covered (per stack):**
+
+- **Flask web (default):** DO droplet / App Platform; managed Postgres; DO Spaces; domain + DNS; email vendor; LLM API; auth provider; Stripe; monitoring; CDN; backups.
+- **RN + Expo (mobile):** EAS Build / Submit / Update; Apple Developer Program; Google Play Console; backend (Flask shape); push notifications; analytics.
+- **PySide6 desktop:** Code signing certificate; notarization; auto-updater hosting; telemetry backend; installer distribution.
+
+**Doesn't cover:** founder's time, marketing/ads, customer-acquisition costs, legal/accounting fees, Claude Code subscription. Those are separate budget categories.
+
+**Why fetch pricing instead of baking it in?** Vendor prices change 1-3x per year. Hard-coding would surface stale numbers; fetching makes the report accurate at the moment of estimation.
+
 ### `/revive-card <slug>`
 
 Restore a previously-killed idea card back to active state. The canonical inverse of a kill — replaces the older "manual `mv`" workaround.
