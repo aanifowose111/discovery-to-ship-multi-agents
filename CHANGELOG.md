@@ -420,7 +420,9 @@ This is a **minor version bump** (0.4.x → 0.5.0), not a patch — it adds a pe
 - Stack-flexibility framing: workspace defaults are dockerized Flask + RN, but the methodologies are stack-agnostic and `/scope-mvp` asks the user to confirm the stack before drafting.
 - Internet access policy: `WebFetch` and `WebSearch` pre-approved in `.claude/settings.json`; permission only requested for non-HTTPS, suspicious, paid, or user-private URLs.
 
-[Unreleased]: https://github.com/aanifowose111/discovery-to-ship-multi-agents/compare/v0.10.2...HEAD
+[Unreleased]: https://github.com/aanifowose111/discovery-to-ship-multi-agents/compare/v0.11.1...HEAD
+[0.11.1]: https://github.com/aanifowose111/discovery-to-ship-multi-agents/compare/v0.11.0...v0.11.1
+[0.11.0]: https://github.com/aanifowose111/discovery-to-ship-multi-agents/compare/v0.10.2...v0.11.0
 [0.10.2]: https://github.com/aanifowose111/discovery-to-ship-multi-agents/compare/v0.10.1...v0.10.2
 [0.10.1]: https://github.com/aanifowose111/discovery-to-ship-multi-agents/compare/v0.10.0...v0.10.1
 [0.10.0]: https://github.com/aanifowose111/discovery-to-ship-multi-agents/compare/v0.9.0...v0.10.0
