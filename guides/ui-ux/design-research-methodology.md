@@ -1,30 +1,35 @@
 # Design research methodology
 
-How the `ui-ux-researcher` produces a **product-specific** design-direction report that becomes input to the design brief, which goes to the human designer. The research enables distinctive design — directions grounded in real references and the product's specific context, not generic "what AI thinks designs look like."
+How the `ui-ux-researcher` produces a **product-specific** design research report that becomes input to the next-step artifact: **`DESIGN_SPEC.md`** for the claude-led path (Claude builds directly from the spec) OR **`DESIGN_BRIEF.md`** for the hired-designer path (human designer works from the brief). The research enables distinctive design — directions grounded in real references and the product's specific context, all surfaces and trends accounted for — not generic "what AI thinks designs look like."
 
-This guide is the contract the `ui-ux-researcher` assistant will be built against and the contract `/research-design <slug>` runs against.
+This guide is the contract the `ui-ux-researcher` assistant will be built against and the contract `/research-design <slug>` runs against. **It fires for both design paths.**
 
 ---
 
 ## 1. Purpose
 
-A human designer producing a unique Figma file for the product is the workspace default for surfaces a user touches (per `CLAUDE.md` working style + the user's explicit preference for distinctive design over the AI-generated look). For that designer to do their best work — and to do it efficiently, in fewer revision rounds — they need a sharp brief. The research report is the *raw material* for that brief.
+Both design paths in this workspace start here. Whether a human designer or Claude itself does the design work, the research report is the *raw material* that enables a sharp next-step artifact (`DESIGN_BRIEF.md` for hired-designer; `DESIGN_SPEC.md` for claude-led) and distinctive end output.
 
 Research **does**:
 
 - Map the visual landscape of the product's category (direct competitors, adjacent products, awarded work).
-- Surface **three or more** visual-direction options with cited references, with their tradeoffs.
+- **Cover every surface the product has** — public-facing (marketing / landing), auth (signup / login / recovery), authenticated user dashboard, admin dashboard, employee / operator dashboard, plus any product-specific surfaces. Different surfaces have different audiences, density, and tone; the research treats each as a discrete research target.
+- **Map product-space UI/UX trends** — patterns specifically in this segment (e.g., for ops auditing tools: Datadog, Splunk, PagerDuty; for fintech: Mercury, Brex, Ramp). What conventions hold for this segment? Which incumbents are visually distinctive vs. interchangeable?
+- **Map platform-level design trends** — current best-practice patterns for the chosen platform (web/mobile/desktop): dense data tables vs. cards for B2B web, tab vs. stack nav for mobile, menubar vs. ribbon for desktop, etc.
+- Surface **three or more** visual-direction options with cited references and tradeoffs.
 - Surface **three or more** color and typography options grounded in real palette / type-pairing sources.
-- Identify which design patterns are convention for this product type (forms, dashboards, navigation) and which are open for distinctive choice.
+- Identify which design patterns are convention for this product type and which are open for distinctive choice.
+- **Map responsive strategy** — breakpoints + per-breakpoint behavior per surface.
 - Position the product in the brand landscape relative to competitors.
 - Surface the portfolio-continuity question (does this product visually echo prior work — findvil, fijara — or stand independent?).
+- **Use interactive reference-URL checkpoints with the user** — the researcher may pause and ask the user to open a specific URL ("does the left-rail density at Datadog feel right or too cramped?") and bake the answer into the recommendation. This is opt-in: the researcher uses checkpoints sparingly, only when a real call-out would meaningfully shift the recommendation.
 
 Research **does not**:
 
-- Produce final designs. The designer does that.
-- Produce wireframes. Also the designer.
-- Pick a single direction. The brief and the designer pick.
-- Write component code. That is the implementation phase, governed by agent-skills' `frontend-ui-engineering`.
+- Produce final designs (for hired-designer path, the designer does that; for claude-led, `DESIGN_SPEC.md` does that).
+- Produce wireframes.
+- Pick a single direction. The next-step artifact (brief or spec) and the user pick.
+- Write component code. That is the implementation phase.
 
 ---
 
@@ -79,6 +84,42 @@ Sweep, with URLs:
 - **Awarded / inspiration sources:** at least 3-5 entries from publications and curation sites — Awwwards, SiteInspire, Mobbin (for mobile patterns), Sidebar, Codrops, Land Book, Page Flows, Designspiration.
 - **Anti-references:** 2-3 examples of what to avoid in this category, with reasons.
 
+### 4.2.1 Enumerate the product's surfaces
+
+Read the MVP brief and list every distinct surface the product needs. For each, note audience, density target, and tone. Treat each surface as its own research target — competitors' admin pages differ from their public landing pages, and so should this product's.
+
+Typical surfaces (only those that apply to *this* product):
+
+| Surface | Audience | Density | Tone |
+|---|---|---|---|
+| Public / marketing / landing | Cold visitors, prospects | Generous whitespace, hero-driven | Persuasive, brand-forward |
+| Auth (signup / login / recovery / SSO) | Returning + new users | Compact, single-task | Trust-establishing, low-friction |
+| User dashboard | Authenticated end-users | Information-dense per role | Functional, action-clear |
+| Admin dashboard | Internal admins / superusers | Very dense, table-heavy | Tool-belt utilitarian |
+| Employee / operator dashboard | Internal operators (CS, ops) | Mid-density, action-queues | Workflow-focused |
+| Settings / account | Authenticated users | Form-heavy, sectioned | Calm, reversible |
+| Public docs / changelog | Mixed audience | Reading-optimized | Authoritative |
+| Embed / widget / iframe | Host-page constrained | Compact | Host-matched |
+
+For each surface, capture **2-4 reference URLs** in §4.2.3 below — different from the direct-competitor screenshots, because here we're looking at *that surface specifically*, not the whole product.
+
+### 4.2.2 Product-space and platform-level UI/UX trends
+
+Two parallel sweeps:
+
+- **Product-space trends** — search for the segment's current UI/UX state of art. For ops auditing tools: Datadog 2026 redesign, Splunk Observability, PagerDuty Incident. For fintech: Mercury, Brex, Ramp, Stripe Dashboard. For dev tools: Linear, Vercel, GitHub. The goal is to know which patterns are *segment convention* (and therefore expected by the segment's users) vs. which are *segment-distinctive* (and therefore differentiating).
+- **Platform-level trends** — search for the current best-practice on the product's platform. Web: dense data tables vs. card grids, sidebar-driven vs. top-nav-driven SaaS, command-palette adoption, dark-mode-first vs. light-mode-first. Mobile: tab-bar vs. stack vs. drawer, gesture conventions, large-titles vs. compact. Desktop: menubar conventions per OS, native vs. web-wrapped, density expectations.
+
+For each sweep, cite 3-5 URLs. Note which trends to *follow* (because deviation has no upside) vs. which to *break for differentiation* (because the segment is visually interchangeable and the break is meaningful).
+
+### 4.2.3 Interactive reference-URL checkpoint (optional, sparing)
+
+The researcher may pause at this point — or at any later point — and ask the user one or two targeted questions. The format:
+
+> Open https://app.datadog.com/dashboards and tell me: does the left-rail information density feel right for an ops-auditing user, or too cramped? Pick one: too cramped / right / too sparse.
+
+Use checkpoints **only when** the answer will meaningfully shift the recommendation. Don't checkpoint trivial choices. Maximum 2-3 checkpoints per research run; bias toward fewer. Bake the user's answer into the §4.3 visual-direction recommendations (cite the answer: "Per user preference for compact density…").
+
 ### 4.3 Surface visual direction options
 
 Produce **at least three distinct visual directions**, each with:
@@ -118,6 +159,27 @@ For the product type, separate:
 - **Conventions the product can break for distinctive value.** Examples: a SaaS dashboard with no sidebar can feel refreshingly focused; a mobile app with a non-tab primary navigation can read as confident.
 
 Source: Mobbin (mobile), Refactoring UI, Page Flows, and direct observation of references. Cite for each finding.
+
+### 4.6.1 Per-surface direction notes
+
+Now that surfaces are enumerated (§4.2.1) and the visual / color / type / pattern landscape is mapped, write **one short direction note per surface** (3-5 sentences each). Each note covers:
+
+- Dominant visual move for this surface (e.g., "Hero-driven public landing with one big claim; dense action-table user dashboard; full-width data-grid admin").
+- Density tier: low / medium / high.
+- Reference URL(s) specific to this surface.
+- A flag if this surface intentionally diverges from the others (e.g., admin surface deliberately ignores the brand's "calm" tone in favor of utilitarian density).
+
+This is the section that lets either path (claude-led's `DESIGN_SPEC.md` or hired-designer's `DESIGN_BRIEF.md`) talk about each surface concretely instead of in one merged blob.
+
+### 4.6.2 Responsive strategy
+
+For web and mobile-web surfaces, specify:
+
+- **Breakpoints** the design should respect. Default-recommend: `sm <640px`, `md 640-768px`, `lg 768-1024px`, `xl 1024-1280px`, `2xl >1280px` — adjust if the product's audience skews one device class.
+- **Per-breakpoint pivot per surface** — what changes at each breakpoint. E.g., admin dashboard at `sm`: collapse sidebar to drawer + stack tables to cards; public landing at `sm`: stack hero, collapse nav to hamburger, single-column body.
+- **Touch vs. mouse target sizes** — minimum 44px touch targets for mobile-web; 24-32px acceptable for desktop-only.
+
+For native mobile and desktop, specify equivalents (device-class branches; window-size adaptive behavior).
 
 ### 4.7 Brand positioning
 
@@ -167,6 +229,13 @@ status: draft | reviewed | acted-on
 ## Product context
 <one-paragraph restatement of segment / problem / domain / trust register / riskiest assumption — for the designer's quick orientation>
 
+## Surfaces (this product)
+
+| Surface | Audience | Density | Tone | Reference URLs |
+|---|---|---|---|---|
+| <surface 1> | <audience> | low/med/high | <tone> | <URL>, <URL> |
+| ... |
+
 ## Reference landscape
 
 ### Direct competitors
@@ -184,6 +253,20 @@ status: draft | reviewed | acted-on
 ### Anti-references
 - <URL> — <what to avoid here>
 - ... (2-3 entries)
+
+## Trends
+
+### Product-space trends (segment-specific)
+- <trend> — <URL> — follow / break-for-differentiation
+- ...
+
+### Platform-level trends
+- <trend> — <URL> — follow / break-for-differentiation
+- ...
+
+## Interactive checkpoints (if any)
+- **Q:** <question asked> — **A:** <user's answer> — **Baked into:** <which §4 recommendation>
+- ... (omit section if none used)
 
 ## Visual direction options
 
@@ -238,6 +321,29 @@ status: draft | reviewed | acted-on
 ### Open for distinctive choice
 - <Pattern> — <reason it could be broken with upside> — <reference URL of a product that did>
 
+## Per-surface direction notes
+
+### <Surface 1>
+- **Dominant move:** <one-line>
+- **Density tier:** low / medium / high
+- **References specific to this surface:** <URL>, <URL>
+- **Divergence flag:** <if this surface deliberately diverges from the brand's tone, name it; otherwise "none">
+
+### <Surface 2>
+[same structure — one block per surface listed in the Surfaces table]
+
+## Responsive strategy
+
+| Breakpoint | Range | Per-surface pivot |
+|---|---|---|
+| sm | <range> | <what changes on which surface> |
+| md | <range> | ... |
+| lg | <range> | ... |
+| xl | <range> | ... |
+| 2xl | <range> | ... |
+
+**Touch vs. mouse target sizes:** <44px touch / 24-32px mouse / per-product note>.
+
 ## Brand positioning
 
 **Where competitors cluster:** <paragraph>
@@ -264,17 +370,17 @@ The Sources list at the bottom is a hard requirement — same evidence standard 
 
 ---
 
-## 6. Handoff to the design brief
+## 6. Handoff — branches by `design-path`
 
-The research report is **input to** `design-brief-methodology.md` (next guide in the UI/UX domain). The brief consolidates:
+The research report is input to the next-step artifact, which depends on the design-path recorded in the MVP/V1 brief's frontmatter:
 
-- The relevant parts of the research (visual direction, color direction, typography direction).
-- The MVP brief's product context, must-haves, and success criterion.
-- User journeys (added at brief time, drawing on the must-haves).
-- Functional requirements per screen.
-- The designer's deliverables expected.
+| `design-path` | Next-step artifact | Methodology guide |
+|---|---|---|
+| `claude-led` (MVP) / `claude-led-continued` (V1) | `DESIGN_SPEC.md` — implementation-ready spec (tokens, exact colors, icon library, image-prompt set, responsive specs, per-surface specs) | `guides/ui-ux/design-spec-methodology.md` |
+| `hired` (MVP) / `pro-designer-engaged` (V1) | `DESIGN_BRIEF.md` — Figma-handoff PRD for a human designer | `guides/ui-ux/design-brief-methodology.md` |
+| `hybrid-light-refresh` (V1 only) | Lightweight design-direction reference (no full spec, no full brief); build proceeds from the research + a few targeted picks | (informal — `/research-design --light` output is the artifact) |
 
-The research itself stays in `design/DESIGN_RESEARCH.md` for the designer to consult — the brief is the primary document they work from, but the research is the audit trail.
+The research itself stays in `design/DESIGN_RESEARCH.md` as the audit trail for whichever path follows. **For the hired-designer path**, the brief is the primary document the designer works from; the research is consulted as backing. **For the claude-led path**, the spec is the build's source of truth; the research is consulted when the spec leaves a gap.
 
 ---
 

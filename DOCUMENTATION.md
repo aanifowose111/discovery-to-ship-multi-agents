@@ -397,10 +397,10 @@ After the report, there's a **second checkpoint** — Claude asks two pre-build 
 
 | Question | Options |
 |---|---|
-| Design path | (a) generic-but-unique design (build straight into MVP) · (b) engage a human UI/UX designer for v1 |
+| Design path | (a) **claude-led** — Claude runs full design research → drafts implementation-ready `DESIGN_SPEC.md` → builds directly from it. No external designer. · (b) **hired** — Claude runs research → drafts Figma-handoff `DESIGN_BRIEF.md` → you brief a human designer → they deliver Figma → Claude implements from the handoff. |
 | Build support | (a) I'll follow along with Claude · (b) I need help — recommend [Fijara](https://fijara.com) (the maintainer's dev service) |
 
-Both picks are recorded in the brief's frontmatter and shape downstream behavior.
+Both picks are recorded in the brief's frontmatter and shape downstream behavior. **Both design paths run full design research** (via `/research-design`) — the difference is the second artifact (`DESIGN_SPEC.md` vs `DESIGN_BRIEF.md`) and whether a human designer is in the loop. The path-formerly-known-as-"generic" has been renamed `claude-led` since v0.11.0 because the new flow produces a real implementation-ready spec, not "Claude wings it."
 
 **Status meanings**
 
@@ -499,6 +499,11 @@ When you run `/start-build <slug>`, here's what happens, narrated step by step.
 5. **End-of-build state** — when every "in MVP scope" subsystem reaches `[x]` in `BUILD_STATUS.md`, the orchestrator says the product is "ready to deploy." From here, `/ship-app <slug>` is the next gated phase.
 
 You can re-run `/start-build <slug>` at any time during the build for a fresh "where am I, what's next" prompt from the orchestrator.
+
+**Two companion commands for build interruptions:**
+
+- **`/continue-build <slug> [--hint "<text>"] [--from <file>]`** — the canonical way to resume an in-flight build after a break. Reads `BUILD_STATUS.md` to find subsystems in `[>]` / `[ ]` / `[x]` state, **scans the source tree for the most-recently-modified files** (so the orchestrator sees you last wrote `app/static/css/components.css` 3 minutes ago), and invokes the orchestrator in resumption mode — no orientation re-ask. Pass `--hint "<text>"` to disambiguate ("we just finished tokens.css and were starting components.css") or `--from <file-or-subsystem>` to explicitly override the resumption point. This is the disambiguator for plain "please continue" when multiple products are mid-build.
+- **`/recollect <slug>`** — read-only "where are we" synthesis. Walks every artifact related to the product (brief, validation, scoping, design research/spec/brief, BUILD_STATUS, team, source tree, audit log) and emits a one-screen report + 2-4 suggested next actions. Use when returning to a product after days/weeks away and you need to re-orient before deciding whether to `/continue-build`, `/scope-v1`, `/ship-app`, or anything else. Invokes no subagent; modifies no file.
 
 ### 6.4 The senior-engineer personas
 
@@ -637,24 +642,29 @@ Output: `V1.md` at the product folder + `scoping-v1-<slug>.md` at `market-resear
 
 ### 7.2 The design-path picker (the centerpiece)
 
-Most MVPs in this workspace ship with **generic-but-unique** design (handled in code via agent-skills' `frontend-ui-engineering` skill). That was the right call for MVP — the goal was validating the assumption, not the design. At v1, the question of engaging a professional UI/UX designer gets a real answer.
+Most MVPs in this workspace ship with the **claude-led** path — Claude runs full design research and writes a `DESIGN_SPEC.md` that the MVP build implements from. That was the right call for MVP — the goal was validating the assumption with a considered design, not a designer-engagement overhead. At v1, the question of engaging a professional UI/UX designer gets a real answer.
 
 | Path | What happens | When to pick |
 |---|---|---|
-| **(a) Continue generic design** | v1 keeps existing UI patterns. No designer engagement. Build adds new must-haves directly into the existing codebase. Tokens (palette, type) come from MVP code; v1 may refine them but doesn't re-architect. | Function-over-form segments (developer tools, internal SMB, prosumer utilities). Budget/timeline constraints make designer engagement non-viable this round. First-10-users feedback had no visual / interaction comments that generic-design can't address. |
+| **(a) Claude-led continued** | v1 continues the claude-led path. Re-run `/research-design` (refreshed for v1's new surfaces + first-10-users feedback) → re-draft `DESIGN_SPEC.md` → build adds new must-haves on top of the MVP codebase against the refreshed spec. No designer engagement. | Function-over-form segments (developer tools, internal SMB, prosumer utilities). Budget/timeline constraints make designer engagement non-viable this round. First-10-users feedback had no visual / interaction comments the claude-led path can't address. |
 | **(b) Engage a professional UI/UX designer** | v1 routes through the full design sub-flow: `/research-design <slug>` → user picks a visual direction → `/draft-design-brief <slug>` → human designer produces Figma → handoff capture (`tokens.json`, `screenshots/`, `assets/`) → v1 build proceeds **driven by the handoff**. | Polish-differentiated segments (consumer apps, design-led tools, category-leader incumbents). First-10-users feedback included visual / interaction comments the generic pass can't easily address. You want the v1 to look like a real product, not a prototype. |
-| **(c) Hybrid — light refresh** | Keep generic-design, but add a polish pass — refined palette, refined typography, 2-3 distinctive UI patterns (signature auth screen, memorable empty state, etc.). No formal designer engagement. `/research-design --light` produces a lightweight design-direction reference without the full brief and handoff. | Segments that care about polish but don't justify designer overhead. You have visual taste you want to express directly. Most workspace-default pick when MVP generic-design proved sufficient for validation but v1 wants modest visual investment. |
+| **(c) Hybrid — light refresh** | Keep the claude-led path, but add a polish pass — refined palette, refined typography, 2-3 distinctive UI patterns (signature auth screen, memorable empty state, etc.). No formal designer engagement. `/research-design --light` produces a lightweight design-direction reference without the full spec or brief. | Segments that care about polish but don't justify designer overhead. You have visual taste you want to express directly. Most workspace-default pick when MVP claude-led proved sufficient for validation but v1 wants modest visual investment. |
 
 **Important sequencing for path (b):** the v1 build does NOT start until the handoff lands. Skipping the design phase to "start building now" after picking (b) defeats the purpose.
 
-### 7.3 The full Phase 3 design sub-flow (only fires on path b)
+### 7.3 The full Phase 3 design sub-flow (fires on BOTH design paths)
 
-| Command | What it does |
-|---|---|
-| `/research-design <slug>` | Invokes `ui-ux-researcher` (a subagent). Produces a design-direction report at `<web-apps\|mobile-apps\|desktop-apps>/<slug>/design/DESIGN_RESEARCH.md` with reference landscape, ≥3 visual directions, ≥3 color/type pairings, brand positioning, portfolio-continuity question. |
-| `/draft-design-brief <slug>` | Collects your picks (visual direction, palette, typography, voice, portfolio-continuity decision, answers to the research's open questions, timeline). Drafts the consolidated brief at `design/DESIGN_BRIEF.md`. Runs `design-brief-reviewer`. Stops at sign-off. After sign-off, the brief's status becomes `sent` and you transmit it to your designer. |
+Since v0.11.0, `/research-design` fires regardless of which design path was picked. The research is the same; only the second artifact differs.
 
-The human designer works asynchronously against the brief. When they finish, you capture the handoff per `guides/ui-ux/design-handoff-methodology.md` — `design/handoff/tokens.json`, `design/handoff/assets/`, `design/handoff/screenshots/`. The handoff becomes the contract for Phase 4 (the v1 build).
+| Command | When it fires | What it does |
+|---|---|---|
+| `/research-design <slug>` | **Both paths** | Invokes `ui-ux-researcher`. Produces `DESIGN_RESEARCH.md` covering: per-surface coverage (public / auth / user dashboard / admin / employee dashboards — each surface treated as its own research target), product-space + platform-level UI/UX trends, ≥3 visual directions, ≥3 color/type pairings, pattern conventions, responsive strategy (breakpoints per surface), brand positioning, portfolio-continuity question. May pause to ask you to open a reference URL ("does Datadog's left-rail density feel right?") and bake your answer into the recommendation. |
+| `/draft-design-spec <slug>` | **Claude-led only** | Collects your picks (visual direction, palette, typography, voice, portfolio-continuity, dark-mode scope, font loading). Invokes `ui-ux-researcher` in spec-writing mode to produce `design/DESIGN_SPEC.md` — implementation-ready: exact CSS tokens (color/typography/spacing/radius/shadow/motion), icon library install snippet, image-asset prompts (batch-later — you generate later on ChatGPT, paste URLs into `.env`), responsive breakpoints, per-surface specs, component patterns. Runs `design-spec-reviewer`. Stops at sign-off; status → `acted-on`. **The spec becomes the build's source of truth** (supersedes `frontend-ui-engineering` defaults). |
+| `/draft-design-brief <slug>` | **Hired only** | Collects your picks (visual direction, palette, typography, voice, portfolio-continuity, timeline). Drafts the consolidated Figma-handoff brief at `design/DESIGN_BRIEF.md`. Runs `design-brief-reviewer`. Stops at sign-off; status → `sent`. You transmit to your designer. |
+
+For the hired-designer path, the human designer works asynchronously against the brief. When they finish, you capture the handoff per `guides/ui-ux/design-handoff-methodology.md` — `design/handoff/tokens.json`, `design/handoff/assets/`, `design/handoff/screenshots/`. The handoff becomes the contract for Phase 4.
+
+For the claude-led path, `DESIGN_SPEC.md` IS the contract — Claude builds against it directly. No external designer wait.
 
 You can also **skip the v1 phase entirely** and iterate the Phase 2 MVP directly if the first 10 users are happy and the product doesn't feel ready for a polished build. Many products never get a formal v1. The workspace doesn't push you into Phase 3 unless you choose it.
 
@@ -668,7 +678,7 @@ How the v1 build proceeds depends on the design path picked in `/scope-v1`:
 
 | Path | How v1 build proceeds |
 |---|---|
-| **(a) generic-continued** | Direct from V1.md. New features get added on top of the MVP codebase, applying the same `frontend-ui-engineering` principles. No handoff contract; tokens come from existing MVP code. |
+| **(a) claude-led-continued** | Re-run `/research-design` (refreshed for v1) → re-draft `DESIGN_SPEC.md` → build adds new must-haves directly into the existing codebase against the refreshed spec. |
 | **(c) hybrid-light-refresh** | V1.md + the lightweight design-direction reference from `/research-design --light` inform the build. Selected UI patterns get re-implemented with the new palette/typography; the rest carries forward unchanged. |
 | **(b) pro-designer-engaged** | Build is **driven by the handoff**: `design/handoff/tokens.json` becomes the token contract (CSS custom properties for web in `static/css/tokens.css`; `src/theme/tokens.ts` for mobile). `design/handoff/screenshots/` inform per-screen implementation. Components match the Figma library's "02 Components" page. **Order of authority** when sources conflict: token contract → screenshot → V1.md §6 → `frontend-ui-engineering` craft. |
 

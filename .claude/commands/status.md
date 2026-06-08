@@ -89,7 +89,7 @@ Print a clean structured snapshot. Use this layout:
 🛠️ IN-FLIGHT BRIEFS
   • dev-task-tracker (web)
     status: green-lit-to-build
-    design-path: generic
+    design-path: claude-led
     build-support: self
     target ship: 2026-06-30
 

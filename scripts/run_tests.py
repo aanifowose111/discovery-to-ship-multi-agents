@@ -122,6 +122,14 @@ def test_repo_structure(checks: list[Check]) -> None:
         "guides/product/v1-scoping-methodology.md",
         "scripts/team.py",
         "DOCUMENTATION.md",
+        ".claude/commands/draft-design-spec.md",
+        ".claude/agents/design-spec-reviewer.md",
+        "guides/ui-ux/design-spec-methodology.md",
+        ".claude/skills/expert-html-developer/SKILL.md",
+        ".claude/skills/expert-css-developer/SKILL.md",
+        ".claude/skills/expert-js-developer/SKILL.md",
+        ".claude/commands/continue-build.md",
+        ".claude/commands/recollect.md",
     ]
     for f in required:
         path = REPO_ROOT / f

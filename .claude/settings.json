@@ -14,7 +14,13 @@
       "Bash(python3 scripts/report_summarizer.py:*)",
       "Bash(python3 scripts/run_tests.py:*)",
       "Bash(python3 scripts/projects.py list:*)",
-      "Bash(python3 scripts/projects.py show:*)"
+      "Bash(python3 scripts/projects.py show:*)",
+      "Write(web-apps/**)",
+      "Edit(web-apps/**)",
+      "Write(mobile-apps/**)",
+      "Edit(mobile-apps/**)",
+      "Write(desktop-apps/**)",
+      "Edit(desktop-apps/**)"
     ]
   },
   "companyAnnouncements": [

@@ -58,7 +58,7 @@ For each pair of artifacts, evaluate the alignment dimensions below. Record ever
 | Check | What to verify | Misalignment if... |
 |---|---|---|
 | V1 "Carried must-haves" = MVP must-haves | The carried set should match what MVP actually shipped | V1 carries something MVP doesn't have, or omits something MVP shipped |
-| V1 design path picked | V1 frontmatter `design-path` must be one of generic-continued / hybrid-light-refresh / pro-designer-engaged | Field is empty or invalid |
+| V1 design path picked | V1 frontmatter `design-path` must be one of claude-led-continued / hybrid-light-refresh / pro-designer-engaged | Field is empty or invalid |
 | V1 new must-haves trace to feedback | Per `v1-scoping-methodology.md` §3 — each new V1 must-have should cite a specific first-10-users signal | A new V1 must-have has no user-signal source |
 | Riskiest-assumption status | V1 should confirm the MVP's riskiest assumption was validated (per §5 of the v1 guide) | V1 was scoped despite "no" or unclear validation signal |
 

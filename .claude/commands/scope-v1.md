@@ -1,5 +1,5 @@
 ---
-description: Draft the v1 brief for a shipped MVP — the polished, feature-complete build that lives past first-10-users validation. Asks the user to pick the design path (generic-continued / hybrid-light-refresh / pro-designer-engaged), captures first-10-users feedback, drafts V1.md at the product folder, and invokes the same two reviewers as /scope-mvp. Per guides/product/v1-scoping-methodology.md.
+description: Draft the v1 brief for a shipped MVP — the polished, feature-complete build that lives past first-10-users validation. Asks the user to pick the design path (claude-led-continued / hybrid-light-refresh / pro-designer-engaged), captures first-10-users feedback, drafts V1.md at the product folder, and invokes the same two reviewers as /scope-mvp. Per guides/product/v1-scoping-methodology.md.
 argument-hint: <slug>
 ---
 
@@ -40,15 +40,15 @@ Capture the feedback verbatim into a scratch variable; it'll go in V1.md `## Wha
 
 Use `AskUserQuestion` to present the three paths per the methodology guide §4:
 
-> The MVP shipped with **<look up MVP's `design-path:` — generic-but-unique / pro-designer-engaged>**. For v1, you pick the design path. Three options:
+> The MVP shipped with **<look up MVP's `design-path:` — claude-led / pro-designer-engaged>**. For v1, you pick the design path. Three options:
 >
-> **(a) Continue generic design** — handle the v1 UI directly in code, same patterns as MVP. Fastest, no designer engagement. Good when polish doesn't differentiate (dev tools, internal SMB tools) or budget/timeline forbids designer engagement.
+> **(a) Claude-led continued** — continue the claude-led path. Re-run `/research-design` (refreshed for v1 surfaces + first-10-users feedback) → re-draft `DESIGN_SPEC.md` → build. No external designer engaged. Fastest of the three. Good when polish doesn't differentiate (dev tools, internal SMB tools) or budget/timeline forbids designer engagement.
 >
 > **(b) Engage a professional UI/UX designer** — full Phase 3 (`/research-design` → `/draft-design-brief` → designer → handoff) before v1 build starts. Right when polish differentiates in your segment (consumer / design-led / category-leader incumbent).
 >
-> **(c) Hybrid — light refresh** — keep generic-design, but add a polish pass: refined palette, refined typography, 2-3 distinctive UI patterns. No formal designer engagement. Middle path; respects budget while investing in look.
+> **(c) Hybrid — light refresh** — keep the claude-led path, but add a polish pass: refined palette, refined typography, 2-3 distinctive UI patterns. No formal designer engagement. Middle path; respects budget while investing in look.
 
-Wait for the user's pick. Record it as `design-path: generic-continued | hybrid-light-refresh | pro-designer-engaged` in V1.md frontmatter.
+Wait for the user's pick. Record it as `design-path: claude-led-continued | hybrid-light-refresh | pro-designer-engaged` in V1.md frontmatter.
 
 #### Step 3 — Pricing decision
 
@@ -130,7 +130,7 @@ After writing the report, **stop**. Do not advance V1.md to `green-lit-to-build`
 > Your call:
 > - Advance V1 to `green-lit-to-build`
 >   - Design path is **<chosen>**, so next step will be:
->     - `generic-continued` → `/start-build <slug>` (reads V1.md, extends MVP codebase)
+>     - `claude-led-continued` → `/research-design <slug>` (re-research for v1) → `/draft-design-spec <slug>` → `/start-build <slug>` (reads V1.md, extends MVP codebase, builds from refreshed `DESIGN_SPEC.md`)
 >     - `hybrid-light-refresh` → `/research-design <slug> --light` first, then `/start-build`
 >     - `pro-designer-engaged` → `/research-design <slug>` (full) → `/draft-design-brief <slug>` → designer → handoff → `/start-build`
 > - Revise the brief and re-review

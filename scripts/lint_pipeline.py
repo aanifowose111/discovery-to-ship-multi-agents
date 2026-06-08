@@ -179,7 +179,7 @@ def check_brief_picks(issues: list[Issue]) -> None:
                     severity="warning", file=rel, line=1,
                     rule="brief.missing-design-path",
                     message="Brief is green-lit-to-build but `design-path:` is not set",
-                    suggestion="Record design-path: generic|hired per the /scope-mvp pre-build decisions checkpoint.",
+                    suggestion="Record design-path: claude-led|hired per the /scope-mvp pre-build decisions checkpoint.",
                 ))
             if not fm.get("build-support"):
                 issues.append(Issue(

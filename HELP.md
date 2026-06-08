@@ -79,7 +79,7 @@ Claude **asks you to confirm the stack first** (workspace defaults: dockerized F
 
 **After you sign off on the scoping verdict and advance to `green-lit-to-build`, Claude asks two more questions before any build work begins:**
 
-1. **Design path** — *generic-but-unique* (Claude implements the UI directly with care to avoid the AI-generic aesthetic, applying agent-skills' `frontend-ui-engineering` principles) vs. *engage a human designer* (full design workflow: research → brief → designer's Figma → handoff). The first is faster and recommended for first-pass MVPs; the second is recommended once the product has been validated with first users.
+1. **Design path** — *claude-led* (Claude runs full design research → drafts an implementation-ready `DESIGN_SPEC.md` → builds against it; no external designer engaged) vs. *hired designer* (Claude runs research → drafts a Figma-handoff `DESIGN_BRIEF.md` → you brief the designer → they deliver a Figma → Claude implements from the handoff). Both paths now run full design research; the difference is the second step (`DESIGN_SPEC.md` vs `DESIGN_BRIEF.md`) and whether a human designer is in the loop. Claude-led is faster and recommended for first-pass MVPs; hired is recommended once the product has been validated with first users.
 2. **Build support** — *I'll follow along* (you review code, run things on your machine, deploy) vs. *I need help* (Claude surfaces [Fijara](https://fijara.com), Abiodun's development service, as a friendly option to take the build on). You can change your mind later either direction.
 
 Both picks are recorded in the brief's frontmatter so future sessions know what was decided.
@@ -168,13 +168,13 @@ Drafts the **v1 brief** at `<web-apps|mobile-apps|desktop-apps>/<slug>/V1.md` �
 2. **Design-path picker.** Three options:
    - **(a) Continue generic design** — handle v1 UI in code, same patterns as MVP. Fastest. Right for dev tools / internal SMB / function-over-form segments.
    - **(b) Engage a professional UI/UX designer** — kicks off the full Phase 3 (`/research-design` → `/draft-design-brief` → designer → handoff) before v1 build starts. Right for consumer / design-led products and category-leaders with polish-as-moat.
-   - **(c) Hybrid — light refresh** — keep generic-design but apply a polish pass (refined palette/typography, 2-3 distinctive UI patterns). Middle path; no formal designer engagement.
+   - **(c) Hybrid — light refresh** — keep the claude-led path but apply a polish pass (refined palette/typography, 2-3 distinctive UI patterns). Middle path; no formal designer engagement.
 3. **Pricing decision.** Surfaces the current MVP price. You either keep it or invoke `/reprice <slug>` first (recommended if first-10-users showed price friction or comparables shifted).
 4. **Surface new must-haves.** Shows you the MVP's deferred could-haves + Claude's read of what the user feedback implies. You pick which become v1 must-haves.
 5. **Draft V1.md + run reviewers.** Same `product-scope-reviewer` + `code-reviewer` as `/scope-mvp`, but tested against the v1 brief.
 
 **Output:** `V1.md` brief at the product folder + `scoping-v1-<slug>.md` report in the run's `market-research/` folder. **Stops at:** advance / revise / pause / retire decision. **Next:** depends on the design path picked:
-- `(a) generic-continued` → `/start-build <slug>` (reads V1.md, extends MVP code).
+- `(a) claude-led-continued` → `/research-design <slug>` (refreshed for v1) → `/draft-design-spec <slug>` (refreshed) → `/start-build <slug>` (reads V1.md + refreshed spec, extends MVP code).
 - `(c) hybrid-light-refresh` → `/research-design <slug> --light` first, then `/start-build`.
 - `(b) pro-designer-engaged` → `/research-design <slug>` (full) → `/draft-design-brief <slug>` → designer → handoff → `/start-build`.
 
@@ -186,11 +186,15 @@ Scoping per `guides/product/mvp-scoping-methodology.md`. **Asks you to confirm t
 
 ### `/research-design <slug>`
 
-Design research per `guides/ui-ux/design-research-methodology.md`. Invokes the `ui-ux-researcher`. Output: `<web-apps|mobile-apps|desktop-apps>/<slug>/design/DESIGN_RESEARCH.md`. **Stops at:** sign-off on direction. **Next:** `/draft-design-brief <slug>`.
+Design research per `guides/ui-ux/design-research-methodology.md`. Invokes the `ui-ux-researcher`. **Fires for both design paths** (`claude-led` and `hired`). Output: `<web-apps|mobile-apps|desktop-apps>/<slug>/design/DESIGN_RESEARCH.md` — covers per-surface (public/auth/user/admin/employee dashboards), product-space + platform trends, 3+ visual directions, 3+ color/type pairings, pattern conventions, responsive strategy, brand positioning. May pause for interactive reference-URL checkpoints with you. **Stops at:** sign-off. **Next:** branches on the brief's `design-path` — claude-led → `/draft-design-spec`; hired → `/draft-design-brief`; hybrid-light-refresh → `/start-build` directly.
+
+### `/draft-design-spec <slug>`
+
+Implementation-ready spec per `guides/ui-ux/design-spec-methodology.md` (claude-led path). **Asks you for picks first** (visual direction, palette, typography, voice, portfolio-continuity, dark-mode scope, font loading). Invokes the `ui-ux-researcher` in spec-writing mode to produce `DESIGN_SPEC.md`, then runs the `design-spec-reviewer`. Output: `<product-folder>/design/DESIGN_SPEC.md` — exact CSS tokens (color/type/spacing/radius/shadow/motion), icon library install, image-asset prompts (batch-later; user generates later), responsive specs, per-surface specs, component patterns. **The spec is the build's source of truth** — supersedes `frontend-ui-engineering` defaults. **Stops at:** sign-off; status → `acted-on`. **Next:** `/start-build <slug>`.
 
 ### `/draft-design-brief <slug>`
 
-Brief per `guides/ui-ux/design-brief-methodology.md`. **Asks you for picks first** (visual direction, palette, typography, voice, portfolio-continuity, timeline). Drafts the brief and runs the `design-brief-reviewer`. Output: `<web-apps|mobile-apps|desktop-apps>/<slug>/design/DESIGN_BRIEF.md`. **Stops at:** sign-off; status → `sent`. **Next:** transmit to the human designer.
+Brief per `guides/ui-ux/design-brief-methodology.md` (hired-designer path). **Asks you for picks first** (visual direction, palette, typography, voice, portfolio-continuity, timeline). Drafts the Figma-handoff brief and runs the `design-brief-reviewer`. Output: `<product-folder>/design/DESIGN_BRIEF.md`. **Stops at:** sign-off; status → `sent`. **Next:** transmit to the human designer.
 
 ### `/trend-check [optional triggered <reason>]`
 
@@ -373,6 +377,24 @@ Initialize the shipment / release phase for a product whose build is substantial
 - Both pre-flight gates must pass (or be explicitly overridden + documented in BUILD_STATUS.md) before any deploy runs.
 - The script never `--force` pushes, never skips a rollback path.
 - After post-deploy issues, the user decides whether to fix-and-reship — there is no auto-iteration.
+
+### `/continue-build <slug> [--hint "<text>"] [--from <file-or-subsystem>]`
+
+Resume an in-flight build for a specific product. **The disambiguator for "please continue" when multiple products are in-flight.** What it does:
+
+1. **Reads `BUILD_STATUS.md`** — identifies subsystems in `[>]` (in progress) vs. `[ ]` (pending) vs. `[x]` (done).
+2. **Scans the source tree for most-recently-modified files** (mtime-sorted; top 5-10) — so it knows what *file* was last touched, not just what subsystem. Output looks like `app/static/css/components.css (3 min ago)` → the orchestrator knows CSS work is mid-flight.
+3. **Accepts optional `--hint "<text>"`** — free-text disambiguation: "we just finished tokens.css and were starting components.css". Baked into the orchestrator's interpretation.
+4. **Accepts optional `--from <file-or-subsystem>`** — explicit override of the resumption point: `--from app/routes/auth.py` or `--from "auth"`. Authoritative; overrides the mtime-based guess.
+5. **Invokes `senior-software-engineer` in resumption mode** — which summarizes what's done, names the most recent files touched, proposes the next file + specialist to engage. **Does NOT re-ask the orientation questions** (those were answered at `/start-build` time).
+
+Edge cases: no `BUILD_STATUS.md` → use `/start-build`; all subsystems `[x]` → use `/ship-app`; `build-status: rework-in-progress` → resumes the rework-flipped subsystems first.
+
+**Stops at:** orchestrator's resumption summary + next-action proposal. **Next:** user confirms or overrides.
+
+### `/recollect <slug>`
+
+Read-only "where are we" synthesis for a specific product. Walks every artifact (idea card, validation, scoping reports, MVP/V1 briefs, design research/spec/brief, designer handoff, BUILD_STATUS, team file, source tree, audit-log entries) and emits a one-screen report: pipeline-state table, build progress (if any), source tree at-a-glance, team, recent activity, prose synthesis, and 2-4 suggested next actions specific to the actual state. **Pure read-only — invokes no subagent, modifies no file, appends to no log.** Use when you're returning to a product after a break and want to remember "what was I doing here?" without committing to an action. **Distinct from `/status`** (which reports across ALL products in the workspace) and **`/continue-build`** (which actually invokes the orchestrator). **Stops at:** synthesis shown. **Next:** user decides.
 
 ### `/start-build <slug>`
 

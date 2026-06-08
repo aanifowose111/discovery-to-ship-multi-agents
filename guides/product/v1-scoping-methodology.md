@@ -14,7 +14,7 @@ The MVP brief tested the riskiest assumption. The v1 brief plans the product tha
 
 1. **What did the MVP teach us?** First-10-users behavior, validation signal, what they asked for, what they paid for, what they complained about. (If the MVP failed to validate the assumption, you don't write a v1 — you go back to discovery.)
 2. **What goes in v1?** The MVP must-haves stay; the deferred could-haves become candidates; the v1 also adds whatever the first-10-users feedback demands. The result is wider scope than MVP — multi-week build instead of multi-day, typically.
-3. **What's the design path?** The MVP almost always ships with **generic-but-unique** design (handled directly in code per agent-skills `frontend-ui-engineering`). v1 is where the question of engaging a **professional UI/UX designer** gets a real answer. The design-path picker happens here, not at `/scope-mvp` time.
+3. **What's the design path?** The MVP almost always ships with **claude-led** design (Claude ran the design research and wrote a `DESIGN_SPEC.md` that the MVP build implemented from). v1 is where the question of engaging a **professional UI/UX designer** gets a real answer. The design-path picker re-runs here, with the v1's first-10-users feedback informing the choice.
 4. **What's the pricing?** The MVP shipped at some price (recorded in the validation report's `Chosen price` section or in the brief's `priced-at:` frontmatter). v1 is the moment to ask whether that price still holds given real-user signal — and to optionally invoke `/reprice <slug>` if it doesn't.
 
 A v1 brief is **not** a marketing launch plan — it's a build brief. Marketing/launch sequencing belongs to `/ship-app` and (later) a launch checklist.
@@ -57,14 +57,14 @@ This is the centerpiece of v1 scoping and the question the user most often defer
 
 At `/scope-mvp`, the user picked one of:
 
-- **(a) Generic but unique design** — handled in code via agent-skills' `frontend-ui-engineering`. The default for MVPs because the goal was validating the assumption, not the design. (Most MVPs in this workspace pick this.)
-- **(b) Full design phase** — `/research-design` → `/draft-design-brief` → human designer → handoff → build. The MVP shipped with this only when distinctiveness was load-bearing for validation itself.
+- **(a) Claude-led** — `/research-design` (full per-surface research) → `/draft-design-spec` (implementation-ready `DESIGN_SPEC.md`) → build directly from the spec. The default for MVPs; no external designer engaged.
+- **(b) Hired designer** — `/research-design` → `/draft-design-brief` (Figma-handoff PRD) → human designer → handoff (`tokens.json` + `screenshots/` + `assets/`) → build. The MVP shipped with this only when distinctiveness was load-bearing for validation itself.
 
 At `/scope-v1`, the user picks one of three paths:
 
-### 4.1 Path A — Continue generic design
+### 4.1 Path A — Claude-led continued
 
-The v1 keeps the existing UI patterns. No designer engagement. Build adds the new must-haves directly into the existing codebase, applying the same `frontend-ui-engineering` principles already in use. Tokens (palette, type) come from what was set in the MVP code; the v1 may refine them but does not re-architect them.
+The v1 continues the claude-led path. Re-run `/research-design <slug>` (refreshed for v1 — incorporates first-10-users feedback + the new must-haves' surfaces) → re-draft `DESIGN_SPEC.md` (or extend the existing one) → build adds the new must-haves directly into the existing codebase, building against the refreshed spec. Tokens (palette, type) may evolve; the spec, not the code, is the source of truth.
 
 **When this is the right pick:**
 - The MVP's segment doesn't differentiate on visual polish (developer tools, internal SMB tools, prosumer utilities where function dominates form).
@@ -82,9 +82,9 @@ The v1 routes through Phase 3 in `CLAUDE.md`: `/research-design <slug>` → user
 
 **Important sequencing:** if Path B is picked, `/scope-v1` ends after drafting `V1.md` with `design-path: pro-designer-engaged` recorded. The next command is `/research-design <slug>` — the v1 build does **not** start until the handoff lands. Skipping the design phase to "start building now" after picking Path B is a defeat-the-purpose move.
 
-### 4.3 Path C — Hybrid (light refresh, keep generic)
+### 4.3 Path C — Hybrid (light refresh, keep claude-led)
 
-A middle path: keep generic-design, but apply a polish pass — refined palette, refined typography, a couple of high-impact custom UI patterns (a distinctive auth screen, a signature dashboard card, a memorable empty-state illustration). No formal designer engagement, but more effort than Path A.
+A middle path: keep the claude-led path, but apply a polish pass — refined palette, refined typography, a couple of high-impact custom UI patterns (a distinctive auth screen, a signature dashboard card, a memorable empty-state illustration). No formal designer engagement, but more effort than Path A.
 
 **When this is the right pick:**
 - The product's segment cares about polish but not at the level that justifies a designer engagement.
@@ -105,7 +105,7 @@ slug: <slug>
 status: in-v1-scoping
 brief-version: v1
 parent-mvp: MVP.md
-design-path: <not-yet-chosen | generic-continued | pro-designer-engaged | hybrid-light-refresh>
+design-path: <not-yet-chosen | claude-led-continued | pro-designer-engaged | hybrid-light-refresh>
 priced-at: <$amount / unit / interval — copied from validation report's Chosen price, can be overridden during /scope-v1>
 pricing-strategy: <option-name from validation report or "user-override">
 stack: <copied from MVP unless explicitly changing>
@@ -135,12 +135,12 @@ date-scoped: <YYYY-MM-DD>
 
 ## Design path (picked at /scope-v1 time)
 
-**Chosen:** <generic-continued | pro-designer-engaged | hybrid-light-refresh>
+**Chosen:** <claude-led-continued | pro-designer-engaged | hybrid-light-refresh>
 
 **Rationale:** <one paragraph naming the segment, the relevant user feedback, the budget/timeline trade-off.>
 
 **Next step driven by this pick:**
-- generic-continued → `/start-build <slug>` (reads V1.md)
+- claude-led-continued → `/research-design <slug>` (refreshed for v1) → `/draft-design-spec <slug>` (refreshed) → `/start-build <slug>` (reads V1.md + refreshed `DESIGN_SPEC.md`)
 - hybrid-light-refresh → `/research-design <slug> --light` first, then `/start-build <slug>`
 - pro-designer-engaged → `/research-design <slug>` → `/draft-design-brief <slug>` → human designer → handoff → `/start-build <slug>`
 
@@ -239,7 +239,7 @@ Once V1.md is `green-lit-to-build` and the design path is settled:
 
 | Design path | Next command |
 |---|---|
-| **Path A — generic-continued** | `/start-build <slug>` (reads V1.md, picks up where the MVP build left off, expanding the codebase) |
+| **Path A — claude-led-continued** | `/research-design <slug>` (refreshed for v1) → `/draft-design-spec <slug>` (refreshed `DESIGN_SPEC.md`) → `/start-build <slug>` (reads V1.md + refreshed spec, picks up where the MVP build left off, expanding the codebase) |
 | **Path C — hybrid-light-refresh** | `/research-design <slug> --light` produces a lightweight design-direction reference (no full brief, no designer handoff). Then `/start-build <slug>` reads V1.md AND the light reference. |
 | **Path B — pro-designer-engaged** | `/research-design <slug>` (full) → `/draft-design-brief <slug>` → human designer → handoff capture per `guides/ui-ux/design-handoff-methodology.md` → `/start-build <slug>` reads V1.md AND the handoff. |
 

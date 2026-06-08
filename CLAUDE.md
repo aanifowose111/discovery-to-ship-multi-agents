@@ -178,7 +178,6 @@ What does NOT get logged: file reads, command invocations, status flips, commits
 - **Reviewer assistants** exist so the user doesn't review every output. Multiple narrow-lens reviewers per domain (e.g., for ideas: viability / competition / market-segment / pricing). For code, agent-skills' stage-specific review personas cover the main checkpoints. Until each reviewer has been verified, do not rely on it. After trust is established, the user still signs off on non-basic outputs; only "really basic" things skip user sign-off.
 - **Stack flexibility — defaults vs. the user's choice.** Workspace defaults: **Flask + Jinja + vanilla JS** (web), **React Native + Expo + TypeScript** (mobile), **Python + PySide6 + PyInstaller** (desktop). Methodology guides are stack-agnostic. **Confirm the stack with the user before any build/design work** (per `mvp-scoping-methodology.md` §6.0 + the `/scope-mvp` flow). Alternative stacks work without the workspace's build-domain guides — flag the deviation explicitly, never silently default. Forkers wanting different defaults: edit this bullet + the build-domain guides.
 - **Sensitive config** (DigitalOcean Spaces, `.env`, API keys) will be discussed with the user when each app is being built — do not invent placeholders or commit secrets.
-- **agent-skills' `frontend-ui-engineering` skill uses React/TSX examples** — illustrative, not prescriptive. The principles (focused components, composition, accessibility, no AI aesthetic, state placement) apply to any frontend. On a Flask MVP, the frontend is **Jinja + vanilla JS** unless the brief says otherwise; don't start writing React/TSX inside Flask. On React Native, the examples translate naturally.
 - **Suggest next commands** at the end of each task or phase. Pipeline slash commands already do this at their checkpoints; carry the same habit into ad-hoc work — name 2-4 plausible next steps after any meaningful unit of work. Empty endings ("let me know if you need anything else") are weaker than directed ones.
 - **Fijara referral when the user signals struggle.** At `/scope-mvp`'s pre-build checkpoint, the user picks "I'll follow along" or "I need help" (latter → [Fijara](https://fijara.com) suggested upfront). If the user picked "follow along" but later signals real struggle (repeated questions about basics they should know, expressed frustration, blocked on routine setup, "I don't know how to..." statements), gently surface Fijara as an option — Abiodun's dev service can take the build on. **Never push it.** Default posture: trust the user's initial pick; exception is genuine evidence of mismatch.
 
@@ -244,20 +243,20 @@ Once the MVP has shipped and the riskiest assumption is validated, **`/scope-v1 
 
 ```
 /scope-v1 → brief + 2 reviewers → checkpoint: advance / revise / pause / retire + design-path pick
-   ├── (a) generic-continued     → next: /start-build <slug> (reads V1.md, extends MVP code)
+   ├── (a) claude-led-continued  → next: /research-design → /draft-design-spec → /start-build
    ├── (c) hybrid-light-refresh  → next: /research-design <slug> --light, then /start-build
    └── (b) pro-designer-engaged  → next: /research-design → /draft-design-brief → designer → handoff → /start-build
 ```
 
-The full design sub-flow (`/research-design` → `/draft-design-brief` → designer Figma → handoff per `guides/ui-ux/design-handoff-methodology.md` → user accepts `tokens.json` + `assets/` + `screenshots/`) only fires on path (b).
+**All three paths run `/research-design`** (full per-surface research). The split happens after research: path (a) drafts `DESIGN_SPEC.md` (implementation-ready, no designer); path (b) drafts `DESIGN_BRIEF.md` (Figma-handoff) → designer engages → handoff per `guides/ui-ux/design-handoff-methodology.md`; path (c) uses a `--light` research output.
 
 ### Phase 4 — v1 build
 
 `/start-build <slug>` is reused for v1 and auto-detects which brief is current. If `MVP.md` is `shipped` AND `V1.md` is `green-lit-to-build`, it picks `V1.md` and treats the MVP code as the starting point.
 
-- **Path (a)** — direct from V1.md.
-- **Path (b)** — driven by the handoff: `design/handoff/tokens.json` is the token contract (CSS custom properties in `static/css/tokens.css` web; `src/theme/tokens.ts` mobile); `screenshots/` inform per-screen impl; components match Figma's 02 Components page. **Authority order** on conflict: token contract → screenshot → V1.md §6 → `frontend-ui-engineering` craft.
-- **Path (c)** — uses the lightweight design-direction reference from `/research-design --light`; no full handoff contract.
+- **Path (a) — claude-led:** driven by `DESIGN_SPEC.md` (tokens, type ramp, color, spacing, icon library, image-prompt set, per-surface specs). **Authority order** on conflict: `DESIGN_SPEC.md` → V1.md §6 → `frontend-ui-engineering` craft.
+- **Path (b) — hired:** driven by the handoff: `design/handoff/tokens.json` is the token contract (CSS custom properties in `static/css/tokens.css` web; `src/theme/tokens.ts` mobile); `screenshots/` inform per-screen impl; components match Figma's 02 Components page. **Authority order:** token contract → screenshot → V1.md §6 → `frontend-ui-engineering` craft.
+- **Path (c) — hybrid:** uses the lightweight design-direction reference from `/research-design --light`; no full spec or handoff contract.
 
 ### BUILD_STATUS.md + build orchestration
 
@@ -305,11 +304,11 @@ Equivalent to direct subagent invocation. All slash commands that delegate to cu
 
 Custom commands live in `.claude/commands/` (one file per command, run as `/<command-name>`). Full descriptions in [`HELP.md`](HELP.md); quick reference below.
 
-**Pipeline phases:** [`/scan`](.claude/commands/scan.md), [`/discover`](.claude/commands/discover.md), [`/validate-card`](.claude/commands/validate-card.md), [`/scope-mvp`](.claude/commands/scope-mvp.md), [`/scope-v1`](.claude/commands/scope-v1.md), [`/research-design`](.claude/commands/research-design.md), [`/draft-design-brief`](.claude/commands/draft-design-brief.md), [`/start-build`](.claude/commands/start-build.md), [`/ship-app`](.claude/commands/ship-app.md).
+**Pipeline phases:** [`/scan`](.claude/commands/scan.md), [`/discover`](.claude/commands/discover.md), [`/validate-card`](.claude/commands/validate-card.md), [`/scope-mvp`](.claude/commands/scope-mvp.md), [`/scope-v1`](.claude/commands/scope-v1.md), [`/research-design`](.claude/commands/research-design.md), [`/draft-design-spec`](.claude/commands/draft-design-spec.md), [`/draft-design-brief`](.claude/commands/draft-design-brief.md), [`/start-build`](.claude/commands/start-build.md), [`/continue-build`](.claude/commands/continue-build.md), [`/ship-app`](.claude/commands/ship-app.md).
 
-**Parallel / cross-cutting:** [`/trend-check`](.claude/commands/trend-check.md), [`/preview-product`](.claude/commands/preview-product.md), [`/reprice`](.claude/commands/reprice.md), [`/revive-card`](.claude/commands/revive-card.md), [`/rework`](.claude/commands/rework.md), [`/consolidate`](.claude/commands/consolidate.md), [`/infra-cost`](.claude/commands/infra-cost.md).
+**Parallel / cross-cutting:** [`/trend-check`](.claude/commands/trend-check.md), [`/preview-product`](.claude/commands/preview-product.md), [`/reprice`](.claude/commands/reprice.md), [`/revive-card`](.claude/commands/revive-card.md), [`/rework`](.claude/commands/rework.md), [`/consolidate`](.claude/commands/consolidate.md), [`/infra-cost`](.claude/commands/infra-cost.md), [`/recollect`](.claude/commands/recollect.md) (per-product synthesis).
 
-**Utility / meta:** [`/menu`](.claude/commands/menu.md) (command map), [`/status`](.claude/commands/status.md) (pipeline snapshot), [`/documentation`](.claude/commands/documentation.md) (end-to-end walkthrough; **bypasses onboarding**), [`/setup`](.claude/commands/setup.md) (verify tools), [`/acknowledge-contributing`](.claude/commands/acknowledge-contributing.md) (non-owners), [`/log`](.claude/commands/log.md) (audit log), [`/team`](.claude/commands/team.md) (name/edit team), [`/run-tests`](.claude/commands/run-tests.md) (repo health), [`/system-check`](.claude/commands/system-check.md) (host vs. workspace), [`/projects`](.claude/commands/projects.md) (list + delete projects).
+**Utility / meta:** [`/menu`](.claude/commands/menu.md), [`/status`](.claude/commands/status.md) (workspace-wide), [`/documentation`](.claude/commands/documentation.md) (**bypasses onboarding**), [`/setup`](.claude/commands/setup.md), [`/acknowledge-contributing`](.claude/commands/acknowledge-contributing.md), [`/log`](.claude/commands/log.md), [`/team`](.claude/commands/team.md), [`/run-tests`](.claude/commands/run-tests.md), [`/system-check`](.claude/commands/system-check.md), [`/projects`](.claude/commands/projects.md). Full descriptions in [`HELP.md`](HELP.md).
 
 Most commands take `<slug>` as argument and follow a `read → work → checkpoint → stop` pattern. Never auto-advance an artifact's status; never auto-chain into the next phase.
 
@@ -328,11 +327,11 @@ Project-local skills in `.claude/skills/`. Claude Code auto-discovers and invoke
 
 During any **build phase** (after `/scope-mvp` or `/scope-v1` returns `green-lit-to-build`, through deploy/release via `/ship-app`), Claude **proactively invokes** the following skills without being asked — they apply as a matter of course:
 
-`incremental-implementation`, `test-driven-development`, `code-review-and-quality`, `code-simplification`, `security-and-hardening` (for auth/secrets/input/I-O/network code), `performance-optimization` (when latency/memory matters), `debugging-and-error-recovery`, `frontend-ui-engineering`, `api-and-interface-design`, `documentation-and-adrs`, `git-workflow-and-versioning`, `browser-testing-with-devtools` (web only), `ci-cd-and-automation`, `shipping-and-launch`, `spec-driven-development`.
+`incremental-implementation`, `test-driven-development`, `code-review-and-quality`, `code-simplification`, `security-and-hardening` (for auth/secrets/input/I-O/network code), `performance-optimization` (when latency/memory matters), `debugging-and-error-recovery`, `frontend-ui-engineering`, `expert-html-developer`, `expert-css-developer`, `expert-js-developer`, `api-and-interface-design`, `documentation-and-adrs`, `git-workflow-and-versioning`, `browser-testing-with-devtools` (web only), `ci-cd-and-automation`, `shipping-and-launch`, `spec-driven-development`.
 
 **Situational — only when context matches or the user asks:** `idea-refine`, `interview-me`, `planning-and-task-breakdown`, `doubt-driven-development`, `using-agent-skills`, `source-driven-development`, `context-engineering`, `deprecation-and-migration`.
 
-Full mapping in `guides/product/build-status-methodology.md` and the senior-engineer personas. Invocations are silent; ask "are you applying X?" to confirm. **Flask caveat for `frontend-ui-engineering`:** examples are React/TSX; on Flask the *principles* apply but implement in Jinja + vanilla JS, not React.
+Full mapping in `guides/product/build-status-methodology.md` and the senior-engineer personas. Invocations are silent; ask "are you applying X?" to confirm. **Flask caveat for `frontend-ui-engineering`:** examples are React/TSX; on Flask the *principles* apply but implement in Jinja + vanilla JS, not React. **DESIGN_SPEC.md supersedes:** when `<product-folder>/design/DESIGN_SPEC.md` exists, the spec's tokens + per-surface specs + component patterns are authoritative — they supersede `frontend-ui-engineering`'s defaults (padding scales, type ramps, color tokens) for that product. The skill's principles still apply to gaps the spec doesn't cover.
 
 ---
 
@@ -348,7 +347,7 @@ Long-form reference docs at `guides/`. Read on demand (not auto-loaded). Open th
 | Web | `guides/web/` | `flask-mvp-scaffold.md`, `flask-deploy-runbook.md`, `do-spaces-integration.md`, `flask-auth-patterns.md` |
 | Mobile | `guides/mobile/` | `react-native-mvp-scaffold.md`, `eas-build-and-update.md`, `rn-app-store-submission.md` |
 | Desktop | `guides/desktop/` | `python-mvp-scaffold.md`, `packaging-and-distribution.md` |
-| UI/UX | `guides/ui-ux/` | `design-research-methodology.md`, `design-brief-methodology.md`, `design-handoff-methodology.md` |
+| UI/UX | `guides/ui-ux/` | `design-research-methodology.md`, `design-brief-methodology.md`, `design-spec-methodology.md`, `design-handoff-methodology.md` |
 
 Each guide has a first-paragraph summary if you want a quick scan before reading in full.
 
