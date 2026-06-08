@@ -95,29 +95,93 @@ If a phase ever feels rushed or padded, you can override the defaults at any che
                     /discover       ←  brainstorm idea cards, triage
                          │
                          ▼
-                  /validate-card    ←  3 reviewers per card (in parallel)
-                         │
+                  /validate-card    ←  4 reviewers per card (in parallel:
+                         │              viability / competition / market-segment / pricing)
                          ▼          ←  YOU decide: advance / revise / kill
                     /scope-mvp      ←  MVP brief + 2 reviewers
-                         │
-                         ▼          ←  YOU decide: build / revise / kill
-                    /start-build    ←  build orchestration by senior-software-engineer
-                         │
-                         ▼          ←  optional: /research-design + /draft-design-brief
-                                       (only after the riskiest assumption is validated)
-                         ▼
-                    /ship-app       ←  release-readiness gate → deploy → verify
-                         │
-                         ▼
-                  Shipped to first 10 users
-                         │
-                         ▼
+                         │              (pre-build checkpoint: pick design-path
+                         ▼               + build-support)   ← YOU decide
+              ┌──────────┴───────────┐
+              │   DESIGN PHASE       │  ← fires for BOTH paths now (v0.11.0+)
+              │                      │
+              │  /research-design    │  ← per-surface research (public/auth/
+              │       │              │     user/admin/employee), trends,
+              │       │              │     interactive ref-URL checkpoints
+              │       ▼              │     ← YOU sign off on the research
+              │  ┌────┴─────┐        │
+              │  │ branches │        │
+              │  │ on path  │        │
+              │  └─┬──────┬─┘        │
+              │    │      │          │
+              │ claude   hired       │
+              │ -led     │           │
+              │    │      │          │
+              │    ▼      ▼          │
+              │ /draft   /draft      │
+              │ -design  -design     │
+              │ -spec    -brief      │
+              │    │      │          │
+              │    │      ▼          │
+              │    │  human designer │
+              │    │  ↓ Figma        │
+              │    │  handoff capture│
+              │    │  (tokens.json,  │
+              │    │   screenshots)  │
+              │    │      │          │
+              │    └──┬───┘          │
+              └───────┼──────────────┘
+                      ▼
+                 /start-build       ←  orchestration by senior-software-engineer.
+                      │                 Gates on the design artifact existing
+                      │                 (DESIGN_SPEC.md / handoff / light research).
+                      │                 Build proceeds subsystem by subsystem,
+                      │                 narrated handoffs between specialists.
+                      │
+                ┌─────┴─────────────────────────────────┐
+                │  BUILD LOOP                           │
+                │  (you'll re-enter often)              │
+                │                                       │
+                │  /recollect <slug>     ← read-only    │
+                │   ↑                      "where am I" │
+                │   │ before                            │
+                │   │ deciding                          │
+                │   │                                   │
+                │  /continue-build <slug> [--hint]      │
+                │     [--from <file>]                   │
+                │                ↑                      │
+                │                resume after break,    │
+                │                disambiguates across   │
+                │                multiple in-flight     │
+                │                products. mtime-aware. │
+                │                                       │
+                │  /rework <slug> <changes>             │
+                │  /consolidate <slug>                  │
+                │  /preview-product <slug>              │
+                │  /infra-cost <slug>                   │
+                │  /reprice <slug>                      │
+                │                                       │
+                └─────┬─────────────────────────────────┘
+                      ▼
+                 /ship-app          ←  release-readiness gate (QA + security
+                      │                pre-flight) → deploy → verify
+                      ▼
+                Shipped to first 10 users
+                      │
+                      ▼
               Did the riskiest assumption hold?
-                 yes ──→  v1 / scale / design phase
-                  no ──→  kill the card, move on
+                 yes ──→  /scope-v1 <slug>    ←  V1 brief + same 2 reviewers as
+                                                 /scope-mvp; design-path repicker
+                                                 (claude-led-continued / hired /
+                                                 hybrid-light-refresh) — then
+                                                 loop back to research + build.
+                  no ──→  kill the card, move on (or /revive-card later)
 ```
 
-In parallel with all of the above: `/trend-check` runs on a weekly cadence (or triggered by an external event) and recommends which downstream commands to re-run if something material has shifted.
+In parallel with all of the above:
+
+- **`/trend-check`** runs on a weekly cadence (or triggered by an external event) and recommends which downstream commands to re-run if something material has shifted.
+- **`/recollect <slug>`** and **`/status`** are read-only orientation commands — `/recollect` gives a deep dive on one specific product (everything that exists for it), `/status` gives a workspace-wide snapshot across all in-flight work. Use `/recollect` when returning to a product after a break; use `/status` to remember "what am I working on across the portfolio?"
+- **`/menu`** is the always-available command map; **`/documentation`** opens this guide.
 
 ---
 

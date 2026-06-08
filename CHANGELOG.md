@@ -16,6 +16,23 @@ This project does not yet follow strict semantic versioning. Pre-1.0, breaking c
 
 _No entries yet — next batch lands here under a `### YYYY-MM-DD` subheader (or, if today already has a cut version, as a patch bump per the convention above)._
 
+## [0.11.1] - 2026-06-08
+
+Same-day patch on top of v0.11.0.
+
+### Fixed
+
+- **`DOCUMENTATION.md` § 2 (The 60-second workflow overview) updated for the v0.11.0 flow.** The ASCII workflow diagram now reflects the redesigned pipeline:
+  - The **DESIGN PHASE box** explicitly shows that `/research-design` fires for **both** design paths (claude-led + hired), then branches: `/draft-design-spec` (claude-led) vs. `/draft-design-brief` → human designer → handoff (hired). Previously the diagram had design as an "optional" step after `/start-build`, which was correct under v0.10.x but became wrong as soon as `/scope-mvp`'s checkpoint #2 made the design-path pick mandatory and `/start-build` started gating on the artifact existing.
+  - The **BUILD LOOP box** is new — surfaces the re-entry commands that are used during long builds: `/recollect <slug>` (read-only "where am I"), `/continue-build <slug> [--hint] [--from <file>]` (resume after break, disambiguates across multiple in-flight products, mtime-aware), `/rework`, `/consolidate`, `/preview-product`, `/infra-cost`, `/reprice`. Previously these commands were invisible in the workflow overview — they only appeared in the per-command sections far below.
+  - The **post-MVP cycle** now explicitly names `/scope-v1 <slug>` with the V1 design-path repicker (claude-led-continued / hired / hybrid-light-refresh) and the "loop back to research + build" annotation. Previously it said "v1 / scale / design phase" without naming the command.
+  - **`/validate-card` reviewer count corrected** from 3 → 4 (the pricing reviewer was added back in v0.8.0; the doc was stale on this for three minor releases).
+  - **Parallel-commands footnote** rewritten as bullets — distinguishes `/recollect` (per-product) from `/status` (workspace-wide), names `/menu` and `/documentation`. Previously the footnote only mentioned `/trend-check`.
+
+### Notes
+
+- This is a docs-only patch — no command behavior changed since v0.11.0. The workflow diagram had drifted; this resyncs it. Caught immediately after the v0.11.0 cut.
+
 ## [0.11.0] - 2026-06-08
 
 Substantial redesign of the UI/UX design flow. The MVP-time "generic" design path is renamed and expanded — design research now fires for **both** design paths, and the path-formerly-known-as-generic gets a real implementation-ready spec (not "Claude wings it"). Three new craft skills land underneath. Build-time permission prompts for file writes in product folders are eliminated.
