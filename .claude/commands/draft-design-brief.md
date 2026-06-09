@@ -20,21 +20,57 @@ Do all of these before asking the user for picks.
 
 ### Step 1 — Collect the user's picks
 
-Read the research's open questions (in §9 of `DESIGN_RESEARCH.md`) and any "(For user)" questions specifically. Then ask the user, in **one structured message**, for the picks the brief depends on. Use this exact template (filling in the specifics from the research):
+Read the research's open questions (in §9 of `DESIGN_RESEARCH.md`) and any "(For user)" questions specifically. Then ask the user the picks **sequentially, one question per turn** — never batched into a single block. This pattern is intentional: each answer narrows or shapes the next question, the user processes one decision at a time, and the reviewer's job is easier when picks are explicitly captured.
 
-> Before I draft the brief, I need your picks. Reply with the following:
->
-> 1. **Visual direction:** Option A (\<name\>), Option B (\<name\>), Option C (\<name\>), or a hybrid (specify what you'd combine).
-> 2. **Color palette:** Option 1 (\<name\>), Option 2 (\<name\>), or Option 3 (\<name\>).
-> 3. **Typography pairing:** Pairing 1, 2, or 3.
-> 4. **Pattern conventions to break (with reasons):** of the "open for distinctive choice" patterns the research listed (\<list them\>), which do you want to break, and why?
-> 5. **Brand voice (1-2 sentences, specific):** "Sober and direct, never enthusiastic" beats "friendly and professional." Give me the version the designer should write copy from.
-> 6. **Portfolio continuity decision:** Echo findvil / fijara (name what carries across — typography, color family, logo style) OR stand independent (name what makes it independent).
-> 7. **Answers to the research's open questions for you:** \<list the research's "(For user)" questions and ask for each answer\>.
-> 8. **Designer name and contact (if known):** so the brief's frontmatter and version log are accurate. Leave blank if not yet hired.
-> 9. **Timeline target:** first round / revisions / final — even rough targets, so the brief is honest about the engagement shape.
+For each pick, use the most-appropriate tool:
+- **Multi-choice picks** → `AskUserQuestion` (Visual direction, Color palette, Typography pairing, Portfolio-continuity stance).
+- **Free-text picks** → a brief prompt + wait for the user's next message (Pattern-conventions-to-break, Brand voice, Portfolio-continuity specifics, Research open-question answers, Designer name/contact, Timeline).
 
-Stop and wait for the user's reply.
+Run the sub-steps in this exact order. Do not skip ahead even if the user volunteers later picks in an earlier reply — capture them, confirm, and still ask each downstream question explicitly so the reasoning behind each pick is in the trail.
+
+#### 1.1 Visual direction
+Use `AskUserQuestion` with the 3 options from research's §Visual direction (Option A, Option B, Option C). The `Other` slot is reserved for "Hybrid — combine specific aspects of multiple directions"; if the user picks Other, follow up with one free-text prompt: "Which directions are you combining, and what specifically carries from each?"
+
+#### 1.2 Color palette
+Use `AskUserQuestion` with the 3 options from research's §Color direction. **Pre-filter:** if the user picked a specific visual direction in 1.1, surface the palette that the research paired with that direction as option 1, the others as alternatives.
+
+#### 1.3 Typography pairing
+Use `AskUserQuestion` with the 3 options from research's §Typography direction. Same pair-aware ordering as 1.2.
+
+#### 1.4 Pattern conventions to break (free-text)
+Prompt: "Of the patterns the research listed as 'open for distinctive choice' — \<list them\> — which do you want to break, and what's the reason for each? Reply in your next message; one line per pattern is fine. The designer needs the reasoning, not just the list."
+
+Stop and wait. Capture verbatim.
+
+#### 1.5 Brand voice (free-text)
+Prompt: "What's your brand voice, in 1-2 sentences? Be specific — 'sober and direct, never enthusiastic' beats 'friendly and professional.' Give me the version the designer will write copy from."
+
+Stop and wait.
+
+#### 1.6 Portfolio continuity — stance
+Use `AskUserQuestion` with two options: **Echo findvil / fijara** ("name what carries across — typography, color family, logo style") vs. **Stand independent** ("name what makes it independent").
+
+#### 1.7 Portfolio continuity — specifics (free-text)
+Based on 1.6, follow up: "What specifically <carries across | makes it independent>? Name 2-4 concrete elements (typography choice, color family, logo treatment, illustration style, etc.)."
+
+Stop and wait.
+
+#### 1.8 Research open-question answers (free-text per question)
+For each "(For user)" question in `DESIGN_RESEARCH.md §Open questions`, ask it as a standalone prompt and wait for the user's reply before moving to the next. Do NOT batch them.
+
+#### 1.9 Designer name and contact (free-text)
+Prompt: "Designer name and contact (if known)? Goes in the brief's frontmatter and version log. Leave blank if not yet hired — reply 'not yet' and I'll mark accordingly."
+
+Stop and wait.
+
+#### 1.10 Timeline target (free-text)
+Prompt: "Timeline target — even rough estimates so the brief is honest about engagement shape. Reply with first-round duration / revisions count / final delivery target. Example: 'first round 2 weeks, 1-2 revision rounds of 1 week each, final by 2026-07-15.'"
+
+Stop and wait.
+
+After all sub-steps, summarize all picks back to the user in one structured message and ask "All set, draft the brief?" via `AskUserQuestion` (options: **Yes — draft now** / **Revise a pick** — if Revise, ask which pick number and re-run that sub-step). Only proceed to Step 2 once the user confirms.
+
+**Fijara checkpoint:** if at any point during Step 1 the user signals confusion (per CLAUDE.md § Fijara resurface triggers), surface the Fijara option once. Otherwise proceed normally.
 
 ### Step 2 — Draft the brief
 

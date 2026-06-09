@@ -396,6 +396,33 @@ Edge cases: no `BUILD_STATUS.md` → use `/start-build`; all subsystems `[x]` �
 
 Read-only "where are we" synthesis for a specific product. Walks every artifact (idea card, validation, scoping reports, MVP/V1 briefs, design research/spec/brief, designer handoff, BUILD_STATUS, team file, source tree, audit-log entries) and emits a one-screen report: pipeline-state table, build progress (if any), source tree at-a-glance, team, recent activity, prose synthesis, and 2-4 suggested next actions specific to the actual state. **Pure read-only — invokes no subagent, modifies no file, appends to no log.** Use when you're returning to a product after a break and want to remember "what was I doing here?" without committing to an action. **Distinct from `/status`** (which reports across ALL products in the workspace) and **`/continue-build`** (which actually invokes the orchestrator). **Stops at:** synthesis shown. **Next:** user decides.
 
+### `/generate-checklist <slug>`
+
+Generate (or regenerate) the **fine-grained `CHECKLIST.md`** for a product — the companion to `BUILD_STATUS.md`. Where `BUILD_STATUS.md` tracks coarse subsystems ("auth subsystem `[x]`", "API contract `[>]`"), CHECKLIST tracks fine deliverables ("Signup form `[x]`", "Verification email template `[x]`", "Resend-verification UI `[ ]`", "Tests for expired-token path `[ ]`"). Reads MVP.md (and V1.md if green-lit-to-build) and decomposes each must-have into 3-8 bite-size deliverables with file-path hints in italics. Per `guides/product/checklist-methodology.md`. **Stops at:** file written + summary shown. **Next:** open the file, or `/read-checklist <slug>` to refresh later.
+
+### `/read-checklist <slug>`
+
+Refresh `CHECKLIST.md` for a product — runs an **mtime-cached** scan: only inspects files modified since the last refresh, so the command is cheap and idempotent. Crosses out completed items (matching the file-path hints), proposes additions for newly discovered work (capped at 5 per pass; user confirms each via `AskUserQuestion`), and updates the Scope changes log. **Auto-triggered by the build orchestrator** after every `BUILD_STATUS.md` subsystem flips to `[x]`. **Stops at:** summary of what changed + pending items to highlight. **Next:** open the file, or `/continue-build <slug>` to resume on a pending item.
+
+### `/push-project <slug> [-m "<msg>"] [--init] [--remote <url>] [--status] [--no-commit] [--branch <name>] [--force-with-lease]`
+
+Push a product (`web-apps/<slug>/`, `mobile-apps/<slug>/`, `desktop-apps/<slug>/`) to its own **independent GitHub repository**, separate from the parent workspace repo. The parent's `.gitignore` already ignores `web-apps/**` etc. → each nested folder can be its own git repo with its own remote, history, branches, CI. Per `guides/product/project-git-methodology.md`.
+
+- `--init` for first-time setup (creates `.git/`, stack-specific `.gitignore`, `README.md`, optional `LICENSE`, sets remote, initial commit + push)
+- `--status` for read-only status check
+- `--remote <url>` to set/update remote
+- No flags = routine commit + push (asks for commit message via free-text if no `-m` flag)
+
+**Mandatory safety scans** before every commit: refuses if `.env` is staged (only `.env.example` allowed); scans for AWS keys, GitHub tokens, Stripe keys, private keys, Slack tokens; refuses plain `--force` to `main`. **Per-commit Co-Authored-By trailer ask** per CLAUDE.md policy. **Stops at:** commit + push completed + commit SHA + branch reported.
+
+### `/deep-debug <slug> [focus-area-or-file-or-symptom]`
+
+Invoke the **`senior-debugging-engineer`** for deep root-cause analysis on a specific failure. Use when a bug crosses domain boundaries (backend+frontend race, deploy failure with non-obvious cause, intermittent production bug, flaky test that resists standard debugging), when existing `senior-X-engineers` haven't pinned it down, or when reviewer-flagged bugs keep being overridden without understanding the root cause. The persona runs a hypothesis-driven 5-phase process (Reproduce → Hypothesize → Test each hypothesis → Root cause → Fix recommendation) and returns a structured report — **does NOT write the fix** (the relevant `senior-X-engineer` does that, against the report). **Stops at:** report shown + user picks: apply the fix / investigate further / sit on it / reject the diagnosis.
+
+### `/caffeinate` and `/stop-caffeinate`
+
+macOS-only display + system sleep prevention while Claude Code is working. Wraps the built-in `caffeinate -d -i` command — runs it in the background (detached via `nohup`), captures the PID at `~/.claude/caffeinate.pid`, and reports back. **`/stop-caffeinate`** reads the PID, sends SIGTERM, removes the pidfile. Idempotent (running stop when nothing is caffeinated is a benign no-op). Useful during long builds, the design phase, and any time you don't want your screen to dim while Claude is generating code. On Linux/Windows: error gracefully and point at the platform equivalent (`systemd-inhibit` / PowerShell power requests). **Stops at:** confirmation message with PID + start time.
+
 ### `/start-build <slug>`
 
 Kicks off the build phase for a `green-lit-to-build` product. Invokes the `senior-software-engineer` persona (see §4) to ask three orientation questions in order:

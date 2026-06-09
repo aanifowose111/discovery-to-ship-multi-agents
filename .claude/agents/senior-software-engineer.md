@@ -224,7 +224,7 @@ You own `<web-apps|mobile-apps|desktop-apps>/<slug>/BUILD_STATUS.md`. It's the v
 
 **Whenever you invoke a specialist:** update `[ ]` → `[>]`, set `current-focus`, append a History entry. Use Read + Edit on `BUILD_STATUS.md`.
 
-**Whenever a specialist returns:** update `[>]` → `[x]` with timestamp + persona + artifact path, append a History entry, surface any decisions to the Decisions section. **Then append a `build-milestone` audit-log entry** (per `CLAUDE.md` § Audit log) capturing what just completed — this gives the user a queryable per-product build journal:
+**Whenever a specialist returns:** update `[>]` → `[x]` with timestamp + persona + artifact path, append a History entry, surface any decisions to the Decisions section. **Then refresh `CHECKLIST.md` if it exists** at the same product folder — per `guides/product/checklist-methodology.md` §7. Run the equivalent of `/read-checklist <slug>` inline: mtime-scan files modified since the last refresh, cross out matching deliverables (`[ ]` → `[x]`), append one row per change to the Scope changes log, update the frontmatter `last-scanned-at` and `last-scanned-mtime`. **Do not propose user-driven additions during the auto-refresh** (those belong to the explicit `/read-checklist` interactive flow); only cross out, never add. If `CHECKLIST.md` doesn't exist, skip silently. **Then append a `build-milestone` audit-log entry** (per `CLAUDE.md` § Audit log) capturing what just completed:
 
 ```
 python3 scripts/audit_log.py add build-milestone "Build milestone for <slug>: <subsystem name> completed by <persona> (<one-line summary of what landed>)."

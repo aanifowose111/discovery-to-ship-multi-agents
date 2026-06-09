@@ -130,6 +130,16 @@ def test_repo_structure(checks: list[Check]) -> None:
         ".claude/skills/expert-js-developer/SKILL.md",
         ".claude/commands/continue-build.md",
         ".claude/commands/recollect.md",
+        ".claude/commands/caffeinate.md",
+        ".claude/commands/stop-caffeinate.md",
+        ".claude/commands/generate-checklist.md",
+        ".claude/commands/read-checklist.md",
+        ".claude/hooks/break-reminder.sh",
+        "guides/product/checklist-methodology.md",
+        ".claude/commands/push-project.md",
+        "guides/product/project-git-methodology.md",
+        ".claude/commands/deep-debug.md",
+        ".claude/agents/senior-debugging-engineer.md",
     ]
     for f in required:
         path = REPO_ROOT / f

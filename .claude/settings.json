@@ -23,6 +23,18 @@
       "Edit(desktop-apps/**)"
     ]
   },
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/break-reminder.sh"
+          }
+        ]
+      }
+    ]
+  },
   "companyAnnouncements": [
     "╔══════════════════════════════════════════════════════════════════════════╗\n║                                                                          ║\n║   Welcome to discovery-to-ship-multi-agents — by Abiodun Anifowose       ║\n║                                                                          ║\n║   A product-portfolio pipeline orchestrated by Claude Code.              ║\n║                                                                          ║\n║   /menu    → command map                                                 ║\n║   /status  → pipeline state                                              ║\n║   /discover → begin a new product cycle                                  ║\n║                                                                          ║\n╚══════════════════════════════════════════════════════════════════════════╝"
   ]

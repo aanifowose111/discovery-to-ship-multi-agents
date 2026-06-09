@@ -20,23 +20,55 @@ You are about to draft the design spec for one product on the **claude-led** des
 
    Wait for confirmation.
 
-### Step 1 — Collect the user's picks
+### Step 1 — Collect the user's picks (one question at a time)
 
-Read the research's open questions (§Open questions in `DESIGN_RESEARCH.md`) and the three visual-direction options, three palette options, three typography pairings, and pattern-conventions list. Then ask the user, in **one structured message**, for the picks the spec depends on. Use this exact template (filling in the specifics from the research):
+Read the research's open questions (§Open questions in `DESIGN_RESEARCH.md`) plus the three visual-direction options, three palette options, three typography pairings, and pattern-conventions list. Then ask the user the picks **sequentially, one question per turn** — never batched into a single block. This pattern is intentional: each answer narrows or shapes the next question, the user processes one decision at a time, and the reviewer's job is easier when picks are explicitly captured.
 
-> Before I draft the spec, I need your picks. Reply with the following:
->
-> 1. **Visual direction:** Option A (\<name\>), Option B (\<name\>), Option C (\<name\>), or a hybrid (specify what you'd combine).
-> 2. **Color palette:** Option 1 (\<name\>), Option 2 (\<name\>), or Option 3 (\<name\>).
-> 3. **Typography pairing:** Pairing 1, 2, or 3.
-> 4. **Pattern conventions to break (with reasons):** of the "open for distinctive choice" patterns the research listed (\<list them\>), which do you want to break, and why?
-> 5. **Brand voice (1-2 sentences, specific):** "Sober and direct, never enthusiastic" beats "friendly and professional." Give me the version copywriting works from.
-> 6. **Portfolio continuity decision:** Echo findvil / fijara (name what carries across — typography, color family, logo style) OR stand independent (name what makes it independent).
-> 7. **Answers to the research's open questions:** \<list each open question and ask for the answer\>.
-> 8. **Dark mode scope:** Light-only at MVP / Light + dark from day one / Dark-only.
-> 9. **Self-host fonts or CDN:** Self-host (recommended; privacy + speed) or use Google Fonts / Adobe Fonts CDN.
+For each pick, use the most-appropriate tool:
+- **Multi-choice picks** → `AskUserQuestion` (Visual direction, Color palette, Typography pairing, Portfolio-continuity stance, Dark-mode scope, Font loading).
+- **Free-text picks** → a brief prompt + wait for the user's next message (Pattern-conventions-to-break, Brand voice, Portfolio-continuity specifics, Research open-question answers).
 
-Stop and wait for the user's reply.
+Run the sub-steps in this exact order. Do not skip ahead even if the user volunteers later picks in an earlier reply — capture them, confirm, and still ask each downstream question explicitly so the reasoning behind each pick is in the trail.
+
+#### 1.1 Visual direction
+Use `AskUserQuestion` with the 3 options from research's §Visual direction (Option A, Option B, Option C). The `Other` slot is reserved for "Hybrid — combine specific aspects of multiple directions"; if the user picks Other, follow up with one free-text prompt: "Which directions are you combining, and what specifically carries from each?"
+
+#### 1.2 Color palette
+Use `AskUserQuestion` with the 3 options from research's §Color direction. **Pre-filter:** if the user picked a specific visual direction in 1.1, surface the palette that the research paired with that direction as option 1, the others as alternatives. If the user picked Hybrid in 1.1, present all three as equal.
+
+#### 1.3 Typography pairing
+Use `AskUserQuestion` with the 3 options from research's §Typography direction. Same pre-filter logic as 1.2 (pair-aware ordering based on 1.1).
+
+#### 1.4 Pattern conventions to break (free-text)
+Prompt: "Of the patterns the research listed as 'open for distinctive choice' — \<list them\> — which do you want to break, and what's the reason for each? Reply in your next message; one line per pattern is fine."
+
+Stop and wait for the user's reply. Capture verbatim.
+
+#### 1.5 Brand voice (free-text)
+Prompt: "What's your brand voice, in 1-2 sentences? Be specific — 'sober and direct, never enthusiastic' beats 'friendly and professional.' Give me the version copywriting will work from."
+
+Stop and wait.
+
+#### 1.6 Portfolio continuity — stance
+Use `AskUserQuestion` with two options: **Echo findvil / fijara** ("name what carries across — typography, color family, logo style") vs. **Stand independent** ("name what makes it independent").
+
+#### 1.7 Portfolio continuity — specifics (free-text)
+Based on 1.6, follow up: "What specifically <carries across | makes it independent>? Name 2-4 concrete elements (typography choice, color family, logo treatment, illustration style, etc.)."
+
+Stop and wait.
+
+#### 1.8 Research open-question answers (free-text per question)
+For each "(For user)" question in `DESIGN_RESEARCH.md §Open questions`, ask it as a standalone prompt and wait for the user's reply before moving to the next. Do NOT batch them. If there are no user-facing open questions, skip this step entirely.
+
+#### 1.9 Dark mode scope
+Use `AskUserQuestion` with three options: **Light-only at MVP** (deferred to v2) / **Light + dark from day one** / **Dark-only** (rare; specific niches).
+
+#### 1.10 Font loading
+Use `AskUserQuestion` with two options: **Self-host (recommended)** ("privacy + speed; you'll set up `@font-face` and `.woff2` files") vs. **CDN** ("Google Fonts or Adobe Fonts; faster initial setup, ongoing dependency").
+
+After all sub-steps, summarize all 10 picks back to the user in one structured message and ask "All set, draft the spec?" via `AskUserQuestion` (options: **Yes — draft now** / **Revise a pick** — if Revise, ask which pick number and re-run that sub-step). Only proceed to Step 2 once the user confirms.
+
+**Fijara checkpoint:** if at any point during Step 1 the user signals confusion (per CLAUDE.md § Fijara resurface triggers), surface the Fijara option once. Otherwise proceed normally.
 
 ### Step 2 — Invoke the ui-ux-researcher in spec-writing mode
 
