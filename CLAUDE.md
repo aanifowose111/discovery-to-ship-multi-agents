@@ -117,6 +117,8 @@ For non-owners, this rule is **on top of** `/acknowledge-contributing`, not a re
 
 The rule does NOT block changes; it makes them deliberate.
 
+**With `defaultMode: "acceptEdits"`** (current setting), the permissions layer auto-accepts file edits + `mkdir`/`touch`/`cp`/`mv` for cwd paths. This rule (convention layer) is the protection for core files — the permissions layer alone won't stop a core-file edit.
+
 ---
 
 ## CHANGELOG editing rules
@@ -189,12 +191,9 @@ What does NOT get logged: file reads, command invocations, status flips, commits
 
 ## Internet access policy
 
-Web search and web fetch are **integral, first-class tools** for this project. Product discovery, idea validation, market research, competitive analysis, vendor documentation, library version checks, deployment runbooks — all of it depends on the open web. Treat the internet the way you treat the file system: a resource to use, not a privilege to request.
+Web search and web fetch are **first-class tools** for this project — discovery, validation, market research, competitive analysis, vendor docs, deployment runbooks all depend on the open web. Treat the internet like the file system: a resource to use, not a privilege to request.
 
-**Default: just do it.**
-- Routine HTTPS searches and fetches happen without asking permission.
-- This applies to both the main Claude and any **reviewer assistants** — reviewers are trusted to fetch what they need within their scope, no permission prompt.
-- `WebFetch` and `WebSearch` are pre-approved in `.claude/settings.json` to back this policy at the tool-permission layer.
+**Default: just do it.** Routine HTTPS searches and fetches happen without asking — applies to main Claude AND reviewer assistants. `WebFetch` and `WebSearch` are pre-approved in `.claude/settings.json`.
 
 **Ask before fetching only in these cases:**
 - The URL is non-HTTPS (`http://`, `ftp://`, etc.).

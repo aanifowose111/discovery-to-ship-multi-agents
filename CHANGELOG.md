@@ -16,6 +16,25 @@ This project does not yet follow strict semantic versioning. Pre-1.0, breaking c
 
 _No entries yet — next batch lands here under a `### YYYY-MM-DD` subheader (or, if today already has a cut version, as a patch bump per the convention above)._
 
+## [0.12.5] - 2026-06-09
+
+Same-day patch on top of v0.12.4. **Real root cause of the permission-prompt bug found** — different from the hooks-structure theory chased across v0.12.3 + v0.12.4. The user verified via cross-checking with another Claude Code session (which fetched the canonical Claude Code permissions docs); fix lands here.
+
+### Fixed
+
+- **The actual root cause of `Write(web-apps/**)` and `Bash(python3 scripts/audit_log.py:*)` still prompting wasn't broken hook structure — it was that `Write(path)` patterns only cover the `Write` tool, NOT Bash-based file ops** (`mkdir`, `touch`, `cp`, `mv`, `cat > file`, heredocs). Subagents like `senior-backend-engineer` often create files via Bash (`mkdir -p` + heredoc for content) rather than the `Write` tool — those Bash commands aren't covered by `Write(...)` allow rules. Per the canonical Claude Code permission docs:
+  > "Read and Edit deny rules apply to Claude's built-in file tools and to file commands Claude Code recognizes in Bash (cat, head, tail, sed). [That asymmetry is intentional — ] allow rules for Write/Edit do NOT auto-allow Bash file commands."
+- **Fix:** added `"defaultMode": "acceptEdits"` to `.claude/settings.json` `permissions` block. Per the official schema: *"acceptEdits: auto-accepts file edits."* Per the docs, it also covers "common filesystem commands (mkdir, touch, mv, cp, etc.) for paths in the working directory." This solves the actual symptom — Bash-based file creation in `web-apps/**`, `mobile-apps/**`, `desktop-apps/**` now stops prompting.
+- **Validated against the live Claude Code settings schema** via `jsonschema.validate(data, schema)` — passes.
+
+### Notes
+
+- **Restart Claude Code to pick up the new settings.json.** Hooks + permissions still don't hot-reload.
+- **The explicit `Write(web-apps/**)` / `Edit(web-apps/**)` entries stay** — they're harmless and serve as documentation of intent. The `defaultMode: "acceptEdits"` rounds them out by also covering Bash-based file ops.
+- **Honest correction of v0.12.3 + v0.12.4 narrative:** the "hooks structure was over-engineered → caused other rules to silently fail" theory was wrong. The original v0.12.0 nested `"hooks"` wrapper was schema-compliant the whole time; the real issue was the Bash-vs-Write tool asymmetry. The v0.12.3 schema-noncompliance regression + v0.12.4 restoration both happened in service of a wrong theory. Real bug fixes from v0.12.3 (break-reminder idle detection, SessionStart hook, the new pytest/caffeinate allowlists) still stand — those were independent of this root cause.
+- **Trade-off documented in CLAUDE.md § Core-file edit confirmation rule:** `defaultMode: "acceptEdits"` means the permissions layer alone won't stop a core-file edit (e.g., a silent edit to `CLAUDE.md` itself). The convention-layer rule is the protection. Forkers who want a stronger permissions-layer safety net can switch to `"defaultMode": "default"` at the cost of CRUD prompts in product folders.
+- **CLAUDE.md compressed** in the Internet access policy section to stay under the 40k auto-load threshold after adding the new note. No information loss.
+
 ## [0.12.4] - 2026-06-09
 
 Same-day patch on top of v0.12.3. v0.12.3 introduced a regression by removing the `hooks` wrapper on the `UserPromptSubmit` event — the official Claude Code settings schema requires the wrapper. User reported lint squiggles in their editor under `"type"` and `"command"`. Re-fetching the official schema at `https://json.schemastore.org/claude-code-settings.json` confirmed: all hook events (UserPromptSubmit included) must conform to `$defs/hookMatcher`, which requires a `hooks` array.
@@ -530,7 +549,8 @@ This is a **minor version bump** (0.4.x → 0.5.0), not a patch — it adds a pe
 - Stack-flexibility framing: workspace defaults are dockerized Flask + RN, but the methodologies are stack-agnostic and `/scope-mvp` asks the user to confirm the stack before drafting.
 - Internet access policy: `WebFetch` and `WebSearch` pre-approved in `.claude/settings.json`; permission only requested for non-HTTPS, suspicious, paid, or user-private URLs.
 
-[Unreleased]: https://github.com/aanifowose111/discovery-to-ship-multi-agents/compare/v0.12.4...HEAD
+[Unreleased]: https://github.com/aanifowose111/discovery-to-ship-multi-agents/compare/v0.12.5...HEAD
+[0.12.5]: https://github.com/aanifowose111/discovery-to-ship-multi-agents/compare/v0.12.4...v0.12.5
 [0.12.4]: https://github.com/aanifowose111/discovery-to-ship-multi-agents/compare/v0.12.3...v0.12.4
 [0.12.3]: https://github.com/aanifowose111/discovery-to-ship-multi-agents/compare/v0.12.2...v0.12.3
 [0.12.2]: https://github.com/aanifowose111/discovery-to-ship-multi-agents/compare/v0.12.1...v0.12.2
