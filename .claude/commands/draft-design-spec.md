@@ -130,6 +130,15 @@ After the reviewer returns, **stop**. Do not advance the spec's `status` past `i
 
 Only after the user signs off, update the spec's `status` field to `acted-on` and add the sign-off date to §11.
 
+### Step 5 — Auto-generate or refresh CHECKLIST.md (after sign-off)
+
+Immediately after the sign-off in Step 4, check `<product-folder>/CHECKLIST.md`:
+
+- **If CHECKLIST.md does NOT exist:** auto-run the equivalent of `/generate-checklist <slug>` now. The spec is the richest design input the checklist depends on — generating after the spec lands gives a properly-balanced backend + frontend decomposition (with tokens, icons, image-asset prompts, per-surface specs, component patterns, responsive, a11y all surfaced from `DESIGN_SPEC.md`). Surface to the user: "Auto-generating `CHECKLIST.md` now that the spec is signed off. (You can re-run `/generate-checklist <slug>` to regenerate, or `/read-checklist <slug>` to refresh.)"
+- **If CHECKLIST.md ALREADY exists** (rare — user manually ran `/generate-checklist` before the spec landed): auto-run the equivalent of `/read-checklist <slug>` now. The design-artifact-source field will pick up the newly-acted-on spec; scope discovery will surface the design-driven additions (tokens / icons / image prompts / per-surface / components / responsive / a11y) up to the 5-per-pass cap. The user confirms each via `AskUserQuestion`. Surface to the user: "Refreshing `CHECKLIST.md` against the newly signed-off spec — proposing design-driven additions for your review."
+
+Then show the user the standard checkpoint message from the auto-generate or auto-refresh flow.
+
 ### Notes for the main Claude
 
 - The spec's job is to be the *one document* the build implements UI from. Resist any urge to also produce a separate Figma file or component code from this command — that comes during build.

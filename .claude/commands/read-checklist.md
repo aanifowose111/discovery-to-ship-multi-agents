@@ -16,7 +16,13 @@ You are about to refresh `CHECKLIST.md` for one product. This is the routine ref
 
 1. **Locate the product folder + CHECKLIST.md.** Check `<web-apps|mobile-apps|desktop-apps>/<slug>/CHECKLIST.md`. If the file doesn't exist, stop and tell the user: "No `CHECKLIST.md` at `<expected-path>`. Run `/generate-checklist <slug>` first."
 
-2. **Read frontmatter** for `last-scanned-at` and `last-scanned-mtime`. Capture as `<since-ts>` (epoch seconds).
+2. **Read frontmatter** for `last-scanned-at`, `last-scanned-mtime`, and `design-artifact-source`. Capture `since-ts` (epoch seconds) and `design-artifact-path`.
+
+3. **Re-read the design artifact** named in `design-artifact-source` (if any). Specifically:
+   - If `design-artifact-source: design/DESIGN_SPEC.md` → re-read the spec. Compare its mtime to `last-scanned-mtime`: if the spec was modified after the last refresh, this run MUST surface design-driven additions.
+   - If `design-artifact-source: design/handoff/` → re-walk `tokens.json` and the `screenshots/` listing.
+   - If `design-artifact-source: design/DESIGN_RESEARCH.md` (hybrid path) → re-read the research's per-surface direction notes.
+   - If `design-artifact-source: none` → check whether a design artifact has landed since generation (per the brief's `design-path`). If yes, surface to the user: "The brief is `design-path: <value>` and `<artifact>` now exists. Re-run `/generate-checklist <slug>` (regenerate from scratch is safer than refresh in this case — the original CHECKLIST was generated without the design artifact and likely under-covers UI work)." Then stop. Don't refresh.
 
 ### Do
 
@@ -37,9 +43,17 @@ You are about to refresh `CHECKLIST.md` for one product. This is the routine ref
 
 3. **Scope discovery (auto-propose, don't auto-add):**
    - **BUILD_STATUS subsystem gap:** read `BUILD_STATUS.md`. Any subsystem section that has no corresponding `### <Must-have>` block in CHECKLIST is a candidate. Propose adding it.
+   - **Design artifact gap (THE PRIORITY scope-discovery source when a design artifact exists):** walk `DESIGN_SPEC.md` (or the handoff / research) and surface CHECKLIST gaps:
+     - **Tokens (§2 of spec)** — is `static/css/tokens.css` (or RN theme / QSS) covered? If a CHECKLIST item doesn't reference it AND the file doesn't exist yet, propose: "Token wiring — `tokens.css` populated from `DESIGN_SPEC.md §2.1-2.5`."
+     - **Icon system (§3 of spec)** — is the chosen library installed + wrapper component present? Propose if missing.
+     - **Image assets (§4 of spec)** — for each image slot with an `IMG_<NAME>_URL` env-var, propose: "Image asset for `<slot>` — run prompt at `DESIGN_SPEC.md §4`, upload, set `<env-var>` in `.env`."
+     - **Per-surface specs (§6 of spec)** — for each surface (public landing, auth, user dashboard, admin, employee, etc.), check if CHECKLIST has frontend deliverables (template, styling, responsive states) covering it. Propose surface-level gaps.
+     - **Component patterns (§7 of spec)** — button / form / table / modal / toast / empty / loading / error / nav. For each pattern, check CHECKLIST coverage; propose missing ones.
+     - **A11y floor (§8 of spec)** — focus states, keyboard nav, contrast verification. Propose if not present.
+     - **Responsive (§5 of spec)** — breakpoints integration. Propose if not present.
    - **Source-tree growth:** new top-level directories in the product folder (e.g., `app/integrations/` newly created) without checklist coverage. Propose adding "Integrations layer" with its known sub-files.
    - **/rework audit-log:** read `python3 scripts/audit_log.py list --type rework-applied | grep -i "<slug>"`. For any rework entry after `last-scanned-at`, propose decomposing its added must-haves into CHECKLIST items.
-   - **Cap at 5 proposed additions** total per scan; the rest can wait until next scan.
+   - **Cap at 5 proposed additions** total per scan; the rest can wait until next scan. **Prioritize design-artifact gaps** over source-tree gaps when triaging — UI / design coverage is more often under-surfaced than backend coverage.
 
 4. **For each proposed addition**, surface to the user via `AskUserQuestion` (one at a time): "Found a candidate addition: '<item>' under '<must-have or new section>'. Reason: <one-line>. Add to CHECKLIST?" Options: **Add** / **Skip** / **Add + edit text first** / **Stop scope-discovery (skip remaining)**.
 

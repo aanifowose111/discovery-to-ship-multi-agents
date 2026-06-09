@@ -16,6 +16,33 @@ This project does not yet follow strict semantic versioning. Pre-1.0, breaking c
 
 _No entries yet — next batch lands here under a `### YYYY-MM-DD` subheader (or, if today already has a cut version, as a patch bump per the convention above)._
 
+## [0.12.2] - 2026-06-09
+
+Same-day patch on top of v0.12.1. Caught a real gap in v0.12.0's CHECKLIST commands — they treated `DESIGN_SPEC.md` as optional, so checklists generated before / without a spec came out backend-heavy and missed UI / icon / image-asset / per-surface deliverables.
+
+### Changed
+
+- **`/generate-checklist` now treats the design artifact as a MANDATORY input** when the brief's `design-path` indicates one should exist:
+  - `design-path: claude-led` or `claude-led-continued` → MUST read `<product-folder>/design/DESIGN_SPEC.md` with `status: acted-on`. Refuses to proceed if missing or not signed off, with a message directing the user to `/research-design` → `/draft-design-spec` first ("without it, the checklist will be backend-heavy and miss the UI work").
+  - `design-path: hired` or `pro-designer-engaged` → MUST read `design/handoff/tokens.json` + `screenshots/` if the handoff exists; warns about deferred UI coverage otherwise.
+  - `design-path: hybrid-light-refresh` → reads `DESIGN_RESEARCH.md`.
+  - No design path / unknown → confirms with the user before brief-only decomposition.
+- **`/generate-checklist` decomposition rules expanded** to walk each must-have against `DESIGN_SPEC.md §6 Per-surface specs`, `§2 Tokens`, `§3 Icon system`, `§4 Image assets`, `§7 Component patterns`, `§5 Responsive specs` — so frontend / icon / styling / image-prompt / responsive deliverables come out alongside backend handlers / routes / tests. Each must-have's deliverables now group by user-visible feature (template + handler + styling + tests for "Signup form" together), not by technical layer.
+- **New `## Design-spec deliverables` section** in CHECKLIST.md captures spec-wide deliverables that aren't tied to a single must-have: icon library install + wrapper component, token wiring (`tokens.css` / RN theme / QSS), image-asset prompts to run with env-var slots, responsive baseline, component patterns, a11y floor pass.
+- **`/generate-checklist` writes a new `design-artifact-source:` frontmatter field** to CHECKLIST.md capturing which design artifact was used (`design/DESIGN_SPEC.md` / `design/handoff/` / `design/DESIGN_RESEARCH.md` / `none`). `/read-checklist` uses this to know which artifact to re-scan.
+- **`/read-checklist` re-reads the design artifact** named in `design-artifact-source`. If the spec was modified since the last refresh, surfaces design-driven additions. **Design-artifact gaps are now the priority scope-discovery source** (tokens / icons / image prompts / per-surface / components / responsive / a11y) — surfaced before BUILD_STATUS or source-tree gaps when triaging which to propose (still capped at 5 per pass, user confirms each via `AskUserQuestion`).
+- **Special-case: CHECKLIST was generated WITHOUT a design artifact and one has since landed.** Rather than trying to incrementally patch, `/read-checklist` surfaces a "regenerate from scratch is safer than refresh in this case — the original was generated under-covering UI work" prompt and stops.
+- **`/draft-design-spec` now auto-runs the checklist** at a new Step 5 after user signs off on the spec:
+  - If `CHECKLIST.md` does NOT exist → auto-runs the equivalent of `/generate-checklist <slug>` (the timing fix: the checklist now lands AFTER the spec, not before, so decomposition has the design input).
+  - If `CHECKLIST.md` already exists from an earlier manual run → auto-runs the equivalent of `/read-checklist <slug>` (which now picks up the newly-acted-on spec and proposes design-driven additions).
+- **`guides/product/checklist-methodology.md` updated:** §2 frontmatter template adds `design-artifact-source`; §5 scope discovery puts design-artifact gaps first (over BUILD_STATUS and source-tree gaps); §7 split into 7.1 (auto-generation trigger — after design signoff) and 7.2 (auto-refresh trigger — on BUILD_STATUS subsystem flip).
+
+### Notes
+
+- **For ops-audit-agent specifically:** the existing CHECKLIST was generated before the design spec lands. After running `/research-design ops-audit-agent` → `/draft-design-spec ops-audit-agent`, the `/draft-design-spec` auto-runs `/read-checklist` against the new spec. Or just run `/read-checklist ops-audit-agent` manually — it will surface design-driven additions across multiple passes (the 5-per-pass cap means several refreshes will be needed to walk through tokens + icons + per-surface + components + responsive + image assets).
+- **No new commands.** Behavior changes only on `/generate-checklist`, `/read-checklist`, `/draft-design-spec`. The CHECKLIST.md schema gains one frontmatter field (`design-artifact-source`) which is backward-compatible (older CHECKLIST.md files without the field are treated as `design-artifact-source: none`).
+- **Existing CHECKLIST.md files written by v0.12.0 will not have the `design-artifact-source` field.** When `/read-checklist` runs against one, it treats the missing field as `none` and surfaces the "regenerate from scratch" prompt if a design artifact has since landed. Regeneration is safe — the backup file (`CHECKLIST.md.bak-<date>`) preserves the prior state.
+
 ## [0.12.1] - 2026-06-09
 
 Same-day patch on top of v0.12.0. Docs-only — surfaces the 7 new commands in the README's per-command table and DOCUMENTATION.md's 60-second workflow.
@@ -467,7 +494,8 @@ This is a **minor version bump** (0.4.x → 0.5.0), not a patch — it adds a pe
 - Stack-flexibility framing: workspace defaults are dockerized Flask + RN, but the methodologies are stack-agnostic and `/scope-mvp` asks the user to confirm the stack before drafting.
 - Internet access policy: `WebFetch` and `WebSearch` pre-approved in `.claude/settings.json`; permission only requested for non-HTTPS, suspicious, paid, or user-private URLs.
 
-[Unreleased]: https://github.com/aanifowose111/discovery-to-ship-multi-agents/compare/v0.12.1...HEAD
+[Unreleased]: https://github.com/aanifowose111/discovery-to-ship-multi-agents/compare/v0.12.2...HEAD
+[0.12.2]: https://github.com/aanifowose111/discovery-to-ship-multi-agents/compare/v0.12.1...v0.12.2
 [0.12.1]: https://github.com/aanifowose111/discovery-to-ship-multi-agents/compare/v0.12.0...v0.12.1
 [0.12.0]: https://github.com/aanifowose111/discovery-to-ship-multi-agents/compare/v0.11.1...v0.12.0
 [0.11.1]: https://github.com/aanifowose111/discovery-to-ship-multi-agents/compare/v0.11.0...v0.11.1

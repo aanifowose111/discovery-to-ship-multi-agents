@@ -29,6 +29,7 @@ Lives at `<web-apps|mobile-apps|desktop-apps>/<slug>/CHECKLIST.md`.
 ---
 slug: <product-slug>
 brief-version: mvp | v1
+design-artifact-source: design/DESIGN_SPEC.md | design/handoff/ | design/DESIGN_RESEARCH.md | none
 generated-at: YYYY-MM-DD HH:MM
 last-scanned-at: YYYY-MM-DD HH:MM
 last-scanned-mtime: <epoch seconds>
@@ -146,11 +147,12 @@ When `/read-checklist <slug>` runs, it:
 
 The orchestrator (or `/read-checklist`) can detect new work that should be added to the checklist:
 
-1. **From new BUILD_STATUS subsystem flips:** if a new subsystem appeared in `BUILD_STATUS.md` since the last scan that has no corresponding section in CHECKLIST, propose adding it.
-2. **From source-tree growth:** if a new top-level directory appeared (e.g., `app/integrations/`) without any matching checklist deliverable, propose adding "Integrations layer" with its known sub-files.
-3. **From `/rework` audit-log entries:** if a rework added a must-have, that must-have needs decomposing into checklist items. The rework audit-log entry's description hints at what.
+1. **From the design artifact (highest priority):** walk `DESIGN_SPEC.md` (or handoff / DESIGN_RESEARCH.md) for sections the checklist doesn't yet cover — tokens (§2), icon system (§3), image-asset prompts (§4), responsive (§5), per-surface specs (§6), component patterns (§7), a11y floor (§8). UI / design coverage is the most-often-missed dimension; surface these gaps first.
+2. **From new BUILD_STATUS subsystem flips:** if a new subsystem appeared in `BUILD_STATUS.md` since the last scan that has no corresponding section in CHECKLIST, propose adding it.
+3. **From source-tree growth:** if a new top-level directory appeared (e.g., `app/integrations/`) without any matching checklist deliverable, propose adding "Integrations layer" with its known sub-files.
+4. **From `/rework` audit-log entries:** if a rework added a must-have, that must-have needs decomposing into checklist items. The rework audit-log entry's description hints at what.
 
-**Always propose, never silently add.** Surface the proposed addition to the user (via `/read-checklist`'s output), then add only on confirm. Avoid noise: cap at ~5 proposed additions per scan.
+**Always propose, never silently add.** Surface the proposed addition to the user (via `/read-checklist`'s output), then add only on confirm. Avoid noise: cap at ~5 proposed additions per scan. **Prioritize design-artifact gaps** over source-tree gaps when triaging which to surface.
 
 ---
 
@@ -166,13 +168,26 @@ Every change appends to the Scope changes log.
 
 ---
 
-## 7. Auto-refresh hook in the orchestrator
+## 7. Auto-refresh hook in the orchestrator + auto-generation trigger
+
+Two distinct automation points:
+
+### 7.1 Auto-generation — after the design artifact is signed off
+
+`/draft-design-spec` (claude-led path) auto-generates `CHECKLIST.md` immediately after the user signs off on the spec (status flips to `acted-on`). Rationale: the spec is the richest design input the checklist depends on; generating BEFORE the spec produces a backend-heavy checklist that misses UI / icon / image-asset deliverables.
+
+For the other paths:
+- **Hired-designer path** (`/draft-design-brief` → designer → handoff) — auto-generation should fire after the handoff is captured (currently a manual flow per `design-handoff-methodology.md`; user runs `/generate-checklist <slug>` manually after handoff lands).
+- **Hybrid-light-refresh path** — user runs `/generate-checklist <slug>` manually after `/research-design --light` signs off.
+- **Claude-led without a spec yet** — the user can run `/generate-checklist <slug>` manually any time but should expect a backend-heavy checklist; re-running with regenerate-from-scratch after the spec lands is the recommended path.
+
+### 7.2 Auto-refresh — after every BUILD_STATUS subsystem flip
 
 `senior-software-engineer.md` has a § Auto-refresh CHECKLIST section. The rule:
 
-> After flipping any `BUILD_STATUS.md` subsystem to `[x]`, if `<product-folder>/CHECKLIST.md` exists, do an in-line mtime scan and update CHECKLIST. Append to the Scope changes log. This is silent — no user prompt; the goal is keeping CHECKLIST current so the user can run `/read-checklist` confidently or just open the file directly.
+> After flipping any `BUILD_STATUS.md` subsystem to `[x]`, if `<product-folder>/CHECKLIST.md` exists, do an in-line mtime scan and update CHECKLIST. Re-read the design artifact named in `design-artifact-source` if its mtime is newer than `last-scanned-mtime`. Append to the Scope changes log. This is silent — no user prompt; the goal is keeping CHECKLIST current so the user can run `/read-checklist` confidently or just open the file directly.
 
-The orchestrator does NOT auto-generate CHECKLIST on first run — generation is user-triggered via `/generate-checklist` or `/start-build` suggests it once after the first subsystem completes.
+The orchestrator does NOT auto-generate CHECKLIST on first run if the spec is missing — generation is gated on the design artifact being available.
 
 ---
 
