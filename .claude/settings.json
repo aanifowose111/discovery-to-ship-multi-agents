@@ -20,18 +20,45 @@
       "Write(mobile-apps/**)",
       "Edit(mobile-apps/**)",
       "Write(desktop-apps/**)",
-      "Edit(desktop-apps/**)"
+      "Edit(desktop-apps/**)",
+      "Bash(pytest:*)",
+      "Bash(python -m pytest:*)",
+      "Bash(python3 -m pytest:*)",
+      "Bash(npm test:*)",
+      "Bash(npm run test:*)",
+      "Bash(npx jest:*)",
+      "Bash(npx vitest:*)",
+      "Bash(uname:*)",
+      "Bash(caffeinate:*)",
+      "Bash(nohup caffeinate:*)",
+      "Bash(pkill caffeinate)",
+      "Bash(pkill caffeinate:*)",
+      "Bash(kill -0:*)",
+      "Bash(kill -9:*)",
+      "Bash(kill:*)",
+      "Bash(rm -f /Users/abiodunanifowose/.claude/.session-start)",
+      "Bash(rm /Users/abiodunanifowose/.claude/.session-start)",
+      "Bash(rm -f /Users/abiodunanifowose/.claude/.last-prompt)",
+      "Bash(rm -f /Users/abiodunanifowose/.claude/.last-break-reminder)",
+      "Bash(rm -f /Users/abiodunanifowose/.claude/caffeinate.pid)"
     ]
   },
   "hooks": {
-    "UserPromptSubmit": [
+    "SessionStart": [
       {
+        "matcher": "startup",
         "hooks": [
           {
             "type": "command",
-            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/break-reminder.sh"
+            "command": "${CLAUDE_PROJECT_DIR}/.claude/hooks/session-start-reset.sh"
           }
         ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "type": "command",
+        "command": "${CLAUDE_PROJECT_DIR}/.claude/hooks/break-reminder.sh"
       }
     ]
   },

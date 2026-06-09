@@ -8,21 +8,31 @@
 # AskUserQuestion at the next natural conversation boundary).
 #
 # State files (gitignored, user-private):
-#   ~/.claude/.session-start         epoch seconds, set on first hook fire
+#   ~/.claude/.session-start         epoch seconds, set on first hook fire (or by SessionStart hook)
+#   ~/.claude/.last-prompt           epoch seconds, updated on every prompt — for idle detection
 #   ~/.claude/.last-break-reminder   epoch seconds, set when reminder fires
 #
-# To reset the timer manually (after a break): rm -f ~/.claude/.session-start
+# Idle detection: if the gap between the previous prompt and now is > IDLE_THRESHOLD,
+# the user was almost certainly away (laptop closed, took a break, etc.). Reset
+# `.session-start` to now so the timer reflects active session time, not wallclock.
+#
+# Pairs with .claude/hooks/session-start-reset.sh (SessionStart hook) which
+# resets `.session-start` at every fresh Claude Code session start.
+#
+# To reset the timer manually: rm -f ~/.claude/.session-start
 # To temporarily disable: chmod -x ~/.claude/hooks/break-reminder.sh
 
 set -euo pipefail
 
 STATE_DIR="${HOME}/.claude"
 SESSION_START_FILE="${STATE_DIR}/.session-start"
+LAST_PROMPT_FILE="${STATE_DIR}/.last-prompt"
 LAST_REMINDER_FILE="${STATE_DIR}/.last-break-reminder"
 
 # Tunables (seconds)
 INTERVAL_SECONDS=7200    # 2 hours before first reminder
 THROTTLE_SECONDS=3600    # 1 hour between subsequent reminders
+IDLE_THRESHOLD=1800      # 30 min gap between prompts means user was away — reset timer
 
 mkdir -p "${STATE_DIR}"
 NOW=$(date +%s)
@@ -30,8 +40,23 @@ NOW=$(date +%s)
 # Initialize session-start on first run of a fresh session
 if [ ! -f "${SESSION_START_FILE}" ]; then
   echo "${NOW}" > "${SESSION_START_FILE}"
+  echo "${NOW}" > "${LAST_PROMPT_FILE}"
   exit 0
 fi
+
+# Idle detection: if the gap from last prompt to now is huge, the user was away
+# (closed laptop / went to lunch / left for hours). Reset session-start to now.
+if [ -f "${LAST_PROMPT_FILE}" ]; then
+  LAST_PROMPT=$(cat "${LAST_PROMPT_FILE}")
+  IDLE_GAP=$((NOW - LAST_PROMPT))
+  if [ "${IDLE_GAP}" -gt "${IDLE_THRESHOLD}" ]; then
+    echo "${NOW}" > "${SESSION_START_FILE}"
+    rm -f "${LAST_REMINDER_FILE}"   # also clear so the throttle doesn't block the next reminder
+  fi
+fi
+
+# Always update last-prompt
+echo "${NOW}" > "${LAST_PROMPT_FILE}"
 
 SESSION_START=$(cat "${SESSION_START_FILE}")
 ELAPSED=$((NOW - SESSION_START))

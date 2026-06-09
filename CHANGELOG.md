@@ -16,6 +16,28 @@ This project does not yet follow strict semantic versioning. Pre-1.0, breaking c
 
 _No entries yet — next batch lands here under a `### YYYY-MM-DD` subheader (or, if today already has a cut version, as a patch bump per the convention above)._
 
+## [0.12.3] - 2026-06-09
+
+Same-day patch on top of v0.12.2. Three real bugs from v0.12.0's break-reminder + missing permission allowlists. Caught by the user reporting "you've been working for 7h 14m" after closing Claude Code for 6 hours, plus product-folder `Write/Edit` prompts returning, plus every pytest / caffeinate / session-reset shell command asking for permission.
+
+### Fixed
+
+- **Break-reminder hook counted wallclock elapsed time, not active session time.** `~/.claude/.session-start` persisted across Claude Code closes/reopens, so closing the laptop for hours still counted toward "session active." User reported triggering /caffeinate and immediately seeing "You've been working for ~7h 14m" after a 6-hour absence. Two-layer fix:
+  - **`.claude/hooks/session-start-reset.sh`** (new) — `SessionStart` hook with `matcher: startup` that resets `.session-start` to current epoch at every fresh Claude Code session start. Also clears stale `.last-prompt` and `.last-break-reminder`.
+  - **`.claude/hooks/break-reminder.sh`** — idle detection added. Tracks `~/.claude/.last-prompt` (epoch of previous prompt). If the gap from the last prompt to now exceeds `IDLE_THRESHOLD` (30 minutes default), the user was almost certainly away — reset `.session-start` to now and clear the throttle file so the next reminder isn't suppressed. Catches the case where `SessionStart` doesn't fire (e.g., resume with --resume flag, accidental persistence).
+- **`hooks` section structure in `settings.json` was over-engineered for `UserPromptSubmit`** (had a nested `"hooks"` array that's only needed for tool-event matchers like `PreToolUse`/`PostToolUse`). The over-engineered structure didn't crash the hook itself (we confirmed it fired) but caused the parser to handle other `permissions.allow` rules ungracefully — user reported `Write(web-apps/**)` and `Edit(web-apps/**)` prompting again despite being in the allowlist. **Fix:** flattened `UserPromptSubmit` to the direct array form (no nested `"hooks"`); kept the matcher-based form only for `SessionStart` (which DOES need it).
+- **Permission prompts for tests, caffeinate flow, and session-start reset.** Added explicit allowlists:
+  - **Tests:** `Bash(pytest:*)`, `Bash(python -m pytest:*)`, `Bash(python3 -m pytest:*)`, `Bash(npm test:*)`, `Bash(npm run test:*)`, `Bash(npx jest:*)`, `Bash(npx vitest:*)` — pytest and JS test runners now run without prompting.
+  - **Caffeinate flow:** `Bash(uname:*)` (platform check), `Bash(caffeinate:*)`, `Bash(nohup caffeinate:*)`, `Bash(pkill caffeinate)`, `Bash(pkill caffeinate:*)`, `Bash(kill -0:*)`, `Bash(kill -9:*)`, `Bash(kill:*)` — `/caffeinate` and `/stop-caffeinate` now run without prompts.
+  - **Break-reminder timer reset:** `Bash(rm -f /Users/abiodunanifowose/.claude/.session-start)`, plus the two-arg `rm` form, plus `.last-prompt`, `.last-break-reminder`, and `caffeinate.pid` — when the user picks "Caffeinate — keep going" at the break prompt, the reset script runs without asking.
+
+### Notes
+
+- **Restart Claude Code to pick up the new settings.json structure.** Hooks + permissions don't hot-reload. The new session will fire `SessionStart` → `session-start-reset.sh` automatically, giving you a clean timer.
+- **The user-path hardcoding in the rm allowlist entries (`/Users/abiodunanifowose/...`)** is a forker concern: anyone cloning this repo will need to update these to their own home path. This is a known trade-off for path-specific allowlists vs. broader `Bash(rm:*)` (which would allow any rm command, too risky). Future improvement: consider a wrapper script at a fixed repo-relative path that handles the rm internally.
+- **Why `Bash(kill:*)` is allowed broadly** despite the risk: `/stop-caffeinate` runs `kill <pid>` with a PID read from the user's own pidfile, and the user invokes it deliberately. The alternative — refusing kill — would break the stop flow. The risk is bounded by Claude not running arbitrary shell on the user's behalf.
+- **All breaks/idle resets are transparent to the user.** No UI; you'll just notice the next reminder fires from the correct "active session" start time, not a stale value.
+
 ## [0.12.2] - 2026-06-09
 
 Same-day patch on top of v0.12.1. Caught a real gap in v0.12.0's CHECKLIST commands — they treated `DESIGN_SPEC.md` as optional, so checklists generated before / without a spec came out backend-heavy and missed UI / icon / image-asset / per-surface deliverables.
@@ -494,7 +516,8 @@ This is a **minor version bump** (0.4.x → 0.5.0), not a patch — it adds a pe
 - Stack-flexibility framing: workspace defaults are dockerized Flask + RN, but the methodologies are stack-agnostic and `/scope-mvp` asks the user to confirm the stack before drafting.
 - Internet access policy: `WebFetch` and `WebSearch` pre-approved in `.claude/settings.json`; permission only requested for non-HTTPS, suspicious, paid, or user-private URLs.
 
-[Unreleased]: https://github.com/aanifowose111/discovery-to-ship-multi-agents/compare/v0.12.2...HEAD
+[Unreleased]: https://github.com/aanifowose111/discovery-to-ship-multi-agents/compare/v0.12.3...HEAD
+[0.12.3]: https://github.com/aanifowose111/discovery-to-ship-multi-agents/compare/v0.12.2...v0.12.3
 [0.12.2]: https://github.com/aanifowose111/discovery-to-ship-multi-agents/compare/v0.12.1...v0.12.2
 [0.12.1]: https://github.com/aanifowose111/discovery-to-ship-multi-agents/compare/v0.12.0...v0.12.1
 [0.12.0]: https://github.com/aanifowose111/discovery-to-ship-multi-agents/compare/v0.11.1...v0.12.0
