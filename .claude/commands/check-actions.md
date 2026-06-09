@@ -44,13 +44,19 @@ You are about to refresh `ACTION_REQUIRED.md` for one product. Follow the method
 
    **(For `env-scan-mode: full`** — read the file directly. This is the opt-in mode that exposes values; only do this if frontmatter says so. Pattern-match values against any per-item requirements.)
 
-2. **Read ACTION_REQUIRED.md `## Pending items` section.** For each pending item:
-   - Extract the env-var name(s) from the item (e.g., `STRIPE_SECRET_KEY`, or `GOOGLE_OAUTH_CLIENT_ID` + `GOOGLE_OAUTH_CLIENT_SECRET` if it's a paired item).
-   - Cross-reference against the scan output.
-   - **If ALL the item's env keys are in the "set" column** → mark the item complete, move to `## Completed items (history)` with suffix `(completed YYYY-MM-DD via .env scan)`.
-   - **If ANY of the item's env keys is "empty" or missing** → leave in pending.
+2. **Read ACTION_REQUIRED.md** — parse both the **Summary table** (top) and the **per-item detailed sections**.
 
-3. **Honor manual `[x]` marks** — for items the user has marked `[x]` directly in the file (without a `.env` value), also move them to Completed with suffix `(completed YYYY-MM-DD via user mark)`.
+3. **For each item, identify its status symbol** (current state in the Summary table's "Status" column and/or any `[x]`/`[~]`/`[!]`/`[-]` marker in the item's detailed section). Apply per-symbol logic:
+
+   | Symbol | Action |
+   |---|---|
+   | `[ ]` (Pending) | Check env-var name(s) against the scan output. **If ALL env keys are "set"** → flip to `[x]` and move to `## Completed items (history)` with suffix `(completed YYYY-MM-DD via .env scan)`. **If ANY env key is "empty" or missing** → leave as `[ ]`. |
+   | `[x]` (Done — user marked) | Move to `## Completed items (history)` with suffix `(completed YYYY-MM-DD via user mark)`. Don't re-scan. |
+   | `[~]` (In progress / partial — user marked) | **Preserve as-is.** Do NOT auto-flip via env scan even if the keys are set — user is mid-step and may have a placeholder or test value. Stay in pending with `[~]` mark intact. |
+   | `[!]` (Blocked / needs attention — user marked) | **Preserve as-is.** Surface this item prominently in the report so the user remembers it. Don't move; stay in pending with `[!]` mark intact. |
+   | `[-]` (Skipped / not applicable — user marked) | Move to `## Removed items (no longer needed)` with suffix `(removed YYYY-MM-DD via user mark)`. |
+
+4. **Always update the Summary table to match item movements** — if item #3 moved to Completed, remove its row from the Summary table (or strike-through and move to a separate completed-table at the bottom, depending on file format). Keep `[~]` / `[!]` items visible in the summary so the user sees their work-in-progress + blocked items at a glance.
 
 4. **Update frontmatter** `last-scanned-at: <now>`.
 
@@ -63,23 +69,32 @@ After applying, **stop**. Show the user:
 > ✅ ACTION_REQUIRED refreshed at `<product-folder>/ACTION_REQUIRED.md`.
 >
 > **This pass:**
-> - Auto-crossed-out via `.env` scan: `<count>`
+> - Auto-crossed-out via `.env` scan (`[x]`): `<count>`
 > - Manual `[x]` marks moved to history: `<count>`
-> - Still pending: `<count>` (`<blocking-count>` blocking, `<nonblocking-count>` non-blocking)
+> - Manual `[-]` marks moved to Removed: `<count>`
+> - Still pending: `<count>` total (`<blocking>` blocking, `<nonblocking>` non-blocking, `<in-progress>` `[~]`, `<attention>` `[!]`)
 >
 > **Newly completed:**
-> - ✓ `<KEY_NAME>` — `<description>`
+> - ✓ `<KEY_NAME>` — `<one-line>`
 > - ...
 >
-> **Still pending — blocking** (need before next build step):
-> 1. `<KEY_NAME>` — `<description>` — get from `<URL>`
+> **🚨 Needs attention** (`[!]` marked by you):
+> 1. `<KEY_NAME>` — `<one-line>` — `<note from item if any>`
 > 2. ...
 >
-> **Still pending — non-blocking** (defer-able):
-> 1. `<KEY_NAME>` — `<description>` — get from `<URL>`
+> **🔄 In progress** (`[~]` marked by you):
+> 1. `<KEY_NAME>` — `<one-line>`
 > 2. ...
 >
-> Open the file to read the full per-item details. Add new keys to `.env`, then run `/check-actions <slug>` again to auto-cross-out.
+> **⏳ Still pending — blocking** (need before next build step):
+> 1. `<KEY_NAME>` — `<one-line>` — get from `<URL>`
+> 2. ...
+>
+> **⏸ Still pending — non-blocking** (defer-able):
+> 1. `<KEY_NAME>` — `<one-line>` — get from `<URL>`
+> 2. ...
+>
+> Open the file to read the full per-item details. Add new keys to `.env`, then run `/check-actions <slug>` again to auto-cross-out — or flip the status symbol manually in the Summary table (`[ ]` → `[x]` / `[~]` / `[!]` / `[-]` per the copy-from-here block in the file header).
 
 ### Notes
 

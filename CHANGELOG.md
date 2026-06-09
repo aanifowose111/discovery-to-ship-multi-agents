@@ -16,6 +16,26 @@ This project does not yet follow strict semantic versioning. Pre-1.0, breaking c
 
 _No entries yet — next batch lands here under a `### YYYY-MM-DD` subheader (or, if today already has a cut version, as a patch bump per the convention above)._
 
+## [0.12.9] - 2026-06-09
+
+Same-day patch on top of v0.12.8. v0.12.7's `ACTION_REQUIRED.md` format was simpler than what the user actually wanted in practice. Updated based on the user's own canonical example file at `web-apps/ops-audit-agent/ACTION_REQUIRED.md`.
+
+### Changed
+
+- **`guides/product/action-required-methodology.md` §3 Format rewritten** to match the user's preferred shape:
+  - **5 status symbols documented** with copy-paste block at the top of the file: `[ ]` pending / `[x]` done / `[~]` in progress / partial / `[!]` blocked / needs attention / `[-]` skipped / not applicable. The previous template only documented `[ ]` and `[x]`.
+  - **Summary table at the top** for at-a-glance status across all items (number / env vars / vendor / blocks / status). Lets the user flip the status symbol in one place without scrolling through detailed sections.
+  - **Per-item structure changed** from `description / where-to-get / where-it-goes / blocking: yes/no` to richer **Powers / Blocking? (with explanation) / Steps (numbered, with URLs verbatim and `.env` snippet)** — more actionable for the user, captures the "why this is needed and when" not just "yes/no blocking."
+  - **New "Removed items (no longer needed)" section** for items the user has marked `[-]`.
+  - **Per-symbol behavior table** in §3 documents exactly what `/check-actions` does for each symbol (auto-cross-out vs. preserve user mark vs. move to history vs. move to Removed).
+  - **Frontmatter is now optional** (was implicit-required) — if absent, defaults to `env-scan-enabled: true, env-scan-mode: key-name-emptiness`. The user-canonical file has no frontmatter (which is fine).
+- **`/check-actions` symbol handling expanded** to respect all 5 symbols. **Critical:** `[~]` (in progress / partial) and `[!]` (blocked / needs attention) marks set by the user are **preserved** — the .env scan does NOT auto-flip them to `[x]` even if the keys are set. The user is mid-step; their mark is intentional. `/check-actions` also surfaces `[~]` and `[!]` items distinctly in the user-checkpoint summary so they stay visible across passes.
+
+### Notes
+
+- **The user's `web-apps/ops-audit-agent/ACTION_REQUIRED.md` is the canonical example** the methodology guide now references. It pre-dates v0.12.7's auto-create flow (user wrote it manually); future auto-creates will follow the same shape.
+- **No new commands.** Format spec change + symbol handling change only.
+
 ## [0.12.8] - 2026-06-09
 
 Same-day docs patch on top of v0.12.7. Surfaces the new `/check-actions` command + `ACTION_REQUIRED.md` artifact in README and DOCUMENTATION (v0.12.7 added them to CLAUDE.md command listing and HELP.md but missed the README per-command table and the DOCUMENTATION 60-second flowchart + parallel-commands footnote).
@@ -599,7 +619,8 @@ This is a **minor version bump** (0.4.x → 0.5.0), not a patch — it adds a pe
 - Stack-flexibility framing: workspace defaults are dockerized Flask + RN, but the methodologies are stack-agnostic and `/scope-mvp` asks the user to confirm the stack before drafting.
 - Internet access policy: `WebFetch` and `WebSearch` pre-approved in `.claude/settings.json`; permission only requested for non-HTTPS, suspicious, paid, or user-private URLs.
 
-[Unreleased]: https://github.com/aanifowose111/discovery-to-ship-multi-agents/compare/v0.12.8...HEAD
+[Unreleased]: https://github.com/aanifowose111/discovery-to-ship-multi-agents/compare/v0.12.9...HEAD
+[0.12.9]: https://github.com/aanifowose111/discovery-to-ship-multi-agents/compare/v0.12.8...v0.12.9
 [0.12.8]: https://github.com/aanifowose111/discovery-to-ship-multi-agents/compare/v0.12.7...v0.12.8
 [0.12.7]: https://github.com/aanifowose111/discovery-to-ship-multi-agents/compare/v0.12.6...v0.12.7
 [0.12.6]: https://github.com/aanifowose111/discovery-to-ship-multi-agents/compare/v0.12.5...v0.12.6
