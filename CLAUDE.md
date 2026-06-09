@@ -117,7 +117,7 @@ For non-owners, this rule is **on top of** `/acknowledge-contributing`, not a re
 
 The rule does NOT block changes; it makes them deliberate.
 
-**With `defaultMode: "acceptEdits"`** (current setting), the permissions layer auto-accepts file edits + `mkdir`/`touch`/`cp`/`mv` for cwd paths. This rule (convention layer) is the protection for core files — the permissions layer alone won't stop a core-file edit.
+The permissions layer alone won't stop a core-file edit when an entry pattern matches; this convention-layer rule is the protection.
 
 ---
 

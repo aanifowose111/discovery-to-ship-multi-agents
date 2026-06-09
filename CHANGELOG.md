@@ -16,6 +16,21 @@ This project does not yet follow strict semantic versioning. Pre-1.0, breaking c
 
 _No entries yet — next batch lands here under a `### YYYY-MM-DD` subheader (or, if today already has a cut version, as a patch bump per the convention above)._
 
+## [0.12.6] - 2026-06-09
+
+Reverts v0.12.5's `defaultMode: "acceptEdits"`. User preferred the explicit-allowlist-only model — `acceptEdits` was showing as "accept edits" in the terminal banner and the user wants to keep the prompt-by-default safety for any Bash file ops that fall outside the allowlist.
+
+### Reverted
+
+- **`defaultMode: "acceptEdits"` removed from `.claude/settings.json`**. Permissions block is back to just `allow` (no mode override). Claude Code uses its built-in `default` mode (prompts on first use per tool).
+- **CLAUDE.md § Core-file edit confirmation rule** restored to the pre-v0.12.5 wording (the "with acceptEdits…" interaction note removed; the convention-layer protection statement kept).
+
+### Notes
+
+- The user's read: it worked before without `acceptEdits` and something else is likely the cause. We'll continue investigating per-symptom rather than blanket the file-ops gap.
+- v0.12.3's real bug fixes (break-reminder idle detection, SessionStart hook, pytest/caffeinate/session-reset allowlists) and v0.12.4's schema-compliance fix still stand — they're independent of the `acceptEdits` question.
+- If you find specific Bash patterns that still prompt despite being in the allowlist, send me the verbatim prompt + command and we add targeted entries (or investigate path-anchoring forms — e.g., `/scripts/audit_log.py` from project root vs. `scripts/audit_log.py` from cwd).
+
 ## [0.12.5] - 2026-06-09
 
 Same-day patch on top of v0.12.4. **Real root cause of the permission-prompt bug found** — different from the hooks-structure theory chased across v0.12.3 + v0.12.4. The user verified via cross-checking with another Claude Code session (which fetched the canonical Claude Code permissions docs); fix lands here.
@@ -549,7 +564,8 @@ This is a **minor version bump** (0.4.x → 0.5.0), not a patch — it adds a pe
 - Stack-flexibility framing: workspace defaults are dockerized Flask + RN, but the methodologies are stack-agnostic and `/scope-mvp` asks the user to confirm the stack before drafting.
 - Internet access policy: `WebFetch` and `WebSearch` pre-approved in `.claude/settings.json`; permission only requested for non-HTTPS, suspicious, paid, or user-private URLs.
 
-[Unreleased]: https://github.com/aanifowose111/discovery-to-ship-multi-agents/compare/v0.12.5...HEAD
+[Unreleased]: https://github.com/aanifowose111/discovery-to-ship-multi-agents/compare/v0.12.6...HEAD
+[0.12.6]: https://github.com/aanifowose111/discovery-to-ship-multi-agents/compare/v0.12.5...v0.12.6
 [0.12.5]: https://github.com/aanifowose111/discovery-to-ship-multi-agents/compare/v0.12.4...v0.12.5
 [0.12.4]: https://github.com/aanifowose111/discovery-to-ship-multi-agents/compare/v0.12.3...v0.12.4
 [0.12.3]: https://github.com/aanifowose111/discovery-to-ship-multi-agents/compare/v0.12.2...v0.12.3
