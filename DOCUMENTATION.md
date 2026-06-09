@@ -167,6 +167,13 @@ If a phase ever feels rushed or padded, you can override the defaults at any che
                 │     refresh; mtime-cached cross-out;  │
                 │     orchestrator auto-runs on every   │
                 │     BUILD_STATUS subsystem [x] flip   │
+                │  /check-actions <slug>                │
+                │     ACTION_REQUIRED.md — external     │
+                │     third-party items (API keys,      │
+                │     OAuth apps, image URLs). awk-     │
+                │     based .env key-name scan; never   │
+                │     exposes values. Auto-created      │
+                │     after /draft-design-spec sign-off │
                 │                                       │
                 │  Cross-cutting debug                  │
                 │  /deep-debug <slug> [focus-area]      │
@@ -212,6 +219,7 @@ In parallel with all of the above:
 - **`/recollect <slug>`** and **`/status`** are read-only orientation commands — `/recollect` gives a deep dive on one specific product (everything that exists for it), `/status` gives a workspace-wide snapshot across all in-flight work. Use `/recollect` when returning to a product after a break; use `/status` to remember "what am I working on across the portfolio?"
 - **`/menu`** is the always-available command map; **`/documentation`** opens this guide.
 - **`/generate-checklist` + `/read-checklist`** (per-product) — fine-grained `CHECKLIST.md` companion to `BUILD_STATUS.md`. CHECKLIST tracks individual deliverables (3-8 per must-have, with file-path hints); BUILD_STATUS tracks subsystems. The orchestrator auto-refreshes CHECKLIST whenever a subsystem flips to `[x]`. Run `/read-checklist <slug>` any time to scan for newly completed work and propose additions.
+- **`/check-actions <slug>`** — refresh `ACTION_REQUIRED.md`, the per-product tracker for **external items only YOU can obtain** (API keys, OAuth apps, image-asset URLs, domain DNS). Distinct from CHECKLIST.md (Claude's deliverables): ACTION_REQUIRED.md is the only file for user-only work. Auto-created by `/draft-design-spec` Step 5 alongside CHECKLIST.md; auto-appended-to during build when specialists surface new dependencies; auto-refreshed by the orchestrator after every subsystem flip via a key-name + emptiness `.env` scan (no values exposed to context). Run `/check-actions <slug>` manually after you've just added keys to `.env` and want immediate cross-out.
 - **`/push-project <slug>`** — push individual products to their own independent GitHub repositories, separate from the parent workspace repo. The parent's `.gitignore` shields each nested folder. Per `guides/product/project-git-methodology.md`. Mandatory safety scans (`.env`, secret patterns) before every commit.
 - **`/deep-debug <slug> [focus]`** — for cross-cutting bugs that span domain boundaries (backend+frontend race conditions, intermittent prod issues, flaky tests). Invokes the `senior-debugging-engineer` (9th specialist) for hypothesis-driven root-cause analysis. Returns a structured report; doesn't write the fix.
 - **`/caffeinate` + `/stop-caffeinate`** (macOS) — keep display + system awake during long builds. The break-reminder hook (`.claude/hooks/break-reminder.sh`, wired to `UserPromptSubmit`) automatically reminds you to take a break after 2 hours of session activity.

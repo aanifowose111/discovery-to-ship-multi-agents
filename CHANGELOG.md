@@ -16,6 +16,20 @@ This project does not yet follow strict semantic versioning. Pre-1.0, breaking c
 
 _No entries yet — next batch lands here under a `### YYYY-MM-DD` subheader (or, if today already has a cut version, as a patch bump per the convention above)._
 
+## [0.12.8] - 2026-06-09
+
+Same-day docs patch on top of v0.12.7. Surfaces the new `/check-actions` command + `ACTION_REQUIRED.md` artifact in README and DOCUMENTATION (v0.12.7 added them to CLAUDE.md command listing and HELP.md but missed the README per-command table and the DOCUMENTATION 60-second flowchart + parallel-commands footnote).
+
+### Fixed
+
+- **`README.md` per-command table** now includes `/check-actions <slug>` with the full description (between `/read-checklist` and `/push-project`). The inventory line at the top also gains `/check-actions` between `/read-checklist` and `/push-project`.
+- **`DOCUMENTATION.md § 2 (60-second workflow flowchart)`** — BUILD LOOP box's "Granular tracking" group now lists `/check-actions <slug>` alongside `/generate-checklist` and `/read-checklist`, with a one-line note that it's the awk-based `.env` key-name scan (never exposes values) and that it auto-creates after `/draft-design-spec` sign-off.
+- **`DOCUMENTATION.md § 2 parallel-commands footnote`** — added a bullet for `/check-actions <slug>` covering: distinct from CHECKLIST.md (external-only items), auto-creation timing, auto-append during build, auto-refresh on subsystem flip, manual refresh after adding keys to `.env`.
+
+### Notes
+
+- No command behavior changed since v0.12.7. This is the same kind of docs-resync patch as v0.12.1 was for v0.12.0 — when a new command lands, README + DOCUMENTATION need parallel updates beyond the inventory line and CLAUDE.md listing.
+
 ## [0.12.7] - 2026-06-09
 
 New per-product `ACTION_REQUIRED.md` artifact — tracks external/third-party items only the user can obtain (API keys, OAuth apps, image-asset URLs, domain DNS, etc.). Auto-created alongside `CHECKLIST.md` after `/draft-design-spec` sign-off; auto-appended-to during build when specialists surface new dependencies; auto-refreshed via key-name + emptiness `.env` scan (no values exposed to context). Pairs with a new `/check-actions <slug>` slash command for explicit refresh.
@@ -585,7 +599,8 @@ This is a **minor version bump** (0.4.x → 0.5.0), not a patch — it adds a pe
 - Stack-flexibility framing: workspace defaults are dockerized Flask + RN, but the methodologies are stack-agnostic and `/scope-mvp` asks the user to confirm the stack before drafting.
 - Internet access policy: `WebFetch` and `WebSearch` pre-approved in `.claude/settings.json`; permission only requested for non-HTTPS, suspicious, paid, or user-private URLs.
 
-[Unreleased]: https://github.com/aanifowose111/discovery-to-ship-multi-agents/compare/v0.12.7...HEAD
+[Unreleased]: https://github.com/aanifowose111/discovery-to-ship-multi-agents/compare/v0.12.8...HEAD
+[0.12.8]: https://github.com/aanifowose111/discovery-to-ship-multi-agents/compare/v0.12.7...v0.12.8
 [0.12.7]: https://github.com/aanifowose111/discovery-to-ship-multi-agents/compare/v0.12.6...v0.12.7
 [0.12.6]: https://github.com/aanifowose111/discovery-to-ship-multi-agents/compare/v0.12.5...v0.12.6
 [0.12.5]: https://github.com/aanifowose111/discovery-to-ship-multi-agents/compare/v0.12.4...v0.12.5
