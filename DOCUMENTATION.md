@@ -141,6 +141,7 @@ If a phase ever feels rushed or padded, you can override the defaults at any che
                 │  BUILD LOOP                           │
                 │  (you'll re-enter often)              │
                 │                                       │
+                │  Orientation + resume                 │
                 │  /recollect <slug>     ← read-only    │
                 │   ↑                      "where am I" │
                 │   │ before                            │
@@ -148,17 +149,45 @@ If a phase ever feels rushed or padded, you can override the defaults at any che
                 │   │                                   │
                 │  /continue-build <slug> [--hint]      │
                 │     [--from <file>]                   │
-                │                ↑                      │
                 │                resume after break,    │
-                │                disambiguates across   │
-                │                multiple in-flight     │
-                │                products. mtime-aware. │
+                │                mtime-aware            │
                 │                                       │
+                │  Iterate on what was scoped           │
                 │  /rework <slug> <changes>             │
                 │  /consolidate <slug>                  │
                 │  /preview-product <slug>              │
                 │  /infra-cost <slug>                   │
                 │  /reprice <slug>                      │
+                │                                       │
+                │  Granular tracking                    │
+                │  /generate-checklist <slug>           │
+                │     decomposes must-haves into        │
+                │     3-8 deliverables each             │
+                │  /read-checklist <slug>               │
+                │     refresh; mtime-cached cross-out;  │
+                │     orchestrator auto-runs on every   │
+                │     BUILD_STATUS subsystem [x] flip   │
+                │                                       │
+                │  Cross-cutting debug                  │
+                │  /deep-debug <slug> [focus-area]      │
+                │     senior-debugging-engineer for     │
+                │     bugs that span backend+frontend,  │
+                │     intermittent prod, flaky tests    │
+                │                                       │
+                │  Ship-to-its-own-GitHub-repo          │
+                │  /push-project <slug> [--init]        │
+                │     [--status] [--remote <url>]       │
+                │     each product is its own           │
+                │     independent git repo + remote;    │
+                │     parent .gitignore shields it.     │
+                │     mandatory .env + secret scans     │
+                │     before every commit               │
+                │                                       │
+                │  Quality of life (macOS)              │
+                │  /caffeinate   prevent screen sleep   │
+                │  /stop-caffeinate                     │
+                │  (plus break-reminder hook fires      │
+                │   automatically after 2h sessions)    │
                 │                                       │
                 └─────┬─────────────────────────────────┘
                       ▼
@@ -182,6 +211,10 @@ In parallel with all of the above:
 - **`/trend-check`** runs on a weekly cadence (or triggered by an external event) and recommends which downstream commands to re-run if something material has shifted.
 - **`/recollect <slug>`** and **`/status`** are read-only orientation commands — `/recollect` gives a deep dive on one specific product (everything that exists for it), `/status` gives a workspace-wide snapshot across all in-flight work. Use `/recollect` when returning to a product after a break; use `/status` to remember "what am I working on across the portfolio?"
 - **`/menu`** is the always-available command map; **`/documentation`** opens this guide.
+- **`/generate-checklist` + `/read-checklist`** (per-product) — fine-grained `CHECKLIST.md` companion to `BUILD_STATUS.md`. CHECKLIST tracks individual deliverables (3-8 per must-have, with file-path hints); BUILD_STATUS tracks subsystems. The orchestrator auto-refreshes CHECKLIST whenever a subsystem flips to `[x]`. Run `/read-checklist <slug>` any time to scan for newly completed work and propose additions.
+- **`/push-project <slug>`** — push individual products to their own independent GitHub repositories, separate from the parent workspace repo. The parent's `.gitignore` shields each nested folder. Per `guides/product/project-git-methodology.md`. Mandatory safety scans (`.env`, secret patterns) before every commit.
+- **`/deep-debug <slug> [focus]`** — for cross-cutting bugs that span domain boundaries (backend+frontend race conditions, intermittent prod issues, flaky tests). Invokes the `senior-debugging-engineer` (9th specialist) for hypothesis-driven root-cause analysis. Returns a structured report; doesn't write the fix.
+- **`/caffeinate` + `/stop-caffeinate`** (macOS) — keep display + system awake during long builds. The break-reminder hook (`.claude/hooks/break-reminder.sh`, wired to `UserPromptSubmit`) automatically reminds you to take a break after 2 hours of session activity.
 
 ---
 

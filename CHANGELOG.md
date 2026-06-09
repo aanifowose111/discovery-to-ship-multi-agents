@@ -16,6 +16,19 @@ This project does not yet follow strict semantic versioning. Pre-1.0, breaking c
 
 _No entries yet — next batch lands here under a `### YYYY-MM-DD` subheader (or, if today already has a cut version, as a patch bump per the convention above)._
 
+## [0.12.1] - 2026-06-09
+
+Same-day patch on top of v0.12.0. Docs-only — surfaces the 7 new commands in the README's per-command table and DOCUMENTATION.md's 60-second workflow.
+
+### Fixed
+
+- **`README.md` per-command table** previously only had the v0.12.0 inventory line updated (which listed slash command names without descriptions). Added per-command rows with full descriptions for `/generate-checklist`, `/read-checklist`, `/push-project`, `/deep-debug`, `/caffeinate`, `/stop-caffeinate` (paired with break-reminder hook note).
+- **`DOCUMENTATION.md § 2 (The 60-second workflow overview)`** — the BUILD LOOP box now surfaces the 6 new commands grouped by purpose: *Orientation + resume* (recollect, continue-build), *Iterate on what was scoped* (rework, consolidate, preview-product, infra-cost, reprice), *Granular tracking* (generate-checklist, read-checklist), *Cross-cutting debug* (deep-debug), *Ship-to-its-own-GitHub-repo* (push-project), *Quality of life — macOS* (caffeinate / stop-caffeinate, with note about break-reminder hook). The parallel-commands footnote also gained 4 new bullets covering checklist commands, push-project, deep-debug, and the macOS QoL pair.
+
+### Notes
+
+- No command behavior changed since v0.12.0. The new commands were already registered and functional; this patch makes them easy to discover in README + DOCUMENTATION (the canonical reference surfaces for users browsing the repo without opening every `.claude/commands/*.md` file).
+
 ## [0.12.0] - 2026-06-09
 
 Substantial expansion across the workflow: one-at-a-time questioning in the design picks, a Fijara resurface convention with seven trigger signals, two new macOS quality-of-life commands (caffeinate + break reminder), per-product GitHub push, granular CHECKLIST.md alongside BUILD_STATUS.md, and a deep-debug specialist for cross-cutting bugs.
@@ -454,7 +467,8 @@ This is a **minor version bump** (0.4.x → 0.5.0), not a patch — it adds a pe
 - Stack-flexibility framing: workspace defaults are dockerized Flask + RN, but the methodologies are stack-agnostic and `/scope-mvp` asks the user to confirm the stack before drafting.
 - Internet access policy: `WebFetch` and `WebSearch` pre-approved in `.claude/settings.json`; permission only requested for non-HTTPS, suspicious, paid, or user-private URLs.
 
-[Unreleased]: https://github.com/aanifowose111/discovery-to-ship-multi-agents/compare/v0.12.0...HEAD
+[Unreleased]: https://github.com/aanifowose111/discovery-to-ship-multi-agents/compare/v0.12.1...HEAD
+[0.12.1]: https://github.com/aanifowose111/discovery-to-ship-multi-agents/compare/v0.12.0...v0.12.1
 [0.12.0]: https://github.com/aanifowose111/discovery-to-ship-multi-agents/compare/v0.11.1...v0.12.0
 [0.11.1]: https://github.com/aanifowose111/discovery-to-ship-multi-agents/compare/v0.11.0...v0.11.1
 [0.11.0]: https://github.com/aanifowose111/discovery-to-ship-multi-agents/compare/v0.10.2...v0.11.0
