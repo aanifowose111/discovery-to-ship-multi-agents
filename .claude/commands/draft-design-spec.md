@@ -130,12 +130,32 @@ After the reviewer returns, **stop**. Do not advance the spec's `status` past `i
 
 Only after the user signs off, update the spec's `status` field to `acted-on` and add the sign-off date to §11.
 
-### Step 5 — Auto-generate or refresh CHECKLIST.md (after sign-off)
+### Step 5 — Auto-generate or refresh CHECKLIST.md + ACTION_REQUIRED.md (after sign-off)
 
-Immediately after the sign-off in Step 4, check `<product-folder>/CHECKLIST.md`:
+Immediately after the sign-off in Step 4, do TWO things in order:
 
-- **If CHECKLIST.md does NOT exist:** auto-run the equivalent of `/generate-checklist <slug>` now. The spec is the richest design input the checklist depends on — generating after the spec lands gives a properly-balanced backend + frontend decomposition (with tokens, icons, image-asset prompts, per-surface specs, component patterns, responsive, a11y all surfaced from `DESIGN_SPEC.md`). Surface to the user: "Auto-generating `CHECKLIST.md` now that the spec is signed off. (You can re-run `/generate-checklist <slug>` to regenerate, or `/read-checklist <slug>` to refresh.)"
-- **If CHECKLIST.md ALREADY exists** (rare — user manually ran `/generate-checklist` before the spec landed): auto-run the equivalent of `/read-checklist <slug>` now. The design-artifact-source field will pick up the newly-acted-on spec; scope discovery will surface the design-driven additions (tokens / icons / image prompts / per-surface / components / responsive / a11y) up to the 5-per-pass cap. The user confirms each via `AskUserQuestion`. Surface to the user: "Refreshing `CHECKLIST.md` against the newly signed-off spec — proposing design-driven additions for your review."
+#### 5a. CHECKLIST.md
+
+Check `<product-folder>/CHECKLIST.md`:
+
+- **If CHECKLIST.md does NOT exist:** auto-run the equivalent of `/generate-checklist <slug>` now. The spec is the richest design input the checklist depends on — generating after the spec lands gives a properly-balanced backend + frontend decomposition (with tokens, icons, image-asset prompts, per-surface specs, component patterns, responsive, a11y all surfaced from `DESIGN_SPEC.md`). Surface to the user: "Auto-generating `CHECKLIST.md` now that the spec is signed off."
+- **If CHECKLIST.md ALREADY exists** (rare): auto-run the equivalent of `/read-checklist <slug>` now. Scope discovery surfaces design-driven additions (tokens / icons / image prompts / per-surface / components / responsive / a11y) up to the 5-per-pass cap.
+
+#### 5b. ACTION_REQUIRED.md
+
+Then check `<product-folder>/ACTION_REQUIRED.md`. Per `guides/product/action-required-methodology.md`:
+
+- **If ACTION_REQUIRED.md does NOT exist:** auto-create it now, populated from:
+  - **`DESIGN_SPEC.md §4 Image assets`** — one pending item per `IMG_*_URL` env-var slot, with the image prompt verbatim, "where to get" = "generate on ChatGPT / Midjourney / DALL-E / Stable Diffusion, upload to DO Spaces or S3", blocking = no (templates use placeholders until URL is set), added by `/draft-design-spec`
+  - **Brief-implied third-party services** — if MVP.md or V1.md mentions payment/Stripe, add `STRIPE_SECRET_KEY` + `STRIPE_PUBLISHABLE_KEY` pending items (blocking = yes); if it mentions OAuth/SSO, add `GOOGLE_OAUTH_CLIENT_ID` + `GOOGLE_OAUTH_CLIENT_SECRET` (or other provider); if email, add `SENDGRID_API_KEY` or equivalent
+  - Frontmatter: `env-scan-enabled: true`, `env-scan-mode: key-name-emptiness` (defaults; user can change later)
+- **If ACTION_REQUIRED.md ALREADY exists:** APPEND any new image-asset items + brief-implied services that aren't already tracked. **Never overwrite existing items or destroy history.** Surface counts of newly-added pending items.
+
+Tell the user what was added:
+
+> Added `<count>` items to `ACTION_REQUIRED.md`: `<KEY_1>`, `<KEY_2>`, `<IMG_HERO_URL>`, ...
+>
+> These are external/third-party items only you can complete (API keys, OAuth apps, image generation). Check the file when ready — add the values to `<product-folder>/.env`, then `/check-actions <slug>` auto-crosses them out.
 
 Then show the user the standard checkpoint message from the auto-generate or auto-refresh flow.
 

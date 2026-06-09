@@ -16,6 +16,27 @@ This project does not yet follow strict semantic versioning. Pre-1.0, breaking c
 
 _No entries yet — next batch lands here under a `### YYYY-MM-DD` subheader (or, if today already has a cut version, as a patch bump per the convention above)._
 
+## [0.12.7] - 2026-06-09
+
+New per-product `ACTION_REQUIRED.md` artifact — tracks external/third-party items only the user can obtain (API keys, OAuth apps, image-asset URLs, domain DNS, etc.). Auto-created alongside `CHECKLIST.md` after `/draft-design-spec` sign-off; auto-appended-to during build when specialists surface new dependencies; auto-refreshed via key-name + emptiness `.env` scan (no values exposed to context). Pairs with a new `/check-actions <slug>` slash command for explicit refresh.
+
+### Added
+
+- **`guides/product/action-required-methodology.md`** — full methodology for `ACTION_REQUIRED.md`: format, three `.env` scan modes (default `key-name-emptiness` / `full` / `manual`), lifecycle (creation triggers, append-only items, refresh logic), append-only rule (never overwrite existing items or destroy history), pipeline integration. §6 documents the general key-name scan pattern Claude can use anywhere it needs to verify an env key is set without exposing the value.
+- **`/check-actions <slug>` slash command** — manual refresh. Runs the awk-based scan `awk -F= '/^[A-Z_]+=/{print $1, (length($2)>0?"set":"empty")}' .env`, auto-cross-outs items whose env keys are now set, honors manual `[x]` marks, moves completed items to the history section, updates `last-scanned-at` frontmatter. Reports back: newly completed count, still pending count split into blocking / non-blocking.
+- **`/draft-design-spec` Step 5 expanded to auto-create `ACTION_REQUIRED.md`** — alongside the existing auto-`/generate-checklist` flow, now also creates ACTION_REQUIRED.md populated from `DESIGN_SPEC.md §4 Image assets` (one pending item per `IMG_*_URL` env-var slot, with the image prompt verbatim) PLUS brief-implied third-party services (Stripe / SendGrid / OAuth / etc. based on what the brief calls out). Tells the user out loud what was added.
+- **`senior-software-engineer.md` orchestrator append behavior** — when a specialist identifies a third-party dependency during build (e.g., `senior-backend-engineer` needs a Stripe key for payment processing), the orchestrator appends a new pending item to `ACTION_REQUIRED.md §Pending items` per `action-required-methodology.md §5.2`. Never overwrites existing items; always preserves history. Surfaces an out-loud note to the user ("Added `<KEY>` to `ACTION_REQUIRED.md` — you'll need to get this from `<URL>` to unblock `<subsystem>`").
+- **Orchestrator auto-refresh** — after every `BUILD_STATUS.md` subsystem flip to `[x]`, alongside the existing CHECKLIST.md auto-refresh, also runs the equivalent of `/check-actions <slug>` inline (key-name-emptiness scan; no values exposed).
+- **CLAUDE.md note on the general key-name scan pattern** — appended one sentence to the "Sensitive config" Working-style bullet pointing at `action-required-methodology.md §6`. Claude can use the awk-based key-name + emptiness check anywhere it needs to know whether a specific env key is set, without exposing the value to context.
+
+### Notes
+
+- **Three files now live at the product root:** `BUILD_STATUS.md` (coarse subsystems), `CHECKLIST.md` (fine deliverables Claude produces), `ACTION_REQUIRED.md` (external items the user must obtain). The distinction matters — `ACTION_REQUIRED.md` is the only one for user-only work; the other two are for Claude's work surfaces.
+- **No judgment calls go in ACTION_REQUIRED.md.** Only factual gates (API keys, OAuth app provisioning, image generation + upload, domain DNS). Design decisions belong to `/rework` or scope conversations.
+- **Even non-blocking items go in** — if a `SENDGRID_API_KEY` is needed eventually but the email subsystem has a console-print fallback, list it anyway so the user has a single place to track all pending third-party work.
+- **The `.env` scan is opt-in via frontmatter** (`env-scan-enabled: true` is the default). The default mode (`key-name-emptiness`) is the workspace recommendation — automation without secret exposure. Forkers who want full value reads can set `env-scan-mode: full`; those who want manual-only can set `manual`.
+- **For ops-audit-agent:** the `ACTION_REQUIRED.md` will land at `web-apps/ops-audit-agent/ACTION_REQUIRED.md` the next time `/draft-design-spec ops-audit-agent` Step 5 fires (when DESIGN_SPEC.md is signed off). Until then, run `/check-actions ops-audit-agent` will report "no file yet — auto-creates after design spec sign-off".
+
 ## [0.12.6] - 2026-06-09
 
 Reverts v0.12.5's `defaultMode: "acceptEdits"`. User preferred the explicit-allowlist-only model — `acceptEdits` was showing as "accept edits" in the terminal banner and the user wants to keep the prompt-by-default safety for any Bash file ops that fall outside the allowlist.
@@ -564,7 +585,8 @@ This is a **minor version bump** (0.4.x → 0.5.0), not a patch — it adds a pe
 - Stack-flexibility framing: workspace defaults are dockerized Flask + RN, but the methodologies are stack-agnostic and `/scope-mvp` asks the user to confirm the stack before drafting.
 - Internet access policy: `WebFetch` and `WebSearch` pre-approved in `.claude/settings.json`; permission only requested for non-HTTPS, suspicious, paid, or user-private URLs.
 
-[Unreleased]: https://github.com/aanifowose111/discovery-to-ship-multi-agents/compare/v0.12.6...HEAD
+[Unreleased]: https://github.com/aanifowose111/discovery-to-ship-multi-agents/compare/v0.12.7...HEAD
+[0.12.7]: https://github.com/aanifowose111/discovery-to-ship-multi-agents/compare/v0.12.6...v0.12.7
 [0.12.6]: https://github.com/aanifowose111/discovery-to-ship-multi-agents/compare/v0.12.5...v0.12.6
 [0.12.5]: https://github.com/aanifowose111/discovery-to-ship-multi-agents/compare/v0.12.4...v0.12.5
 [0.12.4]: https://github.com/aanifowose111/discovery-to-ship-multi-agents/compare/v0.12.3...v0.12.4

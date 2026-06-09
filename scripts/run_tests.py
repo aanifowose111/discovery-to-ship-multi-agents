@@ -136,6 +136,8 @@ def test_repo_structure(checks: list[Check]) -> None:
         ".claude/commands/read-checklist.md",
         ".claude/hooks/break-reminder.sh",
         ".claude/hooks/session-start-reset.sh",
+        ".claude/commands/check-actions.md",
+        "guides/product/action-required-methodology.md",
         "guides/product/checklist-methodology.md",
         ".claude/commands/push-project.md",
         "guides/product/project-git-methodology.md",
