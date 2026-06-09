@@ -57,8 +57,12 @@
     ],
     "UserPromptSubmit": [
       {
-        "type": "command",
-        "command": "${CLAUDE_PROJECT_DIR}/.claude/hooks/break-reminder.sh"
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PROJECT_DIR}/.claude/hooks/break-reminder.sh"
+          }
+        ]
       }
     ]
   },

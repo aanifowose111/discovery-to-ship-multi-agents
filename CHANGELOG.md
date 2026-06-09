@@ -16,6 +16,20 @@ This project does not yet follow strict semantic versioning. Pre-1.0, breaking c
 
 _No entries yet — next batch lands here under a `### YYYY-MM-DD` subheader (or, if today already has a cut version, as a patch bump per the convention above)._
 
+## [0.12.4] - 2026-06-09
+
+Same-day patch on top of v0.12.3. v0.12.3 introduced a regression by removing the `hooks` wrapper on the `UserPromptSubmit` event — the official Claude Code settings schema requires the wrapper. User reported lint squiggles in their editor under `"type"` and `"command"`. Re-fetching the official schema at `https://json.schemastore.org/claude-code-settings.json` confirmed: all hook events (UserPromptSubmit included) must conform to `$defs/hookMatcher`, which requires a `hooks` array.
+
+### Fixed
+
+- **`UserPromptSubmit` hook structure restored to the schema-compliant nested form** (with the `hooks` wrapper). Now validates against the official `claude-code-settings.json` JSON Schema. The `matcher` field stays omitted (it's optional and not needed for UserPromptSubmit, which fires on every prompt regardless).
+
+### Notes
+
+- **My v0.12.3 theory about "broken hooks structure causing other allow rules to prompt" was wrong.** The original v0.12.0 nested structure WAS schema-compliant; the expert agent's advice to flatten was incorrect on the `hooks` wrapper (their advice on omitting the matcher was correct). The actual cause of `Write(web-apps/**)` prompts re-appearing in the user's previous session was almost certainly just **needing a Claude Code restart to pick up v0.12.0's settings.json**.
+- **Real bug fixes from v0.12.3 still stand:** break-reminder idle detection, SessionStart hook, and the new allowlist entries for pytest / caffeinate / session-reset paths. Those weren't impacted by the schema regression.
+- **The settings.json was validated against the live schema** (`jsonschema.validate(data, schema)` succeeded) before commit.
+
 ## [0.12.3] - 2026-06-09
 
 Same-day patch on top of v0.12.2. Three real bugs from v0.12.0's break-reminder + missing permission allowlists. Caught by the user reporting "you've been working for 7h 14m" after closing Claude Code for 6 hours, plus product-folder `Write/Edit` prompts returning, plus every pytest / caffeinate / session-reset shell command asking for permission.
@@ -516,7 +530,8 @@ This is a **minor version bump** (0.4.x → 0.5.0), not a patch — it adds a pe
 - Stack-flexibility framing: workspace defaults are dockerized Flask + RN, but the methodologies are stack-agnostic and `/scope-mvp` asks the user to confirm the stack before drafting.
 - Internet access policy: `WebFetch` and `WebSearch` pre-approved in `.claude/settings.json`; permission only requested for non-HTTPS, suspicious, paid, or user-private URLs.
 
-[Unreleased]: https://github.com/aanifowose111/discovery-to-ship-multi-agents/compare/v0.12.3...HEAD
+[Unreleased]: https://github.com/aanifowose111/discovery-to-ship-multi-agents/compare/v0.12.4...HEAD
+[0.12.4]: https://github.com/aanifowose111/discovery-to-ship-multi-agents/compare/v0.12.3...v0.12.4
 [0.12.3]: https://github.com/aanifowose111/discovery-to-ship-multi-agents/compare/v0.12.2...v0.12.3
 [0.12.2]: https://github.com/aanifowose111/discovery-to-ship-multi-agents/compare/v0.12.1...v0.12.2
 [0.12.1]: https://github.com/aanifowose111/discovery-to-ship-multi-agents/compare/v0.12.0...v0.12.1
