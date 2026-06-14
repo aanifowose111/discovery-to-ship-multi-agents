@@ -16,6 +16,46 @@ This project does not yet follow strict semantic versioning. Pre-1.0, breaking c
 
 _No entries yet — next batch lands here under a `### YYYY-MM-DD` subheader (or, if today already has a cut version, as a patch bump per the convention above)._
 
+## [0.14.0] - 2026-06-13
+
+**New per-product artifact + slash command suite for the end-user verification surface.** Adds `VERIFIED.md` (manual end-user check log; companion to `BUILD_STATUS.md` / `CHECKLIST.md` / `ACTION_REQUIRED.md`), `SMOKE.md` (pre-deploy manual playbook), the standardized `_dev/` route convention for Flask + RN, the `/diff-spec` spec-vs-built drift report (neutral; improvements over spec NEVER penalized), `/build-recap` (delta-since-last-recap synthesis; renamed from `/recap` to avoid Claude Code's built-in collision), and `/dev-routes` (registry + verification cross-reference). Five new slash commands total. Closes a long-standing methodology gap: the build phase had no canonical home for tracking "I, the human, walked through this and saw it work" — distinct from pytest, distinct from the orchestrator's `[x]` flip on a subsystem.
+
+### Added
+
+- **`guides/product/verified-features-methodology.md`** — full methodology for `VERIFIED.md`: 5 status symbols (`[ ]` / `[x]` / `[~]` / `[?]` / `[!]`), per-line confirmation protocol (Claude asks per candidate; user picks fully verified / partial / observed-with-notes / not-working), subsystem-grouped format, orchestrator soft-signal integration, pipeline integration points, anti-patterns. The orchestrator surfaces `[!]` entries at next `/start-build` / `/continue-build` but does NOT hard-gate (intentional softer-than-reviewer treatment).
+- **`guides/product/smoke-playbook-methodology.md`** — `SMOKE.md` methodology for pre-deploy manual playbooks. Created via `/smoke <slug>` on first invocation; seeded from `VERIFIED.md` + `/_dev/*` route registry + brief's success criterion. Per-check status (`[x]` / `[!]` / `[-]`) resets each run. Failed `[!]` entries gate `/ship-app` (override via `/ship-app <slug> --skip-smoke "<reason>"` — audited).
+- **`guides/product/dev-routes-convention.md`** — standardized `_dev/` convention for Flask (`app/blueprints/_dev.py` gated by `DEV_ROUTES_ENABLED`, 404-in-production contract, baseline routes `/whoami`/`/logout`/`/healthz`), RN (`src/screens/_dev/` gated by `EXPO_PUBLIC_DEV_ROUTES`, hidden-gesture discovery), desktop (gated dev menu). Reference implementation: `web-apps/ops-audit-agent/` already follows the pattern.
+- **`/do-verify <slug> [--hint "<text>"]`** — per-line user-confirmation appender for `VERIFIED.md`. Creates the file on first invocation. Candidate lines drawn from `--hint`, `BUILD_STATUS.md` `[x]` subsystems, `/_dev/*` route registry, recent commits, and conversation context. **Never auto-appends** — every entry comes from a deliberate per-line user pick via `AskUserQuestion` with 4 options.
+- **`/smoke <slug> [--reseed]`** — pre-deploy smoke playbook walker. Auto-creates `SMOKE.md` on first invoke; subsequent invokes walk each check interactively with pass/fail/skip per entry. `--reseed` re-pulls seed entries from `VERIFIED.md` + `_dev/*` registry as the product grows.
+- **`/diff-spec <slug>`** — diff built UI against `DESIGN_SPEC.md` (claude-led path). Findings categorized into 4 buckets: 🟢 in-spec / 🟡 improvement-over-spec / 🟡 drift / 🔴 missing. **Improvements over spec are NEVER framed as violations** (DESIGN_SPEC.md is a starting contract, not a prison — the build can grow past it). Per-finding user decisions: update spec / update build / keep both / discuss. Falls back to research comparison for hybrid-light-refresh path.
+- **`/dev-routes <slug>`** — list registered `_dev/*` routes (Flask blueprint), screens (RN nav stack), or menu items (desktop). Cross-references each against `VERIFIED.md` (🟢 verified / 🟡 partial / 🔴 not working / ⚪ no coverage). Surfaces env-var gating + the 404-in-production contract. Read-only.
+- **`/build-recap <slug> [--since <date>]`** — delta-since-last-recap synthesis. Lighter than `/recollect` (full state reconstruction); `build-recap` is "what changed since last time." Reads `BUILD_STATUS.md` History, recent commits, `VERIFIED.md` updates, `ACTION_REQUIRED.md` updates, `CHECKLIST.md` flips, `SMOKE.md` run history. Updates `last-recap-at:` in `BUILD_STATUS.md` frontmatter as cutoff for next call. Renamed from `/recap` to avoid Claude Code's built-in.
+- **`/draft-design-spec` Step 5c** — auto-creates an empty `VERIFIED.md` stub alongside `CHECKLIST.md` and `ACTION_REQUIRED.md` (existing Step 5a + 5b). Frontmatter + headers only; no entries (every entry requires explicit `/do-verify` confirmation).
+- **`senior-software-engineer.md` new "Surfacing VERIFIED.md `[!]` entries" section** — orchestrator reads `VERIFIED.md` at every `/start-build` / `/continue-build`; surfaces `[!]` entries as warnings (not hard gates) + reports verification gaps for `[x]` subsystems with zero `VERIFIED.md` entries.
+- **`/start-build` + `/continue-build` orchestrator prompts updated** to read `VERIFIED.md` and report `[!]` entries + verification gaps in the orientation/resumption summary.
+- **Flask + RN scaffold guides §9** — short pointer to the new `dev-routes-convention.md` guide (full template + tests stay in the convention guide; scaffold guides just surface the existence).
+- **5 new commands in CLAUDE.md inventory** (Parallel / cross-cutting line): `/do-verify`, `/smoke`, `/diff-spec`, `/dev-routes`, `/build-recap`. Plus `/check-actions` added to the same line (was previously missing from the inventory line despite being a v0.12.7 command).
+- **3 new methodology guides in CLAUDE.md guides table** (Product row): `verified-features-methodology.md`, `smoke-playbook-methodology.md`, `dev-routes-convention.md`.
+- **HELP.md full descriptions** for `/check-actions` (backfilled — was missing), `/do-verify`, `/smoke`, `/diff-spec`, `/dev-routes`, `/build-recap`.
+- **README.md inventory line** updated with all 5 new commands.
+- **DOCUMENTATION.md flowchart** gained a new "End-user verification" block + "Delta synthesis" block under the BUILD LOOP section.
+- **DOCUMENTATION.md parallel-commands bullet list** gained one bullet per new command.
+
+### Changed
+
+- **CLAUDE.md Skills index section trimmed** from ~900 chars to ~400 chars (the doc-export / web-preview Triggers descriptions duplicate the skill files' own descriptions). Information preserved, just no longer surfaced twice. Net CLAUDE.md size: 39,934 chars (was 39,996; under the 40k threshold).
+
+### Notes
+
+- **Affects every future product build** in this workspace. The new artifacts (`VERIFIED.md`, `SMOKE.md`, `_dev/*` registry) are stack-agnostic — apply to web, mobile, desktop equally.
+- **For `ops-audit-agent`:** a ready-to-paste backfill command was saved to the user's Desktop at `~/Desktop/do-verify-ops-audit-agent.txt` — invoke `/do-verify ops-audit-agent --hint "..."` in the other session to walk through the verification log for MH #1-10 + dev routes + design system foundation.
+- **Three slash commands renamed semantically:** `/recap` → `/build-recap` (avoid Claude Code's built-in `/recap` collision noted by the user); `/verify` was discussed but kept as a Claude Code built-in (the user explicitly requested `/do-verify` to dodge it).
+- **`/diff-spec` non-penalty rule is load-bearing.** Improvements over the spec are surfaced neutrally, never as violations. The user decides per-finding: keep the improvement + update spec / keep the improvement + leave spec as-is / revert to spec-only / discuss. Reason: the spec is the starting contract, not a constraint that punishes growth.
+- **`/_dev/` env var defaults:** `DEV_ROUTES_ENABLED=true` for Flask Dev + Staging + Test configs; off in Prod unless explicitly set. `EXPO_PUBLIC_DEV_ROUTES=1` for RN dev builds; absent from production builds.
+- **The 4 per-product Markdown artifacts** at this point: `BUILD_STATUS.md` (subsystem progress; orchestrator-owned) + `CHECKLIST.md` (fine deliverables Claude produces) + `ACTION_REQUIRED.md` (external items the user must obtain) + `VERIFIED.md` (manual end-user check log; per-line user-confirmed). Optional 5th: `SMOKE.md` (standing pre-deploy playbook). All gitignored.
+- **No breaking changes.** Existing products without `VERIFIED.md` are unaffected; the orchestrator's read-if-exists pattern degrades silently when the file is absent.
+- **Tests:** 161/161 pass. **Lint:** clean.
+
 ## [0.13.0] - 2026-06-09
 
 **New mandatory discipline:** security + QA reviewer invocation at strategic in-build checkpoints, not only at `/ship-app`. Catches the workspace methodology gap discovered when 5 ops-audit-agent subsystems (MH #6-10) shipped to `[x]` without security or QA review — the design intent in DOCUMENTATION.md §6.4 / §8 wasn't being enforced by the orchestrator.
@@ -648,7 +688,8 @@ This is a **minor version bump** (0.4.x → 0.5.0), not a patch — it adds a pe
 - Stack-flexibility framing: workspace defaults are dockerized Flask + RN, but the methodologies are stack-agnostic and `/scope-mvp` asks the user to confirm the stack before drafting.
 - Internet access policy: `WebFetch` and `WebSearch` pre-approved in `.claude/settings.json`; permission only requested for non-HTTPS, suspicious, paid, or user-private URLs.
 
-[Unreleased]: https://github.com/aanifowose111/discovery-to-ship-multi-agents/compare/v0.13.0...HEAD
+[Unreleased]: https://github.com/aanifowose111/discovery-to-ship-multi-agents/compare/v0.14.0...HEAD
+[0.14.0]: https://github.com/aanifowose111/discovery-to-ship-multi-agents/compare/v0.13.0...v0.14.0
 [0.13.0]: https://github.com/aanifowose111/discovery-to-ship-multi-agents/compare/v0.12.9...v0.13.0
 [0.12.9]: https://github.com/aanifowose111/discovery-to-ship-multi-agents/compare/v0.12.8...v0.12.9
 [0.12.8]: https://github.com/aanifowose111/discovery-to-ship-multi-agents/compare/v0.12.7...v0.12.8

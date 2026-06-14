@@ -419,6 +419,30 @@ Push a product (`web-apps/<slug>/`, `mobile-apps/<slug>/`, `desktop-apps/<slug>/
 
 Invoke the **`senior-debugging-engineer`** for deep root-cause analysis on a specific failure. Use when a bug crosses domain boundaries (backend+frontend race, deploy failure with non-obvious cause, intermittent production bug, flaky test that resists standard debugging), when existing `senior-X-engineers` haven't pinned it down, or when reviewer-flagged bugs keep being overridden without understanding the root cause. The persona runs a hypothesis-driven 5-phase process (Reproduce → Hypothesize → Test each hypothesis → Root cause → Fix recommendation) and returns a structured report — **does NOT write the fix** (the relevant `senior-X-engineer` does that, against the report). **Stops at:** report shown + user picks: apply the fix / investigate further / sit on it / reject the diagnosis.
 
+### `/check-actions <slug>`
+
+Refresh `ACTION_REQUIRED.md` for a product — the per-product tracker of external/third-party items only the user can obtain (API keys, OAuth apps, image-asset URLs, domain DNS). Runs an awk-based `.env` scan in **key-name + emptiness mode by default** (never exposes values to context); auto-crosses-out items whose env keys are now `set`. Respects user-marked symbols: `[~]` (in-progress) and `[!]` (blocked) are preserved across runs; `[x]` and `[-]` move to history/removed. **Stops at:** summary + breakdown by symbol. **Next:** add new keys to `.env` then re-run, or continue the build.
+
+### `/do-verify <slug> [--hint "<text>"]`
+
+Append entries to a product's `VERIFIED.md` — the per-product log of features the **human user has manually verified at the end-user surface** (clicked the UI, saw the JSON, watched the email arrive). Distinct from pytest. Creates `VERIFIED.md` if it doesn't exist (auto-stub from `/draft-design-spec`; manual create here). For each proposed candidate line, asks via `AskUserQuestion` with 4 options: **Yes — fully verified** (`[x]`) / **Yes — partial** (`[~]` + free-text) / **Let me describe what I saw** (`[?]` + free-text) / **Not working as intended** (`[!]` + free-text). Pass `--hint "<text>"` to bias candidate selection (useful for backfilling existing projects like `ops-audit-agent`). The orchestrator surfaces `[!]` entries at next `/start-build` / `/continue-build` — soft signal, not a hard gate. **Stops at:** summary of entries added per symbol. Per `guides/product/verified-features-methodology.md`.
+
+### `/smoke <slug> [--reseed]`
+
+Pre-deploy manual **smoke playbook** for a product — `SMOKE.md`. Creates the file on first invocation, seeded from `VERIFIED.md` `[x]` entries + `/_dev/*` route registry + the brief's success criterion. Walks each check interactively; user picks **Passed** (`[x]`) / **Failed** (`[!]` + symptom text) / **Skipped** (`[-]` + reason). Status resets each run; failed (`[!]`) entries gate `/ship-app` (override via `/ship-app <slug> --skip-smoke "<reason>"` — audited). **Stops at:** run summary + history append. Per `guides/product/smoke-playbook-methodology.md`.
+
+### `/diff-spec <slug>`
+
+Diff a product's built UI against its `DESIGN_SPEC.md` — catches drift between spec and code. **Reports findings neutrally** in 4 buckets: 🟢 in-spec matches / 🟡 improvements-over-spec (NOT penalized) / 🟡 drift / 🔴 missing from build. For each non-matching finding, asks the user per-row: update spec / update build / keep both as intentional / discuss. Applies the decisions (DESIGN_SPEC.md edits + BUILD_STATUS.md reopens). For hired-designer-path products, falls back to comparing against the research with a caveat. **Stops at:** counts + per-finding decisions. Read-mostly; only edits when user confirms.
+
+### `/dev-routes <slug>`
+
+List all registered `_dev/*` routes / screens / menu items for a product. **Cross-references each against `VERIFIED.md`** so you can see which dev routes have been manually verified vs. not (🟢 verified / 🟡 partial / 🔴 not working / ⚪ no coverage). Confirms env-var gating (`DEV_ROUTES_ENABLED` for Flask, `EXPO_PUBLIC_DEV_ROUTES` for RN) and surfaces convention-drift findings. **Read-only.** Per `guides/product/dev-routes-convention.md`.
+
+### `/build-recap <slug> [--since <date>]`
+
+Generate a **delta-since-last-recap** summary of a product's build progress. Distinct from `/recollect` (full state reconstruction); `build-recap` is the lighter "what changed since last time" view. Reads `BUILD_STATUS.md` (History), recent commits, `VERIFIED.md` updates, `ACTION_REQUIRED.md` updates, `CHECKLIST.md` updates, and `SMOKE.md` run history. Updates `last-recap-at` in `BUILD_STATUS.md` frontmatter so the next call defaults to the new cutoff. Renamed from `/recap` to avoid Claude Code's built-in. Read-only synthesis. **Stops at:** recap shown + suggested next actions.
+
 ### `/caffeinate` and `/stop-caffeinate`
 
 macOS-only display + system sleep prevention while Claude Code is working. Wraps the built-in `caffeinate -d -i` command — runs it in the background (detached via `nohup`), captures the PID at `~/.claude/caffeinate.pid`, and reports back. **`/stop-caffeinate`** reads the PID, sends SIGTERM, removes the pidfile. Idempotent (running stop when nothing is caffeinated is a benign no-op). Useful during long builds, the design phase, and any time you don't want your screen to dim while Claude is generating code. On Linux/Windows: error gracefully and point at the platform equivalent (`systemd-inhibit` / PowerShell power requests). **Stops at:** confirmation message with PID + start time.

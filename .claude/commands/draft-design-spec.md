@@ -159,6 +159,17 @@ Tell the user what was added:
 
 Then show the user the standard checkpoint message from the auto-generate or auto-refresh flow.
 
+#### 5c. VERIFIED.md (empty stub)
+
+Then check `<product-folder>/VERIFIED.md`. Per `guides/product/verified-features-methodology.md §2`:
+
+- **If VERIFIED.md does NOT exist:** auto-create it now as an empty stub — frontmatter + status-symbols block + skeleton section headers, NO entries. Per `guides/product/verified-features-methodology.md §3`.
+- **If VERIFIED.md ALREADY exists:** leave it alone. (Never overwrite a user's verification log.)
+
+Tell the user:
+
+> Created `VERIFIED.md` stub at `<product-folder>/VERIFIED.md`. As you manually walk through features at the end-user surface, run `/do-verify <slug>` to record what you've checked — one per-line confirmation at a time. The orchestrator surfaces any `[!]` (not-working) entries at next `/start-build` / `/continue-build`.
+
 ### Notes for the main Claude
 
 - The spec's job is to be the *one document* the build implements UI from. Resist any urge to also produce a separate Figma file or component code from this command — that comes during build.

@@ -300,7 +300,7 @@ Custom commands live in `.claude/commands/` (one file per command, run as `/<com
 
 **Pipeline phases:** [`/scan`](.claude/commands/scan.md), [`/discover`](.claude/commands/discover.md), [`/validate-card`](.claude/commands/validate-card.md), [`/scope-mvp`](.claude/commands/scope-mvp.md), [`/scope-v1`](.claude/commands/scope-v1.md), [`/research-design`](.claude/commands/research-design.md), [`/draft-design-spec`](.claude/commands/draft-design-spec.md), [`/draft-design-brief`](.claude/commands/draft-design-brief.md), [`/start-build`](.claude/commands/start-build.md), [`/continue-build`](.claude/commands/continue-build.md), [`/ship-app`](.claude/commands/ship-app.md).
 
-**Parallel / cross-cutting:** [`/trend-check`](.claude/commands/trend-check.md), [`/preview-product`](.claude/commands/preview-product.md), [`/reprice`](.claude/commands/reprice.md), [`/revive-card`](.claude/commands/revive-card.md), [`/rework`](.claude/commands/rework.md), [`/consolidate`](.claude/commands/consolidate.md), [`/infra-cost`](.claude/commands/infra-cost.md), [`/recollect`](.claude/commands/recollect.md), [`/generate-checklist`](.claude/commands/generate-checklist.md), [`/read-checklist`](.claude/commands/read-checklist.md), [`/push-project`](.claude/commands/push-project.md), [`/deep-debug`](.claude/commands/deep-debug.md).
+**Parallel / cross-cutting:** [`/trend-check`](.claude/commands/trend-check.md), [`/preview-product`](.claude/commands/preview-product.md), [`/reprice`](.claude/commands/reprice.md), [`/revive-card`](.claude/commands/revive-card.md), [`/rework`](.claude/commands/rework.md), [`/consolidate`](.claude/commands/consolidate.md), [`/infra-cost`](.claude/commands/infra-cost.md), [`/recollect`](.claude/commands/recollect.md), [`/build-recap`](.claude/commands/build-recap.md), [`/generate-checklist`](.claude/commands/generate-checklist.md), [`/read-checklist`](.claude/commands/read-checklist.md), [`/check-actions`](.claude/commands/check-actions.md), [`/do-verify`](.claude/commands/do-verify.md), [`/smoke`](.claude/commands/smoke.md), [`/diff-spec`](.claude/commands/diff-spec.md), [`/dev-routes`](.claude/commands/dev-routes.md), [`/push-project`](.claude/commands/push-project.md), [`/deep-debug`](.claude/commands/deep-debug.md).
 
 **Utility / meta:** [`/menu`](.claude/commands/menu.md), [`/status`](.claude/commands/status.md), [`/documentation`](.claude/commands/documentation.md) (**bypasses onboarding**), [`/setup`](.claude/commands/setup.md), [`/acknowledge-contributing`](.claude/commands/acknowledge-contributing.md), [`/log`](.claude/commands/log.md), [`/team`](.claude/commands/team.md), [`/run-tests`](.claude/commands/run-tests.md), [`/system-check`](.claude/commands/system-check.md), [`/projects`](.claude/commands/projects.md), [`/caffeinate`](.claude/commands/caffeinate.md), [`/stop-caffeinate`](.claude/commands/stop-caffeinate.md). Full descriptions in [`HELP.md`](HELP.md).
 
@@ -310,12 +310,9 @@ Most commands take `<slug>` as argument and follow a `read → work → checkpoi
 
 ## Skills index
 
-Project-local skills in `.claude/skills/`. Claude Code auto-discovers and invokes them when the trigger phrases match.
+Project-local skills in `.claude/skills/` (auto-discovered): [`doc-export`](.claude/skills/doc-export/SKILL.md) (markdown → PDF/DOCX via pandoc → `generated/<category>/`); [`web-preview`](.claude/skills/web-preview/SKILL.md) (render Jinja template w/ fixture data + open in Chrome).
 
-- [`doc-export`](.claude/skills/doc-export/SKILL.md) — markdown → PDF or DOCX via pandoc. Output drops in `generated/<category>/` with a date-stamped, slug-keyed filename. Triggers on "export this as PDF", "generate a docx of [artifact]", "give me a PDF of [artifact]".
-- [`web-preview`](.claude/skills/web-preview/SKILL.md) — render a Jinja template from `web-apps/<slug>/` with fixture demo data and open the result in Chrome (`--no-open` to skip launching). Triggers on "preview this page", "show me what this template renders to", "open this in Chrome".
-
-**Agent-skills skills:** all **23** from `external/agent-skills/skills/` are file-copied into `.claude/skills/` and auto-discovered. Full per-skill inventory + descriptions live in `.claude/skills/README.md`. Originally by **Addy Osmani** (MIT, © 2025) — full attribution there and at `external/agent-skills/LICENSE`.
+**Agent-skills skills:** all **23** from `external/agent-skills/skills/` are file-copied into `.claude/skills/` and auto-discovered. Inventory in `.claude/skills/README.md`. Originally by **Addy Osmani** (MIT, © 2025) — attribution at `external/agent-skills/LICENSE`.
 
 ## Build-phase skill auto-invocation
 
@@ -335,7 +332,7 @@ Long-form reference docs at `guides/`. Read on demand (not auto-loaded). Open th
 
 | Domain | Folder | Guides |
 |---|---|---|
-| Product | `guides/product/` | `idea-discovery-methodology.md`, `idea-validation-methodology.md`, `mvp-scoping-methodology.md`, `build-status-methodology.md` |
+| Product | `guides/product/` | `idea-discovery-methodology.md`, `idea-validation-methodology.md`, `mvp-scoping-methodology.md`, `build-status-methodology.md`, `verified-features-methodology.md`, `smoke-playbook-methodology.md`, `dev-routes-convention.md` |
 | Market | `guides/market/` | `market-scan-methodology.md`, `trend-monitoring.md` |
 | Funding | `guides/funding/` | `funding-strategy-methodology.md` (10-path catalog + 5-step decision framework) |
 | Web | `guides/web/` | `flask-mvp-scaffold.md`, `flask-deploy-runbook.md`, `do-spaces-integration.md`, `flask-auth-patterns.md` |

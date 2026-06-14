@@ -376,4 +376,16 @@ Not acceptable reasons:
 
 ---
 
-*Last meaningful revision: 2026-05-29 (initial draft).*
+## 9. `_dev/` screen convention
+
+Hidden dev-only screens under `src/screens/_dev/`, gated by `EXPO_PUBLIC_DEV_ROUTES=1`. Mounted into the navigation stack only when the env var is set; production builds don't ship the screens. Per `guides/product/dev-routes-convention.md §2`:
+
+- **Discovery** via a hidden gesture on the splash screen (e.g., long-press the logo 5 times) or a debug URL scheme (`myapp://dev/menu`).
+- **Baseline screens:** `_dev/Whoami` (identity from secure store), `_dev/Logout` (force clear secure store), `_dev/ApiInspector` (last 10 API calls + responses), `_dev/EnvDump` (resolved EXPO_PUBLIC_* config; never expose secrets).
+- **Per-product additions** as needed.
+
+Pairs with `/dev-routes <slug>` (lists registered screens + cross-references against `VERIFIED.md`) and `/do-verify <slug>` (records manual end-user verifications). Full template in `guides/product/dev-routes-convention.md §2`.
+
+---
+
+*Last meaningful revision: 2026-06-13 (added §9 _dev/ screen convention).*

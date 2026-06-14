@@ -175,6 +175,32 @@ If a phase ever feels rushed or padded, you can override the defaults at any che
                 │     exposes values. Auto-created      │
                 │     after /draft-design-spec sign-off │
                 │                                       │
+                │  End-user verification                │
+                │  /do-verify <slug> [--hint "..."]     │
+                │     append entries to VERIFIED.md —   │
+                │     per-line user confirmation; 4     │
+                │     options (fully / partial /        │
+                │     observed / not-working). [!]      │
+                │     surfaces at next /continue-build  │
+                │  /smoke <slug>                        │
+                │     manual smoke-test playbook;       │
+                │     SMOKE.md seeded from VERIFIED.md  │
+                │     + _dev/* routes + brief success   │
+                │     criterion. [!] gates /ship-app    │
+                │  /diff-spec <slug>                    │
+                │     diff built UI vs DESIGN_SPEC.md;  │
+                │     improvements over spec NEVER      │
+                │     penalized; per-finding decisions  │
+                │  /dev-routes <slug>                   │
+                │     list _dev/* routes (Flask) or     │
+                │     screens (RN) + VERIFIED.md cross  │
+                │     reference + env-var gating check  │
+                │                                       │
+                │  Delta synthesis                      │
+                │  /build-recap <slug> [--since DATE]   │
+                │     what-changed-since-last-recap;    │
+                │     lighter than /recollect           │
+                │                                       │
                 │  Cross-cutting debug                  │
                 │  /deep-debug <slug> [focus-area]      │
                 │     senior-debugging-engineer for     │
@@ -220,6 +246,11 @@ In parallel with all of the above:
 - **`/menu`** is the always-available command map; **`/documentation`** opens this guide.
 - **`/generate-checklist` + `/read-checklist`** (per-product) — fine-grained `CHECKLIST.md` companion to `BUILD_STATUS.md`. CHECKLIST tracks individual deliverables (3-8 per must-have, with file-path hints); BUILD_STATUS tracks subsystems. The orchestrator auto-refreshes CHECKLIST whenever a subsystem flips to `[x]`. Run `/read-checklist <slug>` any time to scan for newly completed work and propose additions.
 - **`/check-actions <slug>`** — refresh `ACTION_REQUIRED.md`, the per-product tracker for **external items only YOU can obtain** (API keys, OAuth apps, image-asset URLs, domain DNS). Distinct from CHECKLIST.md (Claude's deliverables): ACTION_REQUIRED.md is the only file for user-only work. Auto-created by `/draft-design-spec` Step 5 alongside CHECKLIST.md; auto-appended-to during build when specialists surface new dependencies; auto-refreshed by the orchestrator after every subsystem flip via a key-name + emptiness `.env` scan (no values exposed to context). Run `/check-actions <slug>` manually after you've just added keys to `.env` and want immediate cross-out.
+- **`/do-verify <slug> [--hint "..."]`** — append entries to `VERIFIED.md`, the per-product log of features the **human user has manually verified at the end-user surface**. Distinct from pytest — this is "I clicked it, I saw it work." Per-line user confirmation; 4 options (fully verified `[x]` / partial `[~]` / observed-with-notes `[?]` / not-working `[!]`). Auto-stubbed by `/draft-design-spec` Step 5c; appended-to here. Orchestrator surfaces `[!]` entries at next `/start-build` / `/continue-build` (soft signal, not a hard gate). Per `guides/product/verified-features-methodology.md`.
+- **`/smoke <slug>`** — the **pre-deploy manual smoke playbook**, `SMOKE.md`. Creates on first invocation, seeded from `VERIFIED.md` + `/_dev/*` route registry + brief's success criterion. Walks each check interactively; status resets per run. Failed (`[!]`) entries gate `/ship-app`. Per `guides/product/smoke-playbook-methodology.md`.
+- **`/diff-spec <slug>`** — diff built UI against `DESIGN_SPEC.md` (claude-led design path). **Reports findings neutrally** in 4 buckets (in-spec / improvement-over-spec / drift / missing); improvements are NEVER penalized. Per-finding decisions: update spec / update build / keep both / discuss.
+- **`/dev-routes <slug>`** — list registered `_dev/*` routes (Flask blueprint) or screens (RN nav stack) + cross-reference each against `VERIFIED.md` so you can see manual-verification coverage. Confirms env-var gating (`DEV_ROUTES_ENABLED` web; `EXPO_PUBLIC_DEV_ROUTES` mobile) and the 404-in-production contract. Per `guides/product/dev-routes-convention.md`.
+- **`/build-recap <slug>`** — delta-since-last-recap synthesis. Lighter than `/recollect` (which reconstructs full state); `build-recap` is "what changed since last time I ran this." Reads `BUILD_STATUS.md` History, recent commits, `VERIFIED.md` updates, `ACTION_REQUIRED.md` updates. Read-only. Renamed from `/recap` to avoid Claude Code's built-in.
 - **`/push-project <slug>`** — push individual products to their own independent GitHub repositories, separate from the parent workspace repo. The parent's `.gitignore` shields each nested folder. Per `guides/product/project-git-methodology.md`. Mandatory safety scans (`.env`, secret patterns) before every commit.
 - **`/deep-debug <slug> [focus]`** — for cross-cutting bugs that span domain boundaries (backend+frontend race conditions, intermittent prod issues, flaky tests). Invokes the `senior-debugging-engineer` (9th specialist) for hypothesis-driven root-cause analysis. Returns a structured report; doesn't write the fix.
 - **`/caffeinate` + `/stop-caffeinate`** (macOS) — keep display + system awake during long builds. The break-reminder hook (`.claude/hooks/break-reminder.sh`, wired to `UserPromptSubmit`) automatically reminds you to take a break after 2 hours of session activity.

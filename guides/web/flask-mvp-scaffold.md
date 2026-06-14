@@ -437,4 +437,19 @@ Not acceptable reasons:
 
 ---
 
-*Last meaningful revision: 2026-05-29 (initial draft).*
+## 9. `_dev/` route convention
+
+For testing actions hard to exercise through the normal UI — POST endpoints that don't accept GET, side-effecting helpers, identity dumps, debug routes — register a `_dev` blueprint under `app/blueprints/_dev.py` gated by `DEV_ROUTES_ENABLED` env var. Per `guides/product/dev-routes-convention.md`:
+
+- **404 in production** (env var unset). Blueprint isn't registered → all `/_dev/*` paths 404.
+- **Baseline routes every product should have:** `/_dev/whoami` (current user identity dump), `/_dev/logout` (idempotent logout, GET-accessible), `/_dev/healthz` (deeper health check).
+- **Per-product additions** as needed: `/_dev/run_diagnostic`, `/_dev/reset_trial`, `/_dev/clear_cache`, etc.
+- **JSON responses** — dev routes return JSON so they pair well with `VERIFIED.md` presentation snippets.
+
+Reference: `web-apps/ops-audit-agent/` already follows this pattern (`/_dev/logout`, `/_dev/run_diagnostic`, `/_dev/whoami`). Full template + tests in `guides/product/dev-routes-convention.md §1`.
+
+The convention pairs with two slash commands: `/dev-routes <slug>` (lists registered routes + cross-references against `VERIFIED.md`); `/do-verify <slug>` (appends manual-verification entries; dev-route JSON responses go in the presentation field).
+
+---
+
+*Last meaningful revision: 2026-06-13 (added §9 _dev/ route convention).*

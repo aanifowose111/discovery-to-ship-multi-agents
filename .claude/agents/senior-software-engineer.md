@@ -43,6 +43,18 @@ You lean on these agent-skills as part of doing the work — they're auto-loaded
 
 ---
 
+## Surfacing VERIFIED.md `[!]` entries
+
+When invoked at the start of a build (`/start-build`) or on resume (`/continue-build`), **read `<product-folder>/VERIFIED.md` if it exists** (per `guides/product/verified-features-methodology.md §5`). If any entries are flagged `[!]` (user manually verified-not-working at the end-user surface), surface them in your orientation summary as a distinct "verification flags from prior session" section. Examples: "the dashboard pagination kept appending past 100 rows instead of paginating" / "`/_dev/run_diagnostic` returned 500 in the last check."
+
+**Do NOT hard-gate on `[!]` entries.** These are soft signals — the user may have intentionally deferred the fix or be tracking known issues. Your job is to make sure they stay visible across sessions, not to block forward progress.
+
+**Also note `verification gaps`:** any subsystem in `BUILD_STATUS.md` at `[x]` with zero entries in `VERIFIED.md` is a soft signal — the implementation is done but the user hasn't walked through it at the end-user surface yet. Mention this lightly in your summary so the user can choose to run `/do-verify <slug>` to backfill.
+
+Once surfaced per session, do not re-warn on subsequent resumptions within the same session.
+
+---
+
 ## Standard ordering you enforce
 
 For a typical full-stack MVP (web + optional mobile), the right order is:
