@@ -209,6 +209,57 @@ The point is the user can read along and feel like a *named* senior engineering 
 
 ---
 
+## Reviewer routing
+
+**The load-bearing rule of build-phase discipline:** you do NOT flip a subsystem from `[>]` to `[x]` until all required reviewers have returned APPROVE or APPROVE-WITH-NOTES. Reviewers fire at strategic checkpoints DURING the build, not just at `/ship-app`. Full mechanics in `guides/product/build-status-methodology.md` §6.
+
+**On every specialist invocation, tag the subsystem in BUILD_STATUS.md per §6.1 + §6.2:**
+
+- Set `security-review-required: true` if the subsystem carries any of: `auth`, `oauth`, `encryption-at-rest`, `secret-storage`, `payment`, `llm-input`, `file-upload`, `rls-multitenant`, `webhook-signature` (per §6.1 table)
+- Set `qa-review-required: true` if the subsystem carries any of: `cross-service`, `multi-tenant-query`, `async-pipeline`, `concurrent-race`, `integration-of-2-plus` (per §6.2 table)
+- Both can be true — both reviewers run (parallel or sequential, your choice).
+- Tags are inferred from the must-have description + scaffold output; user can override.
+
+**When the implementation specialist returns** (e.g., `senior-backend-engineer` finishes the auth subsystem):
+
+1. Update BUILD_STATUS subsystem status to `[>]` (still in progress — REVIEW NOT YET DONE).
+2. Append `"<subsystem-id>: <reviewer-role>"` entries to `pending-reviews:` frontmatter array.
+3. **Invoke `senior-security-engineer` (in build-phase review mode)** for subsystems where `security-review-required: true` AND `review-deferred: false`. Pass the subsystem name, the artifact paths the specialist produced, and the §6.1 tag(s) that triggered the routing.
+4. **Invoke `senior-qa-engineer` (in build-phase review mode)** for subsystems where `qa-review-required: true` AND `review-deferred: false`. Same prompt shape.
+5. **Wait for verdicts.** Each reviewer returns APPROVE / APPROVE-WITH-NOTES / REJECT.
+6. **Apply §6.5 verdict logic:**
+   - **APPROVE / APPROVE-WITH-NOTES** → remove the corresponding entry from `pending-reviews:`. If all required reviews have APPROVE/APPROVE-WITH-NOTES (or are review-deferred), flip `[>]` → `[x]` and proceed with the post-flip rules below.
+   - **REJECT** → SUBSYSTEM STAYS `[>]`. Re-invoke the implementation specialist with the findings (severity-tagged: CRITICAL / HIGH / MEDIUM / LOW). When the specialist returns with fixes, re-invoke the reviewer.
+
+**Per-subsystem opt-out (§6.6):** if the user has marked `review-deferred: true` on a specific subsystem with a `review-deferred-reason: "<text>"` (≥10 chars), skip the corresponding reviewer invocation. Append a `review-deferred` audit-log entry:
+```
+python3 scripts/audit_log.py add review-deferred "Review deferred for <slug>: <subsystem-id>: skipped <reviewer-role>. Reason: <verbatim text>."
+```
+Then proceed to flip if all OTHER required reviews are clear. **Catch-up sweep §6.3 still runs on deferred subsystems** — you cannot defer a sweep.
+
+**Catch-up sweep at every 5th `[x]` flip (§6.3):**
+
+1. Maintain `completed-subsystems-since-sweep:` counter in BUILD_STATUS frontmatter. Increment on every `[>]` → `[x]` flip.
+2. When the counter reaches 5, **run a catch-up sweep**:
+   - Invoke `senior-security-engineer` (build-phase review mode, scoped to the prior 5 subsystems) for a cross-cutting pass.
+   - Invoke `senior-qa-engineer` (build-phase review mode, scoped to the prior 5) for a cross-cutting integration audit.
+   - Pass both reviewers the full list of the 5 subsystems + their artifact paths.
+3. Reset `completed-subsystems-since-sweep: 0` after the sweep returns verdicts.
+4. Sweep findings: any CRITICAL / HIGH triggers a fix subsystem opened on the next slot; MEDIUM / LOW go to BUILD_STATUS §Decisions for the user to triage.
+
+**Backend → frontend pre-transition audit (§6.4):**
+
+When ALL Phase 2 backend subsystems are `[x]` AND the **frontend skeleton** subsystem would flip from `[ ]` to `[>]`, FIRST run a comprehensive backend-only audit:
+
+- `senior-security-engineer` (build-phase review mode, scoped to the entire backend): full authn/authz consistency, RLS bound everywhere, secrets clean, etc.
+- `senior-qa-engineer` (build-phase review mode, scoped to the entire backend): API contracts honored, edge-case coverage, partial-failure handling.
+
+The frontend skeleton waits 1-3 reviewer turns. Don't skip this — it's the cheapest place to catch whole-backend issues before the frontend locks design decisions.
+
+**If you find yourself wanting to flip `[>]` → `[x]` while `pending-reviews:` has entries for that subsystem, STOP.** Re-check the verdict from the reviewer, or surface the contradiction to the user. This rule is what makes the discipline load-bearing.
+
+---
+
 ## Maintaining BUILD_STATUS.md
 
 You own `<web-apps|mobile-apps|desktop-apps>/<slug>/BUILD_STATUS.md`. It's the visible dashboard of the build, updated by you (no specialist edits it directly). The full methodology is in `guides/product/build-status-methodology.md`.

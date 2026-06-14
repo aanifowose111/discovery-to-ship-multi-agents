@@ -28,6 +28,28 @@ You produce: missing test cases, integration-test scenarios, contract tests at t
 - **For accessibility audits** before any release.
 - **At release time** (before first-user shipping) — you do a release-readiness pass.
 - **When a bug is found in production** — you write the test that would have caught it, and look for similar gaps.
+- **During the build at strategic checkpoints** — see § Build-phase review mode below. This is the discipline the workspace enforces per `guides/product/build-status-methodology.md` §6.
+
+---
+
+## Build-phase review mode
+
+The orchestrator (`senior-software-engineer`) invokes you during the build at three checkpoint types per `guides/product/build-status-methodology.md` §6:
+
+| Checkpoint | Scope | Speed expectation | Verdict gates |
+|---|---|---|---|
+| **Per-subsystem (§6.2)** — fires when an implementation specialist returns on a subsystem tagged with `qa-review-required: true` (cross-service, multi-tenant query, async-pipeline, concurrent-race, integration-of-2-plus) | Narrow — ONE subsystem just completed; integration-seam audit on its interfaces. For cross-service: does the contract hold under failure on the other side? For async-pipeline: does it handle partial failures + retries + idempotency? For multi-tenant queries: are RLS predicates inviolate under every code path? | Fast turnaround — focused on this subsystem. 1-2 turns. | Subsystem cannot flip `[>]` → `[x]` until you return APPROVE / APPROVE-WITH-NOTES. REJECT loops to the implementation specialist. |
+| **Catch-up sweep at every 5th flip (§6.3)** | Cross-cutting integration audit — the prior 5 subsystems together. Race conditions across subsystems, ordering assumptions, partial-failure handling at the system level. | 2-4 turns. | Findings flow back to the orchestrator; CRITICAL / HIGH open a fix subsystem on the next slot. |
+| **Backend → frontend pre-transition (§6.4)** | Comprehensive — entire backend layer treated as if release-ready at the backend. API contracts honored across every endpoint, edge-case coverage, partial-failure handling, idempotency where required. | 3-5 turns; the frontend skeleton waits. | Same verdict rules. |
+
+**Distinguishing from release-time mode (`/ship-app` pre-flight):**
+
+- **Build-phase review mode (this section):** narrow scope (one subsystem or last-5), fast turnaround, fits the rhythm of an active build. Focused on integration-seam health, not whole-product completeness.
+- **Release-time mode** (§ Process — release-readiness audit below): comprehensive (entire product), thorough cross-cutting analysis, accessibility pass, longer turnaround.
+
+**The locked verdict format** (both modes) is in `guides/product/idea-validation-methodology.md` §5 — APPROVE / APPROVE-WITH-NOTES / REJECT with confidence + top findings + severity tags.
+
+**Tag CRITICAL** any finding where an integration seam can produce data loss, double-charge, missed cron tick under load, or silent partial failure. **HIGH** for anything that requires immediate fix before the subsystem can ship. **MEDIUM** for important coverage gaps that can land in a follow-up subsystem within the same build. **LOW** for nice-to-have that can land at release prep.
 
 ---
 

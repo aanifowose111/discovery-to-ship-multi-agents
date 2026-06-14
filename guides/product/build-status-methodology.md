@@ -92,6 +92,8 @@ stack-mobile: <stack name or null>
 scope: mvp | fully-featured
 domain: web | mobile | hybrid
 build-order: <"api-web-first" | "mobile-first" | "web-only" | "mobile-only">
+pending-reviews: []  # list of "<subsystem-id>: <reviewer>" entries, e.g., ["mh-7-stripe-ingest: security", "mh-8-hubspot-oauth: qa"]
+completed-subsystems-since-sweep: 0  # incremented on every [x] flip; resets after a catch-up sweep
 ---
 
 # Build Status — <product name>
@@ -113,10 +115,13 @@ build-order: <"api-web-first" | "mobile-first" | "web-only" | "mobile-only">
 - [ ] **API implementation** (senior-backend-engineer) — pending
 - [ ] **Auth** (senior-security-engineer + senior-backend-engineer) — pending
   - Required for: <which must-haves drove this>
+  - `security-review-required: true` · `qa-review-required: false` (tagged per §6.1)
 - [ ] **File storage** (senior-backend-engineer + senior-security-engineer) — pending
   - Required for: <must-haves>
+  - `security-review-required: true` (file-upload tag) · `qa-review-required: false`
 - [ ] **Background jobs** (senior-backend-engineer) — pending
   - Required for: <must-haves>
+  - `security-review-required: false` · `qa-review-required: true` (async-pipeline tag)
 
 ## Phase 3 — Frontend
 - [ ] **Frontend skeleton** (senior-frontend-engineer) — pending
@@ -192,7 +197,124 @@ The one documented case where **main Claude edits `BUILD_STATUS.md` directly** (
 
 ---
 
-## 6. Surfacing it
+## 6. Reviewer checkpoints during build
+
+**Why this exists.** Security and QA reviewers cannot only fire at `/ship-app`. By the time a build reaches release-readiness, weeks of subsystems have been written; finding 8 CRITICAL + HIGH findings then means weeks of rework. The discipline below ensures security and QA reviewers run at strategic in-build checkpoints — close enough to the implementation that findings are cheap to address.
+
+### 6.1 Security-engineer auto-routing (per-subsystem)
+
+The orchestrator MUST tag a subsystem with `security-review-required: true` if it carries ANY of the following surface tags (orchestrator infers tags from the must-have description + scaffold output; user can override):
+
+| Tag | Surfaces it covers |
+|---|---|
+| `auth` | Signup, login, sessions, password reset, MFA, logout flow |
+| `oauth` | Any third-party OAuth flow (Google, GitHub, HubSpot, Stripe Connect, etc.) |
+| `encryption-at-rest` | Any data stored encrypted at rest (PII tables, audit logs, encrypted columns) |
+| `secret-storage` | `.env` handling, KMS / Vault integration, secret rotation |
+| `payment` | Stripe (or alternative) integration — Checkout, Subscriptions, webhooks, refunds |
+| `llm-input` | Any prompt-injection-exposed surface (LLM diagnostic, agent runtime, user-message ingest into LLM context) |
+| `file-upload` | User-uploaded files (avatars, documents, anything to disk or object storage) |
+| `rls-multitenant` | Row-level security additions, multi-tenant data isolation, per-tenant query filtering |
+| `webhook-signature` | Webhook handlers with HMAC / signature verification (Stripe, GitHub, etc.) |
+
+When the subsystem implementation completes, the orchestrator MUST invoke `senior-security-engineer` (in build-phase review mode — see persona) on that subsystem. The reviewer returns an APPROVE / APPROVE-WITH-NOTES / REJECT verdict. **The subsystem stays `[>]` until APPROVE or APPROVE-WITH-NOTES is recorded; REJECT loops back to the implementation specialist with the findings.**
+
+### 6.2 QA-engineer auto-routing (per-subsystem)
+
+Parallel structure. Tag with `qa-review-required: true` if ANY of these tags apply:
+
+| Tag | Surfaces it covers |
+|---|---|
+| `cross-service` | Subsystems that integrate ≥2 existing subsystems (e.g., auth + payment, OAuth refresh + cron worker) |
+| `multi-tenant-query` | Queries that must be RLS-bound or per-tenant scoped |
+| `async-pipeline` | Cron jobs, background workers, message queues, scheduled tasks |
+| `concurrent-race` | Cron + concurrent-request surfaces where ordering / locking matters |
+| `integration-of-2-plus` | Catch-all for subsystems that wire together 2+ prior subsystems |
+
+When the subsystem completes, the orchestrator MUST invoke `senior-qa-engineer` (in build-phase review mode) for an integration-seam audit. Same verdict + flip rules as §6.1.
+
+A subsystem can carry BOTH `security-review-required` and `qa-review-required` — both reviewers run in parallel (or sequentially, orchestrator's choice; both verdicts required before flip).
+
+### 6.3 Catch-up sweep at every 5th completed subsystem
+
+The orchestrator maintains a `completed-subsystems-since-sweep` counter in BUILD_STATUS frontmatter. Each `[x]` flip increments. **When the counter reaches 5**, the orchestrator runs a **catch-up sweep**:
+
+- Invoke `senior-security-engineer` (build-phase review mode, scoped to the prior 5 completed subsystems) for a cross-cutting pass — looking for cross-subsystem issues a per-subsystem audit can miss (auth + RLS interaction, secret leakage across services, OAuth scope creep, etc.).
+- Invoke `senior-qa-engineer` (build-phase review mode, scoped to the prior 5) for a cross-cutting integration audit — race conditions across subsystems, ordering assumptions, partial-failure handling.
+- Reset `completed-subsystems-since-sweep: 0` after the sweep returns verdicts.
+- Sweep findings flow into the next implementation slot (orchestrator opens a fix subsystem if findings are CRITICAL/HIGH).
+
+This cadence catches drift that per-subsystem reviews miss because they only see one subsystem at a time.
+
+### 6.4 Backend → frontend pre-transition audit
+
+When ALL backend Phase 2 subsystems are `[x]` AND the **frontend skeleton** subsystem is about to start (its status would flip from `[ ]` to `[>]`), the orchestrator MUST first run a **pre-frontend audit**:
+
+- `senior-security-engineer` runs a comprehensive backend-only security pass (treats backend as if it were release-ready at the backend layer): authn/authz consistent across endpoints, RLS bound everywhere, secrets clean, no insecure deserialization, etc.
+- `senior-qa-engineer` runs a comprehensive backend-only integration audit: API contracts honored, edge-case coverage, partial-failure handling, idempotency where required.
+
+This catches whole-backend issues before the frontend starts consuming the API and locking design decisions in. The audit takes 1-3 reviewer turns; the frontend skeleton waits.
+
+### 6.5 Verdict requirements + REJECT loop
+
+Per-reviewer verdict consequences:
+
+| Verdict | Effect on subsystem |
+|---|---|
+| APPROVE | Subsystem can flip `[>]` → `[x]`. Notes (if any) carried to BUILD_STATUS history. |
+| APPROVE-WITH-NOTES | Subsystem can flip `[>]` → `[x]`. The notes get added to **§Decisions recorded during build** + carried forward as follow-up items (orchestrator surfaces to user, may open a fix subsystem). |
+| REJECT | Subsystem STAYS `[>]`. The reviewer's findings (with severity tags: CRITICAL / HIGH / MEDIUM / LOW) are passed back to the implementation specialist (`senior-backend-engineer` for backend, etc.). Specialist addresses findings, then re-invokes the reviewer. Loop until APPROVE / APPROVE-WITH-NOTES. |
+
+**The orchestrator MUST NOT flip a subsystem to `[x]` while `security-review-required: true` or `qa-review-required: true` is set AND no APPROVE/APPROVE-WITH-NOTES verdict is recorded.** This is the load-bearing rule of the methodology.
+
+### 6.6 Opt-out per subsystem (`review-deferred`)
+
+The user can opt-out of a specific review on a specific subsystem when the risk is genuinely low and the verdict overhead isn't worth it (e.g., a small CRUD endpoint flagged because it touches a multi-tenant table but the surface is well-understood). The opt-out is **per-subsystem + per-reviewer**, never global:
+
+```markdown
+- [>] **<subsystem-name>** (<persona>) — in progress
+  - `security-review-required: true` · `review-deferred: true` · `review-deferred-reason: "Low-risk surface; CRUD on already-RLS-scoped table; pattern matches MH #N which was reviewed."`
+```
+
+When `review-deferred: true` is set:
+
+1. **User must add `review-deferred-reason: "<text>"`** with at least 10 chars. Orchestrator refuses the deferral without a reason.
+2. **Orchestrator appends a `review-deferred` audit-log entry** capturing slug + subsystem + reviewer skipped + reason verbatim. Per `CLAUDE.md § Audit log`:
+   ```
+   python3 scripts/audit_log.py add review-deferred "Review deferred for <slug>: <subsystem-id>: skipped <reviewer-role>. Reason: <verbatim text>."
+   ```
+3. **The subsystem flips to `[x]` without the verdict.** History entry includes "review deferred (audit: <id>)" annotation.
+4. **Catch-up sweep STILL runs** on deferred subsystems — the user can defer a per-subsystem review but cannot defer a catch-up sweep. This is the workspace's safety net.
+
+If the user repeatedly defers reviews on related subsystems (3+ in a row), the orchestrator surfaces a warning: "You've deferred 3 security reviews in this build. The catch-up sweep at the next 5th flip will be comprehensive on these. Want to also run them individually now?"
+
+### 6.7 One-time catch-up flow for existing products (post-v0.13.0 retrofit)
+
+For products whose builds were in progress BEFORE v0.13.0 landed and have subsystems flipped to `[x]` without security/QA review (gap discovered in `ops-audit-agent` MH #6-10), the methodology supports a one-time recovery:
+
+1. User invokes the orchestrator with: "Run a one-time catch-up sweep on subsystems MH #X to MH #Y that shipped without review."
+2. Orchestrator invokes `senior-security-engineer` and `senior-qa-engineer` in build-phase review mode, scoped to the named subsystem range.
+3. Findings flow back as if they were per-subsystem reviews — REJECT verdicts loop to the implementation specialist; APPROVE / APPROVE-WITH-NOTES are recorded in BUILD_STATUS history with a "post-hoc review" annotation.
+
+This is not "skipped reviews are forgiven" — it's "the discipline reaches back to cover the prior gap."
+
+### 6.8 Frontmatter and per-subsystem field reference
+
+Recap of the fields this section adds to BUILD_STATUS.md:
+
+**Frontmatter:**
+- `pending-reviews: []` — list of `"<subsystem-id>: <reviewer-role>"` strings. Updated by orchestrator on each invocation.
+- `completed-subsystems-since-sweep: 0` — counter; resets on catch-up sweep.
+
+**Per-subsystem (in the checklist):**
+- `security-review-required: true | false` — set per §6.1
+- `qa-review-required: true | false` — set per §6.2
+- `review-deferred: true | false` — opt-out per §6.6 (default false)
+- `review-deferred-reason: "<text>"` — required when `review-deferred: true`
+
+---
+
+## 7. Surfacing it
 
 - **`/status`** reads `BUILD_STATUS.md` for any in-flight build and surfaces the current focus + recent history as part of the pipeline-state snapshot.
 - **`/menu`** mentions the current build's focus when relevant.
@@ -201,7 +323,7 @@ The one documented case where **main Claude edits `BUILD_STATUS.md` directly** (
 
 ---
 
-## 7. When BUILD_STATUS becomes stale
+## 8. When BUILD_STATUS becomes stale
 
 `BUILD_STATUS.md` going stale (work happens but the file isn't updated) defeats its whole purpose. Two signals it's stale:
 
@@ -214,7 +336,7 @@ The reconciliation is a one-shot fix, not a substitute for keeping the file curr
 
 ---
 
-## 8. Handoff to other artifacts
+## 9. Handoff to other artifacts
 
 `BUILD_STATUS.md` is the **process** artifact. It cross-references but does not duplicate:
 

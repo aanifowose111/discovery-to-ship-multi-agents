@@ -66,6 +66,7 @@ VALID_TYPES = {
     "build-milestone",
     "rework-applied",
     "consolidation-applied",
+    "review-deferred",
     "user-note",
 }
 
@@ -91,6 +92,7 @@ _TYPE_COLOR = {
     "build-milestone": _C.CYAN,
     "rework-applied": _C.MAGENTA,
     "consolidation-applied": _C.MAGENTA,
+    "review-deferred": _C.YELLOW,
     "user-note": None,
 }
 

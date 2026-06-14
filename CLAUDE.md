@@ -164,9 +164,10 @@ Important user-driven decisions are recorded in `user-context/audit-log.jsonl` (
 | `project-delete` | User confirms a destructive `/projects delete` | Audit trail of destructive ops |
 | `card-kill` | User kills a card during `/validate-card` or `/scope-mvp` | Mirrors frontmatter, queryable |
 | `card-revive` | User restores a killed card via `/revive-card <slug>` | Audit trail; documents the undo |
-| `build-milestone` | A build-stage key moment lands: project initialized via `/start-build`, a `BUILD_STATUS.md` subsystem flips to `[x]`, ready-to-deploy state reached, app shipped via `/ship-app` | Timeline of build achievements |
-| `rework-applied` | User reworked card/MVP/V1 via `/rework` (commits temp-file proposal post-review) | Audit trail; records any REJECT overrides + justifications |
+| `build-milestone` | Build moments: project initialized, BUILD_STATUS subsystem flips to `[x]`, ready-to-deploy, shipped via `/ship-app` | Timeline of build achievements |
+| `rework-applied` | User reworked card/MVP/V1 via `/rework` | Audit trail; records REJECT overrides + justifications |
 | `consolidation-applied` | User consolidated misalignments via `/consolidate` | Audit trail of alignment fixes + re-review verdicts |
+| `review-deferred` | Orchestrator skipped a per-subsystem security/QA review per build-status §6.6 | Deferred-review trail; catch-up sweep still runs |
 | `user-note` | Only via `/log <text>` (no auto path) | Free-text personal note |
 
 What does NOT get logged: file reads, command invocations, status flips, commits — git history covers those. The log is for state decisions and intentional records, not telemetry. Forkers inherit the convention; the live log stays local.

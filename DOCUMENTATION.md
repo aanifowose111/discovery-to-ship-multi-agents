@@ -564,6 +564,8 @@ Every build the workspace runs goes through roughly the same arc, regardless of 
 
 You'll see this sequence happen in narrated, observable steps when you run `/start-build`. Every step is a separate subsystem in `BUILD_STATUS.md` (see §6.7).
 
+**Critically, security and QA reviewers fire DURING the build, not just at `/ship-app`.** When an implementation specialist finishes a subsystem tagged as security-sensitive (auth, OAuth, encryption, secret storage, payment, LLM input, file upload, RLS / multi-tenant, webhook signature) OR integration-rich (cross-service handoffs, multi-tenant queries, async pipelines, cron + concurrent races, integration-of-2+), the orchestrator MUST invoke `senior-security-engineer` and/or `senior-qa-engineer` in **build-phase review mode** before the subsystem can flip `[>]` → `[x]`. **Review verdict (APPROVE / APPROVE-WITH-NOTES / REJECT) gates the flip** — REJECT loops back to the implementation specialist with the findings. In addition: a **catch-up sweep** runs at every 5th completed subsystem (both reviewers, cross-cutting on the prior 5), and a **backend → frontend pre-transition audit** runs when the entire backend is `[x]` and the frontend skeleton is about to start. This discipline is documented in `guides/product/build-status-methodology.md` §6 and enforced by the `senior-software-engineer` orchestrator's Reviewer-routing rules. The user can opt-out a specific reviewer on a specific subsystem (`review-deferred: true` + `review-deferred-reason: "<text>"` → audit-logged), but the catch-up sweep still runs on deferred subsystems — the workspace's safety net.
+
 ### 6.2 Stack choices in plain English (web / mobile / desktop)
 
 You'll be asked at `/scope-mvp` time to pick a stack. Here's the plain-English version:

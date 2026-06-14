@@ -16,6 +16,35 @@ This project does not yet follow strict semantic versioning. Pre-1.0, breaking c
 
 _No entries yet — next batch lands here under a `### YYYY-MM-DD` subheader (or, if today already has a cut version, as a patch bump per the convention above)._
 
+## [0.13.0] - 2026-06-09
+
+**New mandatory discipline:** security + QA reviewer invocation at strategic in-build checkpoints, not only at `/ship-app`. Catches the workspace methodology gap discovered when 5 ops-audit-agent subsystems (MH #6-10) shipped to `[x]` without security or QA review — the design intent in DOCUMENTATION.md §6.4 / §8 wasn't being enforced by the orchestrator.
+
+### Added
+
+- **`guides/product/build-status-methodology.md` new §6 "Reviewer checkpoints during build"** — 8 subsections covering: (6.1) security-engineer auto-routing per 9-tag list (auth, oauth, encryption-at-rest, secret-storage, payment, llm-input, file-upload, rls-multitenant, webhook-signature); (6.2) qa-engineer auto-routing per 5-tag list (cross-service, multi-tenant-query, async-pipeline, concurrent-race, integration-of-2-plus); (6.3) catch-up sweep at every 5th completed subsystem (both reviewers cross-cutting on the prior 5); (6.4) backend → frontend pre-transition audit before frontend skeleton starts; (6.5) verdict requirements + REJECT loop (APPROVE / APPROVE-WITH-NOTES / REJECT — subsystem stays `[>]` until APPROVE-class verdict); (6.6) opt-out per subsystem via `review-deferred: true` + `review-deferred-reason: "<text>"` (≥10 chars required) + audit-log entry; (6.7) one-time catch-up flow for products that pre-date this discipline (e.g., ops-audit-agent MH #6-10); (6.8) frontmatter + per-subsystem field reference.
+- **`pending-reviews:` and `completed-subsystems-since-sweep:` frontmatter fields** added to `BUILD_STATUS.md` output format spec. `pending-reviews:` is a list of `"<subsystem-id>: <reviewer-role>"` strings; `completed-subsystems-since-sweep:` is a counter the orchestrator increments on every `[x]` flip and resets after each catch-up sweep.
+- **Per-subsystem fields** added to BUILD_STATUS.md output format: `security-review-required: true/false`, `qa-review-required: true/false`, `review-deferred: true/false`, `review-deferred-reason: "<text>"`.
+- **`senior-software-engineer.md` new "## Reviewer routing" section** — spells out the load-bearing rule: do NOT flip a subsystem `[>]` → `[x]` until all required reviewers have returned APPROVE / APPROVE-WITH-NOTES. Includes per-invocation tag inference, parallel/sequential reviewer invocation, REJECT loop back to implementation specialist, catch-up sweep mechanics, backend→frontend pre-transition audit invocation, and per-subsystem opt-out flow with audit-log append.
+- **`senior-security-engineer.md` and `senior-qa-engineer.md` new "## Build-phase review mode" sections** — distinguish narrow-scope/fast-turnaround mode (one subsystem just completed) from release-time comprehensive mode (whole product at `/ship-app`). Each persona's section lists the 3 checkpoint types they fire at (per-subsystem, catch-up sweep, backend→frontend pre-transition) with scope + speed + verdict gates per checkpoint. Severity-tag guidance: CRITICAL / HIGH / MEDIUM / LOW with explicit meaning per persona.
+- **`review-deferred` audit-log type** added to `scripts/audit_log.py` `VALID_TYPES` + color mapping (yellow). Registered in `/log` command doc + CLAUDE.md § Audit log table.
+- **DOCUMENTATION.md §6.1 paragraph** documenting the new checkpoint discipline at the end of the "What 'build' actually means" section: tag lists, verdict-gates-the-flip rule, catch-up-sweep cadence, backend→frontend pre-transition, opt-out + audit-log mechanics.
+- **`/start-build` + `/continue-build` orchestrator prompts updated** to instruct the engineer to check `pending-reviews:` + per-subsystem review flags BEFORE resuming any new implementation work — resolve outstanding reviews first per build-status-methodology.md §6.
+
+### Changed
+
+- **`build-status-methodology.md` §6 → §7, §7 → §8, §8 → §9** (renumbered to make room for the new §6).
+- **CLAUDE.md § Audit log table** gained a `review-deferred` row.
+
+### Notes
+
+- **Affects every future product build** in this workspace, not just ops-audit-agent. The methodology is stack-agnostic — applies to web, mobile, desktop equally.
+- **Opt-out is per-subsystem + per-reviewer, NEVER global.** The catch-up sweep at every 5th flip runs on deferred subsystems too — the workspace's safety net.
+- **For ops-audit-agent specifically:** §6.7 spells out the one-time recovery — user invokes the orchestrator with "Run a one-time catch-up sweep on MH #6 to MH #10 that shipped without review" and the orchestrator runs `senior-security-engineer` + `senior-qa-engineer` in build-phase review mode scoped to that range. Findings flow back as if they were per-subsystem reviews.
+- **No product-folder edits.** This is a workspace-methodology change. Existing `BUILD_STATUS.md` files at active products are unaffected; the new discipline applies to all subsequent build progression. Existing products without the new frontmatter fields default to: `pending-reviews: []`, `completed-subsystems-since-sweep: 0`, `security-review-required: false`, `qa-review-required: false`, `review-deferred: false`.
+- **CLAUDE.md sized down to 39,996 chars** (was 40,173 after the audit-log row addition) via tightening the `build-milestone` and `rework-applied` row prose. No information loss.
+- **Tests:** 161/161 pass. **Lint:** clean.
+
 ## [0.12.9] - 2026-06-09
 
 Same-day patch on top of v0.12.8. v0.12.7's `ACTION_REQUIRED.md` format was simpler than what the user actually wanted in practice. Updated based on the user's own canonical example file at `web-apps/ops-audit-agent/ACTION_REQUIRED.md`.
@@ -619,7 +648,8 @@ This is a **minor version bump** (0.4.x → 0.5.0), not a patch — it adds a pe
 - Stack-flexibility framing: workspace defaults are dockerized Flask + RN, but the methodologies are stack-agnostic and `/scope-mvp` asks the user to confirm the stack before drafting.
 - Internet access policy: `WebFetch` and `WebSearch` pre-approved in `.claude/settings.json`; permission only requested for non-HTTPS, suspicious, paid, or user-private URLs.
 
-[Unreleased]: https://github.com/aanifowose111/discovery-to-ship-multi-agents/compare/v0.12.9...HEAD
+[Unreleased]: https://github.com/aanifowose111/discovery-to-ship-multi-agents/compare/v0.13.0...HEAD
+[0.13.0]: https://github.com/aanifowose111/discovery-to-ship-multi-agents/compare/v0.12.9...v0.13.0
 [0.12.9]: https://github.com/aanifowose111/discovery-to-ship-multi-agents/compare/v0.12.8...v0.12.9
 [0.12.8]: https://github.com/aanifowose111/discovery-to-ship-multi-agents/compare/v0.12.7...v0.12.8
 [0.12.7]: https://github.com/aanifowose111/discovery-to-ship-multi-agents/compare/v0.12.6...v0.12.7

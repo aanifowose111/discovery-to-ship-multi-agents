@@ -64,6 +64,7 @@ Claude writes entries on these events without being asked:
 | Project initialized via `/start-build`, `BUILD_STATUS.md` subsystem flips to `[x]`, ready-to-deploy state reached, or app shipped via `/ship-app` | `build-milestone` | `.claude/commands/start-build.md`, `.claude/commands/ship-app.md`, `.claude/agents/senior-software-engineer.md` |
 | User commits a rework via `/rework <slug> <changes>` (with override list + justifications if any REJECTs were overridden) | `rework-applied` | `.claude/commands/rework.md` |
 | User commits a consolidation via `/consolidate <slug>` (after re-review of the consolidated artifacts) | `consolidation-applied` | `.claude/commands/consolidate.md` |
+| Orchestrator skips a per-subsystem security or QA review because user marked `review-deferred: true` on that subsystem with a reason | `review-deferred` | `.claude/agents/senior-software-engineer.md` § Reviewer routing |
 
 `/log` itself is the only entry point for `user-note`.
 
